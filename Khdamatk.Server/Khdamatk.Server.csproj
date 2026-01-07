@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <SpaRoot>..\khdamatk.client</SpaRoot>
-    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
-    <SpaProxyServerUrl>https://localhost:2876</SpaProxyServerUrl>
+	<TargetFramework>net9.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<SpaRoot>..\khdamatk.client</SpaRoot>
+	<SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+	<SpaProxyServerUrl>https://localhost:2876</SpaProxyServerUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<NoWarn>$(NoWarn);1591</NoWarn>
 	  <NoWarn>$(NoWarn);EFCore.PendingModelChangesWarning</NoWarn>
@@ -14,10 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
-      <Version>8.*-*</Version>
-    </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	<PackageReference Include="Microsoft.AspNetCore.SpaProxy">
+	  <Version>8.*-*</Version>
+	</PackageReference>
+	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	<PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
 	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
 	<PackageReference Include="AspNetCore.HealthChecks.Hangfire" Version="9.0.0" />
@@ -54,18 +54,18 @@
 	
 
   <ItemGroup>
-    <ProjectReference Include="..\khdamatk.client\khdamatk.client.esproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
+	<ProjectReference Include="..\khdamatk.client\khdamatk.client.esproj">
+	  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+	</ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configurations\Documentations\OpenApi\" />
-    <Folder Include="Configurations\Documentations\Scalar\" />
-    <Folder Include="Configurations\Documentations\Swagger\" />
-    <Folder Include="Configurations\Logging\" />
-    <Folder Include="Configurations\Validations\" />
-    <Folder Include="wwwRoot\Images\" />
+	<Folder Include="Configurations\Documentations\OpenApi\" />
+	<Folder Include="Configurations\Documentations\Scalar\" />
+	<Folder Include="Configurations\Documentations\Swagger\" />
+	<Folder Include="Configurations\Logging\" />
+	<Folder Include="Configurations\Validations\" />
+	<Folder Include="wwwRoot\Images\" />
   </ItemGroup>
 
 </Project>
