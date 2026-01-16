@@ -8,11 +8,11 @@ import SetNewPassword from './Pages/SetNewPassword/SetNewPassword';
 function App() {
     return (
         <>
-            {/* <Signup/> */}
+            <Signup/>
             {/* <Login/> */}
             {/* <ForgetPassword/> */}
             {/* <VerifyCode/> */}
-            <SetNewPassword/>
+            {/* <SetNewPassword/> */}
         </>
     );
 }
