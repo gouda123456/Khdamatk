@@ -1,24 +1,24 @@
-import React from 'react'
+import React, { useState } from 'react'
 import logoPhoto from '../../assets/Images/Logo.png'
 import SocialButtons from '../../Components/SocialButtons/SocialButtons'
-import { faEyeSlash } from '@fortawesome/free-regular-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import { faEyeSlash } from '@fortawesome/free-regular-svg-icons'
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
 import axios from 'axios'
+import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
 
 export default function Signup() {
-    const regexFirstName = /^([A-Z][a-z]*)([ _-][A-Z][a-z]*)*$/
-
-    const regexLastName=/^([A-Z][a-z]*)([ _-][A-Z][a-z]*)*$/
-    const regexEmail=/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/
+     const navigate=useNavigate();
+     const [isExistError,setIsExistError]=useState(null)
     const regexpassword=/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/
     const regexEgyptPhone = /^01[0125][0-9]{8}$/
 
     const  validationSchema= yup.object({
-       userName: yup.string().required("Name is required").matches(regexFirstName, "Each word must start with a Capital letter. Only letters, - and _ allowed").min(3, "Name must be at least 3 characters").max(15, "Name must be at most 15 characters"),
-       lastName: yup.string().required("Last name is required").matches(regexLastName, "Each word must start with a Capital letter. Only letters, - and _ allowed").min(3, "Last name must be at least 3 characters").max(15, "Last name must be at most 15 characters"),
-       email: yup.string().email("Invalid email address").required("Email is required").matches(regexEmail, "Enter a valid email address (user@example.com)"),
+       userName: yup.string().required("Name is required").min(3, "Name must be at least 3 characters").max(15, "Name must be at most 15 characters"),
+       lastName: yup.string().required("Last name is required").min(3, "Last name must be at least 3 characters").max(15, "Last name must be at most 15 characters"),
+       email: yup.string().email("Invalid email address").required("Email is required"),
        password: yup.string().min(8, "Password must be at least 8 characters").required("Password is required").matches(regexpassword,"Password must have eight characters, at least one upper case English letter, one lower case English letter, one number and one special character"),
        rePassword: yup.string().oneOf([yup.ref("password")], "Passwords must match").required("Please confirm your passeord"),
        phone: yup.string().matches(regexEgyptPhone, "Phone number must be a valid Egyption number").required("Phone number is required"),
@@ -26,23 +26,31 @@ export default function Signup() {
        
     })
      async function handleSignUp(values){
-        // try {
-        //     const optain={
-        //         method:"POST",
-        //         url:'https://localhost:7210/Auth/Register',
-        //         data:{
-        //             userName:values.userName,
-        //             email:values.email,
-        //             password:values.password
-        //         }
-        //     }
-        //     const x= await axios.request(optain)
-        //     console.log(x)
-        // } catch (error) {
-        //     throw error
-        // }
-        console.log(values)
         
+        try {
+            const optain={
+                method:"POST",
+                url:'https://localhost:7210/Auth/Register',
+                data:{
+                    userName:values.userName,
+                    email:values.email,
+                    password:values.password
+                }
+            }
+            const {data}= await axios.request(optain)
+            console.log(data)
+            if(data.isSuccess){
+                toast("Your account has been created✅")
+                setTimeout(()=>{
+                    navigate('/login')
+                },3000)
+                
+                
+            }
+        } catch (error) {
+            console.log(error)
+            setIsExistError(error.response.data.message)
+        }   
     }
     const formik=useFormik({
         initialValues:{
@@ -91,6 +99,7 @@ export default function Signup() {
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm text-gray-500'>Email</span>
                             <input type='email' className='form-control' name='email' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
                             {formik.touched.email && formik.errors.email &&(<p className='text-red-500 text-sm'>{formik.errors.email}</p>)}
+                            {isExistError && (<p className='text-red-500'>{isExistError}</p>)}
                         
                            </div>
                             <div className='relative w-1/2'>

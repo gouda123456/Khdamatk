@@ -4,7 +4,8 @@
     --color-primary-button-hover:#4B0082;
     --color-input-hover:#4B0082;
     --color-input-focus:#4B0082;
-    --color-input-shadow:#4B0082
+    --color-input-shadow:#4B0082;
+    --color-primary-button:#4B0082
 } 
 @layer base{
     /* body {
