@@ -27,8 +27,10 @@ if (app.Environment.IsDevelopment())
 
 }
 
+
 app.UseMiddleware<GlobalErrorHandling>();
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
