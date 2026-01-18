@@ -1,12 +1,30 @@
 @import "tailwindcss";
-@theme{
-    --color-primary-button:#37006B;
-    --color-primary-button-hover:#4B0082;
-    --color-input-hover:#4B0082;
-    --color-input-focus:#4B0082;
-    --color-input-shadow:#4B0082;
-    --color-primary-button:#4B0082
+@theme{ 
+    --color-Purple-50:#F3E8FF;
+    --color-Purple-100:#E9D5FF;
+    --color-Purple-200:#D8B4FE;
+    --color-Purple-300:#C084FC;
+    --color-Purple-400: #A855F7;
+    --color-Purple-500: #4B0082; 
+    --color-Purple-600:#6D28D9;
+    --color-Purple-700:#5B21B6;
+    --color-Purple-800:#4C1D95;
+    --color-Purple-900:#2E1065;
+    --color-Purple-950:#1A072F;
+    
 } 
+/* 50   #F3E8FF
+100  #E9D5FF
+200  #D8B4FE
+300  #C084FC
+400  #A855F7
+500  #4B0082
+600  #6D28D9
+700  #5B21B6
+800  #4C1D95
+900  #2E1065
+950  #1A072F */
+
 @layer base{
     /* body {
             font-family: 'Cairo Variable', 'Tajawal', sans-serif;
@@ -41,12 +59,12 @@
 }
 @layer components{
    .form-control {
-    @apply w-full rounded-lg border border-gray-300 px-4 py-3 text-sm hover:border-input-hover hover:shadow-input-shadow transition duration-200 focus:outline-none focus:border-input-focus focus:shadow-input-shadow ;
+    @apply w-full rounded-lg border border-gray-300 px-4 py-3 text-sm hover:border-Purple-700 hover:shadow-Purple-950 transition duration-200 focus:outline-none focus:border-purple-400 focus:shadow-purple-400 ;
     
    }
 
    .btn {
-    @apply  w-full px-4 py-2 rounded-lg bg-primary-button  font-semibold hover:bg-primary-button-hover transition-colors duration-200;
+    @apply  w-full px-4 py-2 rounded-lg bg-purple-800  font-semibold hover:bg-Purple-700 transition-colors duration-200;
    }
 }
  input:-webkit-autofill,

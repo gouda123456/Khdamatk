@@ -3,6 +3,7 @@ import homePhoto from '../../assets/Images/Home.png'
 import { faFileInvoiceDollar, faPhoneVolume, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons'
 import TestimonialCard from '../../Components/TestimonialCard/TestimonialCard'
+import WhyChooesUs from '../../Components/WhyChooesUs/WhyChooesUs'
  
 
 export default function Home() {
@@ -23,7 +24,7 @@ export default function Home() {
       </p>
       {/* Contact buttons */}
       <div className='flex items-center gap-3' >
-        <button className='btn w-fit bg-primary-button text-white'>post jop </button>
+        <button className='btn w-fit bg-Purple-800 text-white'>post jop </button>
         <button className='btn w-fit bg-amber-500 text-white'>Get A jop</button>
 
       </div>
@@ -39,29 +40,45 @@ export default function Home() {
     <h2 className='font-bold text-3xl text-center'>Why Hire Freelancers Through khadma hub</h2>
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8'>
        {/* Dedicated Support */}
-    <div className='text-center'>
-      <FontAwesomeIcon className='text-lg' icon={faPhoneVolume} />
-      <h3 className=' text-black font-bold'>Dedicated Support</h3>
-      <h4 className='text-sm'>Managers are always there to help you out with any kind of challanges</h4>
-    </div>
+     <div className="bg-white p-6 rounded-xl shadow-sm text-center space-y-4">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-purple-100 text-purple-700">
+             <FontAwesomeIcon className='text-lg' icon={faPhoneVolume} />
+            </div>
+            <h3 className="font-semibold text-lg">Dedicated Support</h3>
+            <p className="text-sm text-gray-600">
+             Managers are always there to help you out with any kind of challanges
+            </p>
+          </div>
       {/* Pay Safe */}
-    <div className='text-center'>
-      <FontAwesomeIcon icon={faShieldHalved} className='text-lg'/>
-      <h3  className=' text-black font-bold'>Pay Safe</h3>
-      <h4  className='text-sm '>holds the money you pay to the Freelancers in Safe Deposit until the work is completed </h4>
-    </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm text-center space-y-4">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-purple-100 text-purple-700">
+             <FontAwesomeIcon icon={faShieldHalved} className='text-lg'/>
+            </div>
+            <h3 className="font-semibold text-lg">Pay Safe</h3>
+            <p className="text-sm text-gray-600">
+            holds the money you pay to the Freelancers in Safe Deposit until the work is completed
+            </p>
+          </div>
        {/* Get Taxable Invoices */}
-    <div className='text-center'>
-      <FontAwesomeIcon icon={faFileInvoiceDollar} className='text-lg'/>
-      <h3  className=' text-black font-bold'>Get Taxable Invoices</h3>
-      <h4  className='text-sm'>Receive taxable invoices through elharefa for the job done by the freelancer.</h4>
-    </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm text-center space-y-4">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-purple-100 text-purple-700">
+            <FontAwesomeIcon icon={faFileInvoiceDollar} className='text-lg'/>
+            </div>
+            <h3 className="font-semibold text-lg">Get Taxable Invoices</h3>
+            <p className="text-sm text-gray-600">
+           Receive taxable invoices through elharefa for the job done by the freelancer.
+            </p>
+          </div>
        {/*Guaranteed Satisfaction */}
-    <div className='text-center'>
-     <FontAwesomeIcon icon={faCircleCheck} className='text-lg'/>
-      <h3  className=' text-black font-bold'>Guaranteed Satisfaction</h3>
-      <h4  className='text-sm'>We're incredibly proud of our freelancers. With so many happy </h4>
-    </div>
+       <div className="bg-white p-6 rounded-xl shadow-sm text-center space-y-4">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-purple-100 text-purple-700">
+           <FontAwesomeIcon icon={faCircleCheck} className='text-lg'/>
+            </div>
+            <h3 className="font-semibold text-lg">Guaranteed Satisfaction</h3>
+            <p className="text-sm text-gray-600">
+          We're incredibly proud of our freelancers. With so many happy
+            </p>
+          </div>
     </div>
    </div>
    
@@ -91,6 +108,7 @@ export default function Home() {
 
 </div>
 
+
   </div>
   
   
@@ -103,7 +121,7 @@ export default function Home() {
   
   
   
-  
+  <WhyChooesUs/>
   
   </>
   )

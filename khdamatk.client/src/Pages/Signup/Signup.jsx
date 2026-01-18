@@ -8,6 +8,7 @@ import * as yup from 'yup'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
+import WhyChooesUs from '../../Components/WhyChooesUs/WhyChooesUs'
 
 export default function Signup() {
      const navigate=useNavigate();
@@ -115,9 +116,6 @@ export default function Signup() {
                             <div className='relative '>
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm  text-gray-500'>Password</span>
                             <input type='password' className='form-control pr-10' name='password' value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
-                            {/* <span className='absolute right-4 top -translate-y-1/2'>
-                                 <FontAwesomeIcon icon={faEyeSlash} />
-                            </span> */}
                             {formik.touched.password && formik.errors.password ?(<p className='text-red-500 text-sm'>{formik.errors.password}</p>):
                             (<p>Must be at least 8 characters with number and symbols</p>)}
 
@@ -171,6 +169,7 @@ export default function Signup() {
         </div>
     </div>
 </div>
+<WhyChooesUs/>
 
 
 

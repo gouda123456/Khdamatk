@@ -4,7 +4,7 @@ export default function TestimonialCard() {
   return (
      <div>
         <div className=" flex items-center justify-center mb-4">
-            <div className="card w-72 text-center  border border-primary-button rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 ">
+            <div className="card w-72 text-center  border border-Purple-300 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 ">
                
                 <div>
                       <img src={photo} className='size-14 object-cover rounded-full mx-auto mb-3'/>
