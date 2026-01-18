@@ -2,6 +2,27 @@ import React from 'react'
 
 export default function Footer() {
   return (
-    <div>Footerlzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz</div>
+     <>
+     <div className="container">
+      <div>
+        
+      </div>
+
+     </div>
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     </>
   )
 }
