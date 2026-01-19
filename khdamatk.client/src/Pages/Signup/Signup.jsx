@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import logoPhoto from '../../assets/Images/Logo.png'
 import SocialButtons from '../../Components/SocialButtons/SocialButtons'
-// import { faEyeSlash } from '@fortawesome/free-regular-svg-icons'
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
 import axios from 'axios'
@@ -12,7 +12,10 @@ import WhyChooesUs from '../../Components/WhyChooesUs/WhyChooesUs'
 
 export default function Signup() {
      const navigate=useNavigate();
+     const [usernameError, setUsernameError] = useState(null);
      const [isExistError,setIsExistError]=useState(null)
+    const [isShownPassword,setIsShownPassword]=useState(false)
+    const [isShownConPassword,setIsShownConPassword]=useState(false)
     const regexpassword=/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/
     const regexEgyptPhone = /^01[0125][0-9]{8}$/
 
@@ -49,6 +52,10 @@ export default function Signup() {
                 
             }
         } catch (error) {
+            if(error.response.data.errors[0].title === "DuplicateUserName"){
+                setUsernameError(error.response.data.errors[0].message)
+
+            }
             console.log(error)
             setIsExistError(error.response.data.message)
         }   
@@ -67,6 +74,17 @@ export default function Signup() {
         validationSchema,
         onSubmit:handleSignUp
     })
+     function togglePasswordVisibility(){
+        setIsShownPassword(!isShownPassword)
+    }
+    function toggleConPasswordVisibility(){
+   setIsShownConPassword(!isShownConPassword)
+}
+     function handleChange(e){
+        setIsExistError("")
+        setUsernameError("")
+        formik.handleChange(e)
+    }
   return (
 <>
 <div>
@@ -85,8 +103,10 @@ export default function Signup() {
                        <div className=' flex gap-2'>
                         <div className="First-Name  relative w-1/2">
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm  text-gray-500'>First Name</span>
-                            <input type='text' className='form-control' name='userName' value={formik.values.userName} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+                            <input type='text' className='form-control' name='userName' value={formik.values.userName} onChange={handleChange} onBlur={formik.handleBlur}/>
                             {formik.touched.userName && formik.errors.userName &&(<p className='text-red-500 text-sm'>{formik.errors.userName}</p>)}
+                            {usernameError && (<p className='text-red-500 text-sm'>{usernameError}</p>)}
+
                         </div>
                         <div className="Last-Name relative w-1/2">
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm  text-gray-500'>Last Name</span>
@@ -98,9 +118,9 @@ export default function Signup() {
                          <div className=' flex gap-2'>
                              <div className='relative w-1/2'>
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm text-gray-500'>Email</span>
-                            <input type='email' className='form-control' name='email' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+                            <input type='email' className='form-control' name='email' value={formik.values.email} onChange={handleChange} onBlur={formik.handleBlur}/>
                             {formik.touched.email && formik.errors.email &&(<p className='text-red-500 text-sm'>{formik.errors.email}</p>)}
-                            {isExistError && (<p className='text-red-500'>{isExistError}</p>)}
+                            {isExistError && (<p className='text-red-500 text-sm'>{isExistError}</p>)}
                         
                            </div>
                             <div className='relative w-1/2'>
@@ -111,28 +131,25 @@ export default function Signup() {
                            </div>
                          </div>
 
-                           {/* Password field */}
-                           
-                            <div className='relative '>
-                            <span className='absolute left-4 -top-3 bg-white px-2 text-sm  text-gray-500'>Password</span>
-                            <input type='password' className='form-control pr-10' name='password' value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
-                            {formik.touched.password && formik.errors.password ?(<p className='text-red-500 text-sm'>{formik.errors.password}</p>):
-                            (<p>Must be at least 8 characters with number and symbols</p>)}
-
-                        
+                             <div className='relative'>
+                        <span className='bg-white px-2  absolute left-4 -top-3 text-sm text-gray-500'>Password</span>
+                            <input  type={isShownPassword ? "text" : "password"} className='form-control' name='password' value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+                             <button   type="button"  onClick={togglePasswordVisibility} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-800'>
+                                   {isShownPassword ? ( <FontAwesomeIcon icon={faEyeSlash} />) : (<FontAwesomeIcon icon={faEye} />)}
+                            </button>
                            </div>
-   
-
+                             {formik.touched.password && formik.errors.password ?(<p className='text-red-500 text-sm'>{formik.errors.password}</p>):
+                            (<p className='-mt-5'>Must be at least 8 characters with number and symbols</p>)}
                              {/* Confirm-Password field */}
                              <div className='space-y-2'>
-                                 <div className='relative'>
-                                  <span className='absolute left-4 -top-3 bg-white px-2 text-sm  text-gray-500'>Confirm-Password</span>
-                            <input type='password' className='form-control' name='rePassword' value={formik.values.rePassword} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
-                              {/* <span className='absolute right-4 top-1/2 transform -translate-y-1/2'>
-                                 <FontAwesomeIcon icon={faEyeSlash} />
-                            </span> */}
+                                  <div className='relative'>
+                        <span className='bg-white px-2  absolute left-4 -top-3 text-sm text-gray-500'>Password</span>
+                           <input  type={ isShownPassword  ? "text" : "password"} className='form-control' name='rePassword' value={formik.values.rePassword} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+                            <button   type="button"  onClick={toggleConPasswordVisibility} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-800'>
+                            {isShownConPassword  ? ( <FontAwesomeIcon icon={faEyeSlash} />) : (<FontAwesomeIcon icon={faEye} />)}
+                            </button>
+                           </div>
                                {formik.touched.rePassword && formik.errors.rePassword &&(<p className='text-red-500 text-sm'>{formik.errors.rePassword}</p>)}
-                             </div>
                               {/* terms and conditions */}
                              <div>
                                 <div className='flex gap-2'>

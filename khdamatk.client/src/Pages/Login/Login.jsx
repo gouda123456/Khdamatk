@@ -1,19 +1,21 @@
 import { Link } from 'react-router-dom'
 import logoPhoto from '../../assets/Images/Logo.png'
 import SocialButtons from '../../Components/SocialButtons/SocialButtons'
-import { faEyeSlash } from '@fortawesome/free-regular-svg-icons'
+import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
 import axios from 'axios'
-// import { toast } from 'react-toastify'
+import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
-// import { useState } from 'react'
+import { use, useState } from 'react'
 
 export default function Login() {
 
      const navigate=useNavigate();
-    //  const [isExistError,setIsExistError]=useState(null)
+     const [isExistError,setIsExistError]=useState(null)
+     const [isExistErrorEmail, setIsExistErrorEmail]=useState(null)
+     const [isShownPassword,setIsShownPassword]=useState(false)
     const regexpassword=/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/
      
 
@@ -37,7 +39,7 @@ export default function Login() {
             const {data}= await axios.request(optain)
             console.log(data)
             if(data.isSuccess){
-                toast("ًWelcome Back✅")
+                toast("ًWelcome Back")
                 setTimeout(()=>{
                     navigate('/')
                 },3000)
@@ -45,8 +47,18 @@ export default function Login() {
                 
             }
         } catch (error) {
-              console.log(error.response.data);
-            // setIsExistError(error.response.data.message)
+              console.log(error);
+              if(error.response.data.errors[0].title === "InvalidPassword"){
+                 setIsExistError(error.response.data.errors[0].message)
+                 setIsExistErrorEmail(null)
+                  
+                 
+              }
+               
+          else if(error.response.data.errors[0].title === "UserNotFound"){
+            setIsExistErrorEmail(error.response.data.errors[0].message)
+            setIsExistError(null)
+          }
         }   
     }
     const formik=useFormik({
@@ -59,6 +71,14 @@ export default function Login() {
         validationSchema,
         onSubmit:handleLogin
     })
+    function togglePasswordVisibility(){
+        setIsShownPassword(!isShownPassword)
+    }
+     function handleChange(e){
+        setIsExistError("")
+        setIsExistErrorEmail("")
+        formik.handleChange(e)
+    }
   return (
 <>
 <div>
@@ -77,8 +97,10 @@ export default function Login() {
                          <div className=' flex gap-2'>
                              <div className='relative w-full'>
                             <span className='absolute left-4 -top-3 bg-white px-2 text-sm text-gray-500'>Email</span>
-                            <input type='email' className='form-control' name='email' value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
+                            <input type='email' className='form-control' name='email' value={formik.values.email} onChange={handleChange} onBlur={formik.handleBlur}/>
                             {formik.touched.email && formik.errors.email &&(<p className='text-red-500 text-sm mt-1'>{formik.errors.email}</p>)}
+                            {isExistErrorEmail && (<p className='text-red-500'>{isExistErrorEmail}</p>)}
+
                         
                            </div>
                             
@@ -86,12 +108,13 @@ export default function Login() {
                            {/* Password field */} 
                            <div className='relative'>
                         <span className='bg-white px-2  absolute left-4 -top-3 text-sm text-gray-500'>Password</span>
-                            <input type='password' className='form-control' name='password' value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur}/>
-                            <button className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-800'>
-                                  <FontAwesomeIcon icon={faEyeSlash} />
+                            <input type={isShownPassword ? "text" : "password"} className='form-control' name='password' value={formik.values.password} onChange={handleChange} onBlur={formik.handleBlur}/>
+                            <button   type="button"  onClick={togglePasswordVisibility} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-800'>
+                                   {isShownPassword ? ( <FontAwesomeIcon icon={faEyeSlash} />) : (<FontAwesomeIcon icon={faEye} />)}
                             </button>
                            </div>
                             {formik.touched.password && formik.errors.password &&(<p className='text-red-500 text-sm -mt-3'>{formik.errors.password}</p>)}
+                            {isExistError && (<p className='text-red-500 -mt-3 text-sm'>{isExistError}</p>)}
                              {/* terms and conditions */}
                              <div className='flex justify-between items-center -mt-3'>
                                  <div className='flex  gap-1 '>

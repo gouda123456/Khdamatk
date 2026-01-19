@@ -4,6 +4,7 @@ import { faFileInvoiceDollar, faPhoneVolume, faShieldHalved } from '@fortawesome
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons'
 import TestimonialCard from '../../Components/TestimonialCard/TestimonialCard'
 import WhyChooesUs from '../../Components/WhyChooesUs/WhyChooesUs'
+import FreelancerCard from '../../Components/FreelancerCard/FreelancerCard'
  
 
 export default function Home() {
@@ -87,7 +88,15 @@ export default function Home() {
 {/* ===== Platform Features ===== */}
 <div></div>
 {/* ===== Top Freelancers: Our Top-Rated Freelancers ===== */}
-<div></div>
+<div className='space-y-6 p-4'>
+  <h2 className='font-bold text-3xl text-center'>Our Top-Rated Freelancers</h2>
+  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
+    <FreelancerCard/>
+    <FreelancerCard/>
+    <FreelancerCard/>
+    <FreelancerCard/>
+  </div>
+</div>
 {/* ===== Testimonials: Hear from Our Clients ===== */}
 <div>
   <div  className='space-y-6 p-4'>
