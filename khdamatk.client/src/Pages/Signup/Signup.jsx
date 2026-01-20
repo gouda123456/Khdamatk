@@ -9,6 +9,8 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
 import WhyChooesUs from '../../Components/WhyChooesUs/WhyChooesUs'
+import { API_CONFIG } from '../../Config'
+import { sendDataToSignup } from '../../Services/auth-services'
 
 export default function Signup() {
      const navigate=useNavigate();
@@ -32,21 +34,12 @@ export default function Signup() {
      async function handleSignUp(values){
         
         try {
-            const optain={
-                method:"POST",
-                url:'https://localhost:7210/Auth/Register',
-                data:{
-                    userName:values.userName,
-                    email:values.email,
-                    password:values.password
-                }
-            }
-            const {data}= await axios.request(optain)
-            console.log(data)
-            if(data.isSuccess){
+            
+            const response= await sendDataToSignup(values)
+            if(response.isSuccess){
                 toast("Your account has been created✅")
                 setTimeout(()=>{
-                    navigate('/login')
+                    navigate('/confirm-email')
                 },3000)
                 
                 

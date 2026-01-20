@@ -8,7 +8,9 @@ import * as yup from 'yup'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
-import { use, useState } from 'react'
+import { useState } from 'react'
+import { API_CONFIG} from '../../Config'
+import { sendDataToLogin } from '../../Services/auth-services'
 
 export default function Login() {
 
@@ -28,17 +30,10 @@ export default function Login() {
      async function handleLogin(values){
         
         try {
-            const optain={
-                method:"POST",
-                url:`https://localhost:7210/Auth`,
-                data:{
-                    email:values.email,
-                    password:values.password
-                }
-            }
-            const {data}= await axios.request(optain)
-            console.log(data)
-            if(data.isSuccess){
+             
+             
+            const response= await sendDataToLogin(values)
+            if(response.isSuccess){
                 toast("ًWelcome Back")
                 setTimeout(()=>{
                     navigate('/')
