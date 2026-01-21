@@ -147,6 +147,12 @@ public static class FailureMessages
         public const string Message = "The data could not be retrieved. Please try again.";
     }
 
+    public static class NotImplemented
+    {
+        public const string Title = "Not Implemented";
+        public const string Message = "This feature is not implemented yet.";
+    }
+
     // ✅ تنفع لأي حالة فشل عامة
     public static class General
     {
