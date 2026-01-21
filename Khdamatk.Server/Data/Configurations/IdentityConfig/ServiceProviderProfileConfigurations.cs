@@ -5,9 +5,6 @@ public class ServiceProviderProfileConfigurations : IEntityTypeConfiguration<Ser
 {
     public void Configure(EntityTypeBuilder<ServiceProviderProfile> builder)
     {
-        builder.HasOne(sp => sp.ProfilePicture)
-            .WithOne()
-            .HasForeignKey<ServiceProviderProfile>(sp => sp.ProfilePictureId)
-            .OnDelete(DeleteBehavior.SetNull);
+        
     }
 }
