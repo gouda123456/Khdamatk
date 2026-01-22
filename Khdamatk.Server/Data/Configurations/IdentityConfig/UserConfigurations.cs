@@ -6,6 +6,9 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
     {
         builder.HasData(DefaultUsersData.Admin, DefaultUsersData.Member);
 
-        
+        builder.HasOne(u => u.ProfilePicture)
+            .WithOne()
+            .HasForeignKey<User>(u => u.ProfilePictureId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
