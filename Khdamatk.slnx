@@ -2,9 +2,5 @@
   <Folder Name="/Solution Items/">
     <File Path="Documentations/Entities.docx" />
   </Folder>
-  <Project Path="khdamatk.client/khdamatk.client.esproj">
-    <Build />
-    <Deploy />
-  </Project>
   <Project Path="Khdamatk.Server/Khdamatk.Server.csproj" />
 </Solution>
