@@ -41,7 +41,9 @@ export default function Login() {
                 
                 
             }
-        } catch (error) {
+        }
+         catch (error) {
+
               console.log(error);
               if(error.response.data.errors[0].title === "InvalidPassword"){
                  setIsExistError(error.response.data.errors[0].message)
@@ -54,8 +56,17 @@ export default function Login() {
             setIsExistErrorEmail(error.response.data.errors[0].message)
             setIsExistError(null)
           }
+           else {
+    setIsExistError("Server not responding, try again later");
+    setIsExistErrorEmail(null);
+  }
         }   
+ 
+
     }
+ 
+
+
     const formik=useFormik({
         initialValues:{
             email: '',

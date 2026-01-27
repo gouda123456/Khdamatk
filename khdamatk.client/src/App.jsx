@@ -9,7 +9,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './Components/Layout/Layout';
 import Home from './Pages/Home/Home';
 import NotFound from './Pages/NotFound/NotFound';
-import ConfirmEmail from './Pages/ConfirmEmail/ConfirmEmail';
+import SendConfirmEmail from './Pages/SendConfirmEmail/SendConfirmEmail';
+
 
 function App() {
     const router=createBrowserRouter([
@@ -42,9 +43,10 @@ function App() {
                 element:<SetNewPassword/>
               },
                {
-                path:'confirm-email',
-                element:<ConfirmEmail/>
+                path:'send-confirm-email',
+                element:<SendConfirmEmail/>
               },
+               
               {
                 path:'*',
                 element:<NotFound/>
