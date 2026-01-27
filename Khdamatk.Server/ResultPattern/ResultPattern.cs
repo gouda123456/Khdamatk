@@ -147,6 +147,72 @@ public static class FailureMessages
         public const string Message = "The data could not be retrieved. Please try again.";
     }
 
+    public static class Validation
+    {
+        public const string Title = "Validation Error";
+        public const string Message = "One or more validation errors occurred. Please check the error details.";
+    }
+
+    public static class Unauthorized
+    {
+        public const string Title = "Unauthorized";
+        public const string Message = "You are not authorized to perform this action.";
+    }
+
+    public static class NotFound
+    {
+        public const string Title = "Not Found";
+        public const string Message = "The requested resource could not be found.";
+    }
+    
+    public static class DataNotFound
+    {
+        public const string Title = "Data Not Found";
+        public const string Message = "The requested data could not be found.";
+    }
+
+    public static class DataNotAvailable
+    {
+        public const string Title = "Data Not Available";
+        public const string Message = "The requested data is not available.";
+    }
+
+    public static class Conflict
+    {
+        public const string Title = "Conflict";
+        public const string Message = "A conflict occurred with the current state of the resource.";
+    }
+
+    public static class Forbidden
+    {
+        public const string Title = "Forbidden";
+        public const string Message = "You do not have permission to access this resource.";
+    }
+
+    public static class BadRequest
+    {
+        public const string Title = "Bad Request";
+        public const string Message = "The request could not be understood or was missing required parameters.";
+    }
+
+    public static class InternalServerError
+    {
+        public const string Title = "Internal Server Error";
+        public const string Message = "An unexpected error occurred on the server. Please try again later.";
+    }
+
+    public static class ServiceUnavailable
+    {
+        public const string Title = "Service Unavailable";
+        public const string Message = "The service is currently unavailable. Please try again later.";
+    }
+
+    public static class Timeout
+    {
+        public const string Title = "Request Timeout";
+        public const string Message = "The request has timed out. Please try again.";
+    }
+
     public static class NotImplemented
     {
         public const string Title = "Not Implemented";
