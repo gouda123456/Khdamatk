@@ -21,7 +21,15 @@ public static class DependancyInjections
         services.AddEmailHelper(configuration);
 
 
+        services.AddAppServices();
+        return services;
+    }
 
+    public static IServiceCollection AddAppServices(this IServiceCollection services)
+    {
+        
+        services.AddScoped<IHomeService, HomeService>();
+        services.AddScoped<IFileManagement, FileManagement>();
         return services;
     }
 

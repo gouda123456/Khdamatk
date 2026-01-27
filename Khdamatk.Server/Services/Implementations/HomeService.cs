@@ -27,8 +27,10 @@ public class HomeService(Database db) : IHomeService
             u.User.UserName?? "UnKnown",
             u.JobTitle,
             u.HourlyRate,
-            u.Skills.Select(s => s.Name).ToList()?? new List<string>() {"there are no skill" }))
+            u.Skills.Select(s => s.Name)
+            .ToList()?? new List<string>() {"there are no skill" }))
             .Take(10)
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         var ClientReviewCard = await db.Reviews.Include(r => r.Reviewer)
@@ -38,7 +40,23 @@ public class HomeService(Database db) : IHomeService
             r.Content,
             r.Rating,
             "Client")
-            ).Take(5).ToListAsync();
+            ).Take(5)
+            .AsNoTracking()
+            .ToListAsync();
+
+        if (Categories == null || FreelancerCards == null || ClientReviewCard == null)
+        {
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title,FailureMessages.DataNotFound.Message);
+        }
+
+        if (Categories.Count == 0 || FreelancerCards.Count == 0 || ClientReviewCard.Count == 0)
+        {
+            Categories = ["no categories", "no categories2"];
+            FreelancerCards = [new FreelancerCard("string Id",123,"user name", "Jobtitle", 12.5, ["skill1","skill2"]), new FreelancerCard("string Id2", 12, "user name2", "Jobtitle2", 15, ["skil3", "skill4"])];
+            ClientReviewCard = [new (1,"ClientName","review text",4.2), new(2, "ClientName2", "review text2", 3)];
+            return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
+            return Failure(StatusCodes.Status204NoContent, FailureMessages.DataNotAvailable.Title,FailureMessages.DataNotAvailable.Message);
+        }
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
