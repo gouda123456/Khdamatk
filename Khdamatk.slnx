@@ -1,5 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path="../../../Khdamatk - Notion.url" />
+    <File Path="../../../notion.ico" />
     <File Path="../../../Register Process.drawio" />
     <File Path="Documentations/Entities.docx" />
   </Folder>

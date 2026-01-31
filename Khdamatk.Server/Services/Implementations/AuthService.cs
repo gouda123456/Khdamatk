@@ -212,6 +212,44 @@ public class AuthService(
         return Success(StatusCodes.Status200OK, "the email confirmation has been sent successfully", "the email confirmation has been sent successfully check you mail box");
     }
 
+    //TODO: Add ResetPassword Email Template
+    public async Task<resultBase> ForgetPassword(string Email)
+    {
+        if(await userManager.FindByEmailAsync(Email) is { } user)
+        {
+            //generate Password Reset Token
+
+            var code = Generate6DigitCode();
+            //Send Email
+            var body = emailHelper.GetEmailTemplate(EmailTemplatesName.ResetPassword, keyValuePairs: new Dictionary<string, string>
+            {
+                {"name",user.UserName! },
+                {"code" , code.ToString() }
+            });
+            if (string.IsNullOrEmpty(body))
+            {
+                return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
+            }
+            var sender = await emailHelper.SendEmailAsync(user.Email!, "Password Reset", body);
+            if (!sender)
+            {
+                return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
+            }
+
+            return Success(StatusCodes.Status200OK, "Password reset code sent", "Check your email for the password reset code");
+        }
+
+        return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title,FailureMessages.ServiceUnavailable.Message);
+
+    }
+
+    public Task<resultBase> VerifyCode(VerifyCodeRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+
+
     public async Task<bool> SendConfirmEmailAsync(User user, string code)
     {
 
@@ -232,6 +270,12 @@ public class AuthService(
 
         //send email
         return sender;
+    }
+
+    private int Generate6DigitCode()
+    {
+        var random = new Random();
+        return random.Next(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MaxValue +1);
     }
 
     [Obsolete("this method is moved to TokensServices For Better Connectability", true, DiagnosticId = nameof(tokensService))]
@@ -261,4 +305,6 @@ public class AuthService(
             resultRaw.Select(x => x.Permission!).Distinct().ToList());
         return (Roles, Permissions);
     }
+
+    
 }

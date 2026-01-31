@@ -9,7 +9,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseSqlServer(
-                configuration.GetConnectionString("menna"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
