@@ -14,5 +14,5 @@ public class HomeController(IHomeService homeService) : ControllerBase
     {
         var result = await homeService.MainPage(cancellationToken);
         return result.Respond();
-    }
+    } 
 }
