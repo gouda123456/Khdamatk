@@ -3,7 +3,7 @@
 public record MainPage(
     List<string> ServicesCategories,
     List<FreelancerCard> Providers,
-    List<ClientReviewCard> ClientReviews
+    List<ClientReviewCard> ClientReviews 
 );
 
 public record FreelancerCard(
@@ -22,10 +22,3 @@ public record ClientReviewCard(
     double Rating,
     string Jobtitle = "Normal User" 
 );
-
-
-
-
-
-
-

@@ -6,9 +6,6 @@ namespace Khdamatk.Server.Services.Implementations;
 public class HomeService(Database db) : IHomeService
 {
     private readonly Database db = db;
-
-    
-
     //TODO: Send Picture URL instead of PictureId
     //TODO: Implement Caching for this method
     //TODO: Implement Pagination for this method
@@ -63,11 +60,4 @@ public class HomeService(Database db) : IHomeService
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
-
-    public async Task<resultBase> JobsPage(string? service, CancellationToken cancellationToken)
-    {
-       return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
-    }
-
-
 }
