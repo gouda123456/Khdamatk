@@ -1,5 +1,6 @@
 ﻿namespace Khdamatk.Server.Data.Entities.Identity;
 
+//TODO: check if there important properties are needed
 public class ServiceProviderProfile 
 {
     [Key]
@@ -37,21 +38,20 @@ public class ServiceProviderProfile
     [Range(1,40)]
     public double WorkingHoursPerWeek { get; set; } = 1;
 
+    [Range(1, 1000)]
+    public double HourlyRate { get; set; } = 1;
 
 
 
-    [ForeignKey(nameof(ProfilePicture))]
-    public int? ProfilePictureId { get; set; }
-    public Media? ProfilePicture { get; set; }
 
 
-    public List<ProviderSkill>? Skills { get; set; } = [];
-    public List<Service>? Services { get; set; } = [];
-    
-
-    public List<Certificate>? Certificates { get; set; } = [];
-
-    public List<PortfolioItem>? PortfolioItems { get; set; } = [];
+    public virtual List<ProviderSkill>? Skills { get; set; } = [];
+    public virtual List<Service>? Services { get; set; } = [];
+          
+          
+    public virtual List<Certificate>? Certificates { get; set; } = [];
+          
+    public virtual List<PortfolioItem>? PortfolioItems { get; set; } = [];
 
     
 

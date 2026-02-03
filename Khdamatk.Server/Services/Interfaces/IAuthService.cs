@@ -7,4 +7,6 @@ public interface IAuthService : IService
     Task<resultBase> RegisterAsync(RegisterRequest registerRequest, CancellationToken cancellationToken);
     Task<resultBase> ConfirmEmail(ConfirmEmailRequest request);
     Task<resultBase> ReSendConfirmationEmailAsync(ReSendConfirmationEmailRequest request);
+    Task<resultBase> ForgetPassword(string Email);
+    Task<resultBase> VerifyCode(VerifyCodeRequest request);
 }

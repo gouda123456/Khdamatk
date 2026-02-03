@@ -1,4 +1,5 @@
 ﻿namespace Khdamatk.Server.Data.Entities.Identity;
+ 
 
 public class User : IdentityUser<string>
 {
@@ -24,6 +25,10 @@ public class User : IdentityUser<string>
 
     public bool IsVerified => VerificationData?.Status == VerificationStatus.Approved;
 
+    [ForeignKey(nameof(ProfilePicture))]
+    public int? ProfilePictureId { get; set; }
+    public Media? ProfilePicture { get; set; }
+
     public bool IsTrustedByAdmin { get; set; } = false;
 
 
@@ -34,7 +39,7 @@ public class User : IdentityUser<string>
     public virtual ServiceProviderProfile? ServiceProviderProfile { get; set; }
 
     
-
-    public List<UserFavorites>? UserFavorites { get; set; }
+    public virtual List<VerificationsCodes> VerificationsCodes { get; set; } = [];
+    public virtual List<UserFavorites> UserFavorites { get; set; } = [];
     public virtual List<RefreshTokens> RefreshTokens { get; set; } = [];
 }

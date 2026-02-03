@@ -497,6 +497,9 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("ExperienceYears")
                         .HasColumnType("int");
 
+                    b.Property<double>("HourlyRate")
+                        .HasColumnType("float");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -511,9 +514,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<DateTime?>("LastUpdate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ProfilePictureId")
-                        .HasColumnType("int");
-
                     b.Property<int>("TotalReviews")
                         .HasColumnType("int");
 
@@ -521,10 +521,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("UserId");
-
-                    b.HasIndex("ProfilePictureId")
-                        .IsUnique()
-                        .HasFilter("[ProfilePictureId] IS NOT NULL");
 
                     b.ToTable("ServiceProviderProfiles");
                 });
@@ -577,6 +573,9 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ProfilePictureId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -596,6 +595,10 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("ProfilePictureId")
+                        .IsUnique()
+                        .HasFilter("[ProfilePictureId] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
 
@@ -661,6 +664,50 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("VerificationData");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationsCodes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Createdat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Updatedat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("VerificationsCodes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
@@ -1350,20 +1397,23 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", b =>
                 {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "ProfilePicture")
-                        .WithOne()
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ProfilePictureId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithOne("ServiceProviderProfile")
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ProfilePicture");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
+                {
+                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "ProfilePicture")
+                        .WithOne()
+                        .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.User", "ProfilePictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ProfilePicture");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationData", b =>
@@ -1371,6 +1421,17 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithOne("VerificationData")
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.VerificationData", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationsCodes", b =>
+                {
+                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
+                        .WithMany("VerificationsCodes")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1647,6 +1708,8 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("UserFavorites");
 
                     b.Navigation("VerificationData");
+
+                    b.Navigation("VerificationsCodes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>

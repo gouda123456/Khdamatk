@@ -13,6 +13,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDependancyInjections(builder.Configuration);
 
+
 var app = builder.Build();
 
 app.UseDefaultFiles();
@@ -27,15 +28,18 @@ if (app.Environment.IsDevelopment())
 
 }
 
-app.UseMiddleware<GlobalErrorHandling>();
 
 app.UseHttpsRedirection();
+
+app.UseCors();
+app.UseMiddleware<GlobalErrorHandling>();
+
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapFallbackToFile("/index.html");
+
 
 app.Run();

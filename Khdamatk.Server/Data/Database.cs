@@ -83,6 +83,8 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     public DbSet<RefreshTokens> RefreshTokens { get; set; }
     public DbSet<ServiceProviderProfile> ServiceProviderProfiles { get; set; }
     public DbSet<VerificationData> VerificationData { get; set; }
+
+    public DbSet<VerificationsCodes> VerificationsCodes { get; set; }
     #endregion
 
     #region Interactions DbSets
