@@ -3,7 +3,7 @@
 namespace Khdamatk.Server.Contracts.Home;
 
     public record Freelancers(
-        List<string> Services,
+
         List<FreelancerCards> Providers,
         List<ServicesCard> cervicescard
 
