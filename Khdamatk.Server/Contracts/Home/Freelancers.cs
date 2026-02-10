@@ -3,10 +3,8 @@
 namespace Khdamatk.Server.Contracts.Home;
 
     public record Freelancers(
-
         List<FreelancerCards> Providers,
-        List<ServicesCard> cervicescard
-
+        List<ServicesCard> ServicesCard
     );
 
     public record FreelancerCards(
@@ -17,6 +15,7 @@ namespace Khdamatk.Server.Contracts.Home;
     double HourlyRate,
     List<string> Skills
 );
+
 public record ServicesCard(
     string ServiceId,
     string NameService
