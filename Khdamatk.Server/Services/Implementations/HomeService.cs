@@ -69,5 +69,24 @@ public class HomeService(Database db) : IHomeService
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
 
+    public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
+    {
 
+        switch (freelancerRequest.Type.ToLower())
+        {
+            case "service":
+
+                break;
+
+                case "freelancer-name":
+                
+                break;
+            default:
+                return Failure(StatusCodes.Status409Conflict ,"enter the right type", "invalid type you want to swarth with please search about [ service , freelancer-name ]",new Error("wrong value for Type","you entered wrong value for {Type} you should enter [[ service , freelancer-name ]]"));
+
+        }
+
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+        
+    }
 }

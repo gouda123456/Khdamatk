@@ -258,7 +258,7 @@ public class AuthService(
         var body = emailHelper.GetEmailTemplate(EmailTemplatesName.ConfirmEmail, keyValuePairs: new Dictionary<string, string>
         {
             {"name",user.UserName! },
-            {"ConfirmLink",$"{clientSettings.ClientUrl}Auth/Confirm?UserId={user.Id}&Code={code}" }
+            {"ConfirmLink",$"http://localhost:5173/confirm-email?UserId={user.Id}&Code={code}" }
         });
 
         if (string.IsNullOrEmpty(body))
