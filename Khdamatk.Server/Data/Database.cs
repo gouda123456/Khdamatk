@@ -72,6 +72,8 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
     public DbSet<PortfolioMedia> PortfolioMedia { get; set; }
     public DbSet<ProviderSkill> ProviderSkills { get; set; }
+    public DbSet<JobPost> JobPosts { get; set; }
+    public DbSet<JobOffer> jobOffers { get; set; }
     #endregion
 
     #region Financial DbSets

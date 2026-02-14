@@ -4,6 +4,8 @@
     <File Path="../../../notion.ico" />
     <File Path="../../../Register Process.drawio" />
     <File Path="Documentations/Entities.docx" />
+    <File Path="EntitiesInDetailed.txt" />
+    <File Path="EntitiesNames.txt" />
   </Folder>
   <Project Path="Khdamatk.Server/Khdamatk.Server.csproj" />
 </Solution>

@@ -42,4 +42,5 @@ public class User : IdentityUser<string>
     public virtual List<VerificationsCodes> VerificationsCodes { get; set; } = [];
     public virtual List<UserFavorites> UserFavorites { get; set; } = [];
     public virtual List<RefreshTokens> RefreshTokens { get; set; } = [];
+    public virtual List<JobPost> JobPosts { get; set; } = []; 
 }

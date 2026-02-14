@@ -1,0 +1,1023 @@
+﻿namespace Khdamatk.Server.Data.Entities.Catalog;
+
+//Done: Category Entity Implementation
+public class Category
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required , Length(2,15)]
+    public string Name { get; set; } = string.Empty;
+
+    public string? Description { get; set; } = string.Empty;
+
+    public virtual ICollection<Service> Services { get; set; } = [];
+}
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public class Certificate : BaseEntity
+{
+    
+
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderProfileId { get; set; } = null!;
+
+    // اسم الشهادة
+    [Required]
+    [StringLength(50,MinimumLength =2)]
+    public string Title { get; set; } = string.Empty;
+
+    // الجهة المانحة للشهادة
+    [Required]
+    public string Issuer { get; set; } = string.Empty;
+
+    [Required]
+    public string Type { get; set; } = string.Empty;
+
+    // سنة الحصول على الشهادة   
+    public int YearAcquired { get; set; }
+
+    // مفتاح خارجي لكيان Media (صورة الشهادة)
+    [ForeignKey(nameof(Media))]
+    public int? MediaId { get; set; }
+    public virtual Media? CertificateMedia { get; set; }
+
+    // العلاقة المتبادلة
+    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+}
+
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public class JobOffer
+{
+    public int Id { get; set; } 
+
+    public string CoverLetter { get; set; } = string.Empty;
+    public decimal ProposedPrice { get; set; }
+    public int DeliveryTimeInDays { get; set; }
+    public JobOfferStatus Status { get; set; } = JobOfferStatus.Pending;
+
+
+
+    // الربط مع الوظيفة الأساسية
+    public Guid JobPostId { get; set; }
+    public virtual JobPost JobPost { get; set; } = null!;
+
+    // الربط مع ملف مقدم الخدمة (الفريلانسر)
+    public Guid ProviderProfileId { get; set; }
+    public virtual ServiceProviderProfile ProviderProfile { get; set; } = null!;
+
+    // --- الربط مع المحادثة حسب رؤيتك ---
+    // العرض هو الذي يشير إلى المحادثة لبدء التفاوض
+    public Guid? ConversationId { get; set; }
+    public virtual Conversation? Conversation { get; set; }
+}
+
+public enum JobOfferStatus
+{
+    Pending = 1,
+    Accepted = 2,
+    Rejected = 3,
+    Withdrawn = 4
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public class JobPost
+{
+    public int Id { get; set; } 
+
+    // المفتاح الأجنبي للعميل (User) - افترضت أن الـ Id هنا من نوع string بناءً على Identity الافتراضي
+    public string CustomerId { get; set; }
+
+    // المفتاح الأجنبي للتصنيف (Category)
+    public int CategoryId { get; set; }
+
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public decimal BudgetMin { get; set; }
+    public decimal BudgetMax { get; set; }
+
+    public JobPostStatus Status { get; set; } = JobPostStatus.Open;
+    public DateTime Deadline { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation Properties
+    public virtual User Customer { get; set; }
+    public virtual Category Category { get; set; }
+
+    // العلاقة مع العروض (One-to-Many)
+    public virtual ICollection<JobOffer> Offers { get; set; } = new HashSet<JobOffer>();
+}
+
+public enum JobPostStatus
+{
+    Open = 1,
+    InProgress = 2,
+    Completed = 3,
+    Cancelled = 4
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public record Media
+{
+    [Key]
+    public int Id { get; init; }
+
+    public string? FileName { get; init; }
+    public string StoredFileName { get; set; } = string.Empty;
+
+    public string? ContentType { get; init; }
+    public string FileExtension { get; set; } = string.Empty;
+    public long Size { get; init; }
+
+    public string FullPath => $"{ConstFilePathes.ImagesPath}{Id}";
+
+    
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public class PortfolioItem : BaseEntity
+{
+    
+
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderProfileId { get; set; } = null!;
+
+    // عنوان المشروع
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    public string Title { get; set; } = string.Empty;
+
+    // وصف موجز للمشروع
+    [Required]
+    [StringLength(1000, MinimumLength = 5)]
+    public string Description { get; set; } = string.Empty;
+
+    // رابط مباشر 
+    public string? ProjectUrl { get; set; }
+
+    // التاريخ الذي تم فيه إنجاز العمل
+    public DateTime CompletionDate { get; set; }
+
+    // علاقة Many:Many مع كيان Media لحفظ الصور/الملفات المرتبطة بالمشروع
+    public virtual ICollection<PortfolioMedia> ProjectMediaLinks { get; set; } = [];
+
+
+    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+}
+
+public class PortfolioMedia
+{
+    // 1. المفاتيح الأجنبية التي تشكل المفتاح المركب
+    public int PortfolioItemId { get; set; }
+    public int MediaId { get; set; }
+
+    // 2. خصائص التنقل
+    public virtual PortfolioItem PortfolioItem { get; set; } = null!;
+    public virtual Media Media { get; set; } = null!;
+}
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+
+public class ProviderSkill 
+{
+    [Key]
+    public int Id { get; set; }
+
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderProfileId { get; set; } = null!; 
+    
+    
+    [Required]
+    [StringLength(50, MinimumLength =2)]
+    public string Name { get; set; } = string.Empty;
+
+
+    [Required]
+    public SkillExperienceLevel ExperienceLevel { get; set; } = SkillExperienceLevel.Beginner;
+
+
+    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+}
+
+
+
+/// <summary>
+/// يمثل مستوى الخبرة لمقدم الخدمة في مهارة معينة.
+/// </summary>
+public enum SkillExperienceLevel
+{
+    // عند تعيين القيمة 0، فإنها تصبح القيمة الافتراضية
+    None = 0,
+
+    // يفضل البدء من 1 لسهولة التحقق من الصحة (Validation)
+    Beginner = 1,
+    Novice = 2,
+    Intermediate = 3,
+    Advanced = 4,
+    Expert = 5
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Catalog;
+
+public class Service : BaseEntity
+{
+
+    // id, CreatedAt, UpdatedAt from BaseEntity
+    // 1. الخصائص الأساسية للخدمة
+    [Required]
+    [StringLength(80, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(1000, MinimumLength = 10)]
+    public string Description { get; set; } = string.Empty;
+
+    // 2. خصائص التسعير والمواصفات الأساسية (بدلاً من ServicePackage)
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    [Range(1, 100_000_000)] // السعر الأساسي للخدمة
+    public decimal Price { get; set; }
+
+    [Range(1, 365)]
+    public int DeliveryTimeInDays { get; set; } // وقت التسليم
+
+    [Range(0,5)]
+    public double AverageRating { get; set; } = 0;
+    public int TotalReviews { get; set; } = 0;
+
+
+    [ForeignKey(nameof(Category))]
+    public int CategoryId { get; set; }
+
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderProfileId { get; set; } = null!;
+
+
+    [ForeignKey(nameof(MainImage))]
+    public int? MainMediaId { get; set; }
+
+
+
+    public virtual Media? MainImage { get; set; }
+    
+    public virtual Category Category { get; set; } = null!;
+    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+    public virtual ICollection<ServiceMedia> MediaGalleryLinks { get; set; } = [];
+
+
+
+    //TODO: public virtual ICollection<ServicePackage> Packages { get; set; } FOR LATER IMPLEMENTATION
+}
+
+
+public class ServiceMedia
+{
+    // المفاتيح التي تشكل المفتاح المركب
+    public int ServiceId { get; set; }
+    public int MediaId { get; set; }
+
+    // خصائص التنقل
+    public virtual Service Service { get; set; } = null!;
+    public virtual Media Media { get; set; } = null!;
+}
+
+
+
+namespace Khdamatk.Server.Data.Entities.Financial;
+
+
+public class CreditCard
+{
+    
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public string Tokenized { get; set; } = null!;
+
+    [Required]
+    public string Last4Digits { get; set; } = null!;
+
+    [Required]
+    public DateTime ExpirationDate { get; set; }
+
+    [Required]
+    public string CardType { get; set; } = null!;
+
+    [ForeignKey(nameof(User))]
+    public string UserId { get; set; } = null!;
+
+    public User User { get; set; } = null!;
+
+
+    public List<PaymentTransaction> Transactions { get; set; } = [];
+
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Financial;
+
+
+public class PaymentTransaction
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [ForeignKey(nameof(ServiceOrder))]
+    public int OrderId { get; set; }
+
+    // === المبالغ المالية ===
+
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")] // دقة عالية للأمور المالية
+    public decimal Amount { get; set; }
+
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal PlatformFee { get; set; } // رسوم المنصة
+
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal NetPayout { get; set; } // المبلغ الصافي للمزود بعد خصم الرسوم
+
+
+    
+
+
+    // === تفاصيل الدفع والحالة ===
+
+    [Required]
+    public CurrencyCode Currency { get; set; } = CurrencyCode.USD;
+
+    [Required]
+    public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
+
+    public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    public PaymentGateway GatewayUsed { get; set; } = PaymentGateway.Stripe;
+
+    
+
+    
+
+    /// <summary>
+    /// رقم المعاملة المعطى من قبل بوابة الدفع الخارجية (مثل PaymentIntent ID, Fawry Reference).
+    /// </summary>
+    [MaxLength(256)]
+    public string? GatewayReferenceId { get; set; }
+
+
+    
+
+
+    /// <summary>
+    /// المفتاح الخارجي لكيان CreditCard إذا تم استخدام بطاقة محفوظة.
+    /// يُستخدم فقط للدفع بالبطاقات المرمزة.
+    /// </summary>
+    [ForeignKey(nameof(TokenizedCard))]
+    public int? TokenizedCreditCardId { get; set; }
+
+
+
+    // === Navigation Properties ===
+    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    public virtual CreditCard? TokenizedCard { get; set; }
+
+}
+
+
+public enum TransactionStatus
+{
+    Pending,        // 0 - في انتظار بدء المعاملة/الدفع
+    Waited,         // 1 - في انتظار التأكيد من بوابة الدفع الخارجية (مثل Webhook من Fawry/PayMob)
+    Completed,      // 2 - تم الدفع بنجاح
+    Failed,         // 3 - فشلت المعاملة
+    RefundInitiated,// 4 - تم بدء عملية الاسترداد
+    Refunded        // 5 - تم الاسترداد بنجاح
+}
+
+public enum PaymentGateway
+{
+    Stripe = 1,
+    Fawry = 2,
+    InstaPay = 3,
+    LocalBankTransfer = 4,
+    // ...
+}
+
+public enum CurrencyCode
+{
+    // 0. لا شيء (لتجنب تعيين قيمة افتراضية خاطئة)
+    None = 0,
+
+    // 1. العملات المحلية (الرئيسية)
+    EGP = 1,  // الجنيه المصري
+
+    // 2. العملات الدولية والخليجية
+    USD = 2,  // الدولار الأمريكي
+    EUR = 3,  // اليورو
+    SAR = 4,  // الريال السعودي
+    AED = 5,  // الدرهم الإماراتي
+    KWD = 6,  // الدينار الكويتي
+              // ملاحظة: يُفضل استخدام رمز العملة (Code) كاسم للتعداد
+}
+
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+/*
+ * (token , expireat) done
+ * (create , used , revokedat)
+ * (User)
+ */
+public class RefreshTokens
+{
+    //Core
+    [Key]
+    public int Id { get; set; }  //index
+    [Required]
+    public string Token { get; set; } = null!; 
+    [Required]
+    public DateTime ExpireAt { get; set; }
+
+
+    //Date Times
+    [Required]
+    public DateTime CreatedAt { get; set; } =  DateTime.UtcNow;
+    
+    public DateTime? UsedAt { get; set; }
+    [DefaultValue(false)]
+    public bool IsUsed { get; set; } = false;   //Default value is fasle
+    
+    public DateTime? RevokedAt { get; set; }
+    
+
+    public bool IsDeleted { get; set; } = false;
+
+    public bool IsActive =>
+        ExpireAt > DateTime.UtcNow &&
+        !IsDeleted &&
+        !IsUsed &&
+        !RevokedAt.HasValue;
+
+    [ForeignKey("User")]
+    public string UserId { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
+}
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+
+public class Role : IdentityRole<string>
+{
+}
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+
+public class ServiceProviderProfile 
+{
+    [Key]
+    [ForeignKey(nameof(User))]
+    public string UserId { get; set; } = string.Empty;
+    public virtual User User { get; set; } = null!;
+
+    public bool IsActive { get; set; } = true;
+    public bool IsAvailable { get; set; } = true; // متاح لاستقبال عروض جديدة
+
+    public DateTime DateOfJoin { get; set; } = DateTime.UtcNow;
+    public DateTime? LastActiveDate { get; set; }
+    public DateTime? LastUpdate { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    public string JobTitle { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(1000, MinimumLength = 10)] // رفعت الطول قليلاً للـ Bio الاحترافي
+    public string Bio { get; set; } = string.Empty;
+
+    // --- الإحصائيات ---
+    public int TotalReviews { get; set; } = 0;
+    public double AverageRating { get; set; } = 0; // Computed Column لاحقاً
+    public int CompletedJobs { get; set; } = 0; // عدد الوظائف التي أنهاها بنجاح
+
+    public int ExperienceYears { get; set; } = 0;
+
+    [Range(1, 168)] // الأسبوع فيه 168 ساعة كحد أقصى
+    public double WorkingHoursPerWeek { get; set; } = 1;
+
+    [Range(1, 10000)]
+    public double HourlyRate { get; set; } = 1;
+
+    // --- العلاقات (Navigation Properties) ---
+    
+    public virtual ICollection<ProviderSkill> Skills { get; set; } = [];
+    public virtual ICollection<Service> Services { get; set; } = [];
+    public virtual ICollection<Certificate> Certificates { get; set; } = [];
+    public virtual ICollection<PortfolioItem> PortfolioItems { get; set; } = [];
+
+    public virtual ICollection<Review> Reviews { get; set; } = [];
+    // الربط مع نظام العروض الجديد
+    public virtual ICollection<JobOffer> JobOffers { get; set; } = [];
+}
+
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+ 
+
+public class User : IdentityUser<string>
+{
+    public User()
+    {
+        Id = Guid.NewGuid().ToString();
+    }
+    public DateTime? DateOfBirth { get; set; }
+    // 2025 - 1990 
+    public int? Age
+    {
+        get
+        {
+            if (DateOfBirth == null) return null;
+            var today = DateTime.UtcNow;
+            int age = today.Year - DateOfBirth.Value.Year;
+            if (DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+            return age;
+        }
+    }
+
+    public virtual VerificationData? VerificationData { get; set; }
+
+    public bool IsVerified => VerificationData?.Status == VerificationStatus.Approved;
+
+    [ForeignKey(nameof(ProfilePicture))]
+    public int? ProfilePictureId { get; set; }
+    public Media? ProfilePicture { get; set; }
+
+    public bool IsTrustedByAdmin { get; set; } = false;
+
+
+    public bool IsServiceProvider { get { return ServiceProviderProfile != null; }  }
+
+
+    
+    public virtual ServiceProviderProfile? ServiceProviderProfile { get; set; }
+
+    
+    public virtual List<VerificationsCodes> VerificationsCodes { get; set; } = [];
+    public virtual List<UserFavorites> UserFavorites { get; set; } = [];
+    public virtual List<RefreshTokens> RefreshTokens { get; set; } = [];
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+
+public class VerificationData
+{
+    [Key]
+    [ForeignKey(nameof(User))]
+    public string UserId { get; set; } = null!;
+
+    public User User { get; set; } = null!;
+
+
+    public string NationalNumber { get; set; } = string.Empty;
+    
+    public string Country { get; set; } = string.Empty;
+    
+    public string City { get; set; } = string.Empty;
+
+
+    public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
+
+}
+
+
+public enum VerificationStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Identity;
+
+public class VerificationsCodes :BaseEntity
+{
+    
+
+
+    public VerificationCodeType Type { get; set; }
+
+    [Range(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MaxValue)]
+    public int Value { get; private set; }
+    public bool IsUsed { get; private set; } = false;
+
+    public bool IsActive => DateTime.UtcNow < Createdat.AddDays(1) && IsUsed && !IsDelete;
+
+    [ForeignKey(nameof(User))]
+    public string UserId { get; set; } = string.Empty;
+    public User User { get; set; } = null!;
+
+
+
+    public VerificationsCodes()
+    {
+        
+    }
+
+    public VerificationsCodes(VerificationCodeType type)
+    {
+        Type = type;
+        Value = new Random().Next(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MinValue);
+        
+    }
+
+
+
+    public void GenerateNewValue()
+    {
+        Value = new Random().Next(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MinValue);
+    }
+
+    
+
+}
+
+public enum VerificationCodeType
+{
+    changePassword,
+    changeEmail,
+    changePhone,
+}
+
+
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Interaction;
+
+
+public class Conversation : BaseEntity
+{
+    [Required]
+    public int RelatedEntityId { get; set; }
+
+
+
+    public string Title { get; set; } = string.Empty;
+
+    public ICollection<Message> Messages { get; set; } = [];
+
+    // Foreign Key to ServiceOrder
+    public int ServiceOrderId { get; set; }
+    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+
+    // Foreign Key to User (Sender)
+    [ForeignKey(nameof(Client))]
+    public string ClientId { get; set; } = null!;
+    public virtual User Client { get; set; } = null!;
+
+    //Conversation Category
+    public ConversationCategory Category { get; set; } = ConversationCategory.Standard;
+
+    [Required]
+    public ConversationContextType ContextType { get; set; } = ConversationContextType.General;
+
+    // Foreign Key to User (Receiver)
+    [ForeignKey(nameof(Provider))]
+    public string ProviderId { get; set; } = null!;
+    public virtual User Provider { get; set; } = null!;
+
+}
+
+public enum ConversationCategory
+{
+    Standard = 1,      // محادثة عادية بين العميل ومقدم الخدمة
+    DisputeRaiser = 2, // محادثة نزاع (مسؤول + رافع)
+    DisputeTarget = 3  // محادثة نزاع (مسؤول + مدعى عليه)
+}
+
+public enum ConversationContextType
+{
+    General = 0,      // محادثة عامة
+    ServiceOrder = 1, // مرتبطة بطلب خدمة
+    JobOffer = 2,     // مرتبطة بعرض عمل
+    Dispute = 3       // مرتبطة بنزاع
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Interaction;
+
+
+public class Dispute : BaseEntity
+{
+    // ربط كيان النزاع بطلب الخدمة (ServiceOrder)
+    [Required]
+    [ForeignKey(nameof(ServiceOrder))]
+    public int ServiceOrderId { get; set; }
+    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+
+    //Raiser of the dispute (could be client or provider)
+    [Required]
+    [ForeignKey(nameof(Raiser))]
+    public string RaiserId { get; set; }
+    public virtual User Raiser { get; set; } = null!;
+
+    //Target of the dispute (could be client or provider)
+    [Required]
+    [ForeignKey(nameof(Target))]
+    public string TargetId { get; set; }
+    public virtual User Target { get; set; } = null!;
+
+    // معرّف المسؤول المُعيّن لإدارة النزاع (Admin ID - string)
+    [ForeignKey(nameof(AdminReviewer))]
+    public string? AdminReviewerId { get; set; } = null!;
+    public virtual User? AdminReviewer { get; set; } = null!;
+
+
+    // === 2. ربط المحادثات المنفصلة (Conversation ID - int) ===
+    // كيان Dispute يتحكم بربط المحادثات (Unidirectional Relationship)
+
+    // محادثة المسؤول مع الطرف الرافع
+    [Required]
+    [ForeignKey(nameof(RaiserConversation))]
+    public int RaiserConversationId { get; set; }
+    public virtual Conversation RaiserConversation { get; set; } = null!;
+
+    // محادثة المسؤول مع الطرف المدعى عليه
+    [Required]
+    [ForeignKey(nameof(TargetConversation))]
+    public int TargetConversationId { get; set; }
+    public virtual Conversation TargetConversation { get; set; } = null!;
+
+
+
+    // === 3. الخصائص المالية والحالة والقرار ===
+
+    [Required]
+    public DisputeStatus Status { get; set; } = DisputeStatus.Opened;
+
+    [Required]
+    public DisputeType Type { get; set; }
+
+    // المبلغ المتنازع عليه (مهم جداً للقرار المالي)
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")] // تحديد الدقة المالية
+    public decimal AmountUnderDispute { get; set; }
+
+    public string? ReasonDetails { get; set; } // تفاصيل السبب عند الرفع
+
+    // القرار الإداري
+    public string? FinalDecisionDetails { get; set; }
+
+    // القبول (نستخدم bool? للسماح بقيمة null تعني 'لم يتم الرد بعد')
+    public bool? IsDecisionAcceptedByRaiser { get; set; } // هل وافق الرافع؟
+    public bool? IsDecisionAcceptedByTarget { get; set; } // هل وافق المدعى عليه؟
+
+    public DateTime OpenedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? ResolutionDate { get; set; }
+
+
+
+
+
+
+}
+
+
+public enum DisputeStatus
+{
+    Opened = 1,              // تم رفع النزاع للتو
+    Assigned = 2,            // تم تعيين مسؤول مراجعة للنزاع
+    UnderReview = 3,         // المسؤول يراجع الأدلة ويتواصل مع الأطراف
+    AwaitingDecision = 4,    // انتهت المراجعة والقرار جاهز للإصدار
+    AwaitingConfirmation = 5,// تم إصدار القرار وبانتظار موافقة الأطراف (Raiser & Target)
+    Resolved = 6,            // تم قبول القرار من الطرفين أو تم التنفيذ القسري (Decision implemented)
+    Closed = 7,              // النزاع مغلق بالكامل (تمت جميع الإجراءات المالية والإدارية)
+    Cancelled = 8            // تم إلغاء النزاع من أحد الأطراف قبل تدخل الإدارة
+}
+
+public enum DisputeType
+{
+    QualityIssue = 1,       // الجودة لا تلبي المتطلبات
+    LateDelivery = 2,       // تأخير في تسليم المشروع
+    NonDelivery = 3,        // عدم تسليم أي شيء
+    RefundClaim = 4,        // مطالبة برد مالي دون نزاع على الجودة
+    ScopeViolation = 5,     // تجاوز نطاق العمل المتفق عليه
+    Other = 99
+}
+
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Interaction;
+
+public class Message : BaseEntity // Id و CreatedAt (مُعدّلة من SentAt) موروثتان
+{
+    // === 1. علاقة المحادثة (الأساس) ===
+
+    [Required]
+    [ForeignKey(nameof(Conversation))]
+    public int ConversationId { get; set; }
+    public virtual Conversation Conversation { get; set; } = null!;
+
+
+    // === 2. علاقة المرسل (طرف واحد فقط) ===
+
+    [Required]
+    [ForeignKey(nameof(Sender))]
+    public string SenderId { get; set; } = null!; // من أرسل الرسالة
+    public virtual User Sender { get; set; } = null!;
+
+    // ❌ تم حذف ReceiverId لأنه يجب أن يتم تحديده في Conversation
+
+    // === 3. محتوى الرسالة وتفاصيلها ===
+
+    [Required]
+    [StringLength(2000, MinimumLength = 1)]
+    public string Content { get; set; } = string.Empty;
+
+    public bool IsRead { get; set; } = false;
+
+    // يمكن إضافة IsEdited أو Deleted هنا إذا لزم الأمر
+
+    // TODO: 💡 ملاحظة: إذا كنت بحاجة للمرفقات، استخدم كيان Media أو جدول ربط M:N.
+    // public int? AttachmentMediaId { get; set; }
+    // public virtual Media? AttachmentMedia { get; set; }
+}
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Interaction;
+
+public class Review : BaseEntity
+{
+    [Required]
+    [StringLength(30, MinimumLength = 2)] 
+    public string Title { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(500, MinimumLength = 2)] 
+    public string Content { get; set; } = string.Empty;
+
+    [Required]
+    [Range(1, 5)]
+    public double Rating { get; set; }
+
+    // === Foreign Keys ===
+
+    [Required]
+    [ForeignKey(nameof(ServiceOrder))]
+    public int OrderId { get; set; }
+
+    [Required]
+    [ForeignKey(nameof(User))]
+    // تم تغيير الاسم لزيادة الوضوح
+    public string ReviewerId { get; set; }
+
+    [Required]
+    [ForeignKey(nameof(ServiceProvider))]
+    public string ServiceProviderId { get; set; }
+
+    // === Navigation Properties ===
+    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    // يفضل أن يكون نوع User هنا هو الـ User Entity الخاص بنطاق الهوية
+    public virtual User Reviewer { get; set; } = null!;
+    //مقدم الخدمة
+    public virtual ServiceProviderProfile ServiceProvider { get; set; } = null!;
+}
+
+
+
+
+
+namespace Khdamatk.Server.Data.Entities.Operations;
+
+// يفترض أنه يرث من BaseEntity
+public class ServiceOrder : BaseEntity
+{
+    // Id و CreatedAt و IsActive موروثة من BaseEntity
+
+    // === Foreign Keys ===
+
+    [Required]
+    [ForeignKey(nameof(User))]
+    public string UserID { get; set; } = null!; // العميل (من قام بالطلب)
+
+    [Required]
+    [ForeignKey(nameof(Service))]
+    public int ServiceID { get; set; } // الخدمة المطلوبة
+
+    // ✅ هذا الرابط صحيح ويضمن السرعة في الاستعلام عن صاحب العمل
+    [Required]
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderId { get; set; } = null!;
+
+    // === تفاصيل الطلب ===
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    [Range(1, 100_000_000)]
+    public decimal Amount { get; set; } // المبلغ الكلي المتفق عليه (قد يتضمن ضرائب ورسوم)
+
+    [Required]
+    public ServiceOrderStatus Status { get; set; } = ServiceOrderStatus.PendingPayment; // ✅ إضافة الحالة
+
+    public DateTime? CompletionDate { get; set; } // تاريخ الإنجاز الفعلي
+
+    [StringLength(1000)] // ملاحظات أو متطلبات إضافية
+    public string? AdditionalDetails { get; set; }
+
+
+    // === Navigation Properties ===
+    public virtual User User { get; set; } = null!;
+    public virtual Service Service { get; set; } = null!;
+    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+
+    // ✅ إضافة الروابط العكسية للكيانات التابعة لهذا الطلب
+    public virtual Review? Review { get; set; } // علاقة 1-1 (تقييم واحد للطلب الواحد)
+    public virtual PaymentTransaction? PaymentTransaction { get; set; } // علاقة 1-1
+    public virtual ICollection<Message> Messages { get; set; } = []; // الرسائل الخاصة بهذا الطلب
+}
+
+
+
+// يمثل دورة حياة العمل على الخدمة
+public enum ServiceOrderStatus
+{
+    // مرحلة ما قبل بدء العمل
+    PendingPayment = 0,     // الطلب موجود ولكن في انتظار الدفع (بدء المعاملة)
+
+    // مرحلة العمل
+    Active = 1,             // تم الدفع بنجاح، العمل قيد التنفيذ
+    UnderReview = 2,        // تم تسليم العمل، في انتظار مراجعة العميل
+
+    // مرحلة الإغلاق (ناجح)
+    Completed = 3,          // العميل وافق على التسليم، الطلب اكتمل بنجاح
+
+    // مرحلة الإغلاق (فشل/إلغاء)
+    CancelledByClient = 4,  // تم الإلغاء من قبل العميل (قد يتطلب استرداد)
+    CancelledByProvider = 5,// تم الإلغاء من قبل مقدم الخدمة (قد يتطلب استرداد)
+    Disputed = 6            // تم تحويل الطلب للنزاع (يتطلب تدخلاً إدارياً)
+}
+
+
+
+namespace Khdamatk.Server.Data.Entities.Operations;
+
+
+public class UserFavorites
+{
+    // UserId and ServiceId Composite Primary Key
+    [ForeignKey(nameof(User))]
+    public string UserID { get; set; } = null!;
+
+    [ForeignKey(nameof(Service))]
+    public int ServiceID { get; set; }
+
+    
+    public DateTime AddedTime { get; set; } = DateTime.UtcNow;
+
+    public virtual User User { get; set; } = null!;
+
+    public virtual Service Service { get; set; } = null!;
+}

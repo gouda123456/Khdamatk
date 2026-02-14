@@ -1,58 +1,48 @@
 ﻿namespace Khdamatk.Server.Data.Entities.Identity;
 
-//TODO: check if there important properties are needed
 public class ServiceProviderProfile 
 {
     [Key]
     [ForeignKey(nameof(User))]
     public string UserId { get; set; } = string.Empty;
-
-    public User User { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 
     public bool IsActive { get; set; } = true;
-
+    public bool IsAvailable { get; set; } = true; // متاح لاستقبال عروض جديدة
 
     public DateTime DateOfJoin { get; set; } = DateTime.UtcNow;
     public DateTime? LastActiveDate { get; set; }
     public DateTime? LastUpdate { get; set; }
-
-
-    [Required] // يُفضل أن يكون إلزامي
-    [StringLength(50, MinimumLength = 2)] // قيد مقترح لاسم الوظيفة
+    
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
     public string JobTitle { get; set; } = string.Empty;
 
-    // ...
-
-    [Required] // يُفضل أن يكون إلزامي
-    [StringLength(500, MinimumLength = 10)] // استخدام الصيغة الصحيحة
+    [Required]
+    [StringLength(1000, MinimumLength = 10)] // رفعت الطول قليلاً للـ Bio الاحترافي
     public string Bio { get; set; } = string.Empty;
 
+    // --- الإحصائيات ---
     public int TotalReviews { get; set; } = 0;
-
-    //TODO: Make it Computed Column in the Database
-    public double AverageRating { get; set; } = 0;
-
+    public double AverageRating { get; set; } = 0; // Computed Column لاحقاً
+    public int CompletedJobs { get; set; } = 0; // عدد الوظائف التي أنهاها بنجاح
 
     public int ExperienceYears { get; set; } = 0;
 
-    [Range(1,40)]
+    [Range(1, 168)] // الأسبوع فيه 168 ساعة كحد أقصى
     public double WorkingHoursPerWeek { get; set; } = 1;
 
-    [Range(1, 1000)]
+    [Range(1, 10000)]
     public double HourlyRate { get; set; } = 1;
 
-
-
-
-
-    public virtual List<ProviderSkill>? Skills { get; set; } = [];
-    public virtual List<Service>? Services { get; set; } = [];
-          
-          
-    public virtual List<Certificate>? Certificates { get; set; } = [];
-          
-    public virtual List<PortfolioItem>? PortfolioItems { get; set; } = [];
-
+    // --- العلاقات (Navigation Properties) ---
     
+    public virtual ICollection<ProviderSkill> Skills { get; set; } = [];
+    public virtual ICollection<Service> Services { get; set; } = [];
+    public virtual ICollection<Certificate> Certificates { get; set; } = [];
+    public virtual ICollection<PortfolioItem> PortfolioItems { get; set; } = [];
 
+    public virtual ICollection<Review> Reviews { get; set; } = [];
+    // الربط مع نظام العروض الجديد
+    public virtual ICollection<JobOffer> JobOffers { get; set; } = [];
 }
