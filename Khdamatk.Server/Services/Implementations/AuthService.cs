@@ -250,21 +250,9 @@ public class AuthService(
     //TODO: refactor the magic strings 
     public async Task<resultBase> SetPasswordAsync(SetPasswordRequest request)
     {
-        if(await userManager.FindByEmailAsync(request.Email) is { })
-            return Failure(StatusCodes.Status404NotFound, UserErrors.UserNotFound);
+        if(await userManager.FindByEmailAsync(request.Email) is not { } user)
+            return Success(StatusCodes.Status200OK, "Password changed successfully", "Your password has been changed successfully");
 
-        var user = await userManager.FindByEmailAsync(request.Email);
-
-        var signinCredtion = await signInManager.CheckPasswordSignInAsync(user!,request.CurrentPassword,false);
-        if(signinCredtion.IsNotAllowed)
-        {
-            return Failure(StatusCodes.Status400BadRequest, UserErrors.InvalidPassword);
-        }
-
-        if(signinCredtion.IsLockedOut)
-        {
-            return Failure(StatusCodes.Status400BadRequest, UserErrors.InvalidPassword);
-        }
 
         var result = await userManager.ChangePasswordAsync(user!, request.CurrentPassword, request.NewPassword);
 
@@ -278,13 +266,76 @@ public class AuthService(
             return Failure(StatusCodes.Status400BadRequest, errors);
         }
 
-        return Failure(StatusCodes.Status400BadRequest, "An error occurred while changing the password", "Please try again later");
+        return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title, FailureMessages.ServiceUnavailable.Message);
     }
 
-    public Task<resultBase> VerifyCode(VerifyCodeRequest request)
+    public async Task<resultBase> ForgetPasswordAsync(string email,CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (await userManager.FindByEmailAsync(email) is { } user)
+        {
+            //generate Password Reset Token
+            var code = Generate6DigitCode;
+            //Send Email
+            
+            var result = await emailHelper.SendresetPasswordEmailAsync(user.Email!, code);
+
+            if (result)
+            {
+                db.VerificationsCodes.Add( new VerificationsCodes
+                {
+                     Type= VerificationCodeType.changePassword,
+                     UserId = user.Id,
+                     Value = code,
+                });
+                await db.SaveChangesAsync(cancellationToken);
+                return Success(StatusCodes.Status200OK, "Password reset code sent", "Check your email for the password reset code");
+            }
+            return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title, FailureMessages.ServiceUnavailable.Message);
+        }
+        return Failure(StatusCodes.Status404NotFound, UserErrors.UserNotFound);
     }
+
+    public async Task<resultBase> VerifyCodeAsync(VerifyRestPasswordCodeRequest request,CancellationToken cancellationToken = default)
+    {
+        var user = await userManager.FindByEmailAsync(request.email);
+        if (user is null)
+            return Failure(StatusCodes.Status404NotFound, UserErrors.UserNotFound);
+
+        // 2. البحث عن الكود (صلاحية 6 ساعات كما طلبت، وغير مستخدم)
+        var expiryTime = DateTime.UtcNow.AddHours(-6);
+
+        var validCode = await db.VerificationsCodes.FirstOrDefaultAsync
+                (c => c.UserId == user.Id &&
+                    c.Type == request.CodeType &&
+                    c.Value == request.Value && 
+                    !c.IsUsed&& c.Createdat >= expiryTime,
+                    cancellationToken);
+
+        if (validCode is null)
+        {
+            return Failure(StatusCodes.Status400BadRequest, "Invalid code", "The verification code is invalid or has expired");
+        }
+
+        // 3. تعليم الكود كمستخدم (Invalidate)
+        validCode.IsUsed = true;
+        validCode.Updatedat = DateTime.UtcNow;
+
+        // 4. تنفيذ إعادة تعيين كلمة المرور
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, resetToken, request.password);
+
+        if (result.Succeeded)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return Success(StatusCodes.Status200OK, "Success", "Password reset successfully");
+        }
+
+        // معالجة أخطاء Identity (مثل Password Policy)
+        var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToArray();
+        return Failure(StatusCodes.Status400BadRequest, errors);
+    }
+            
+    
 
 
     #region Helper Methods
@@ -348,6 +399,8 @@ public class AuthService(
             resultRaw.Select(x => x.Permission!).Distinct().ToList());
         return (Roles, Permissions);
     }
+
+    
 
     #endregion
 

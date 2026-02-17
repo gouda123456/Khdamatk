@@ -51,6 +51,7 @@ public class EmailHelper(
     //TODO: Change TemplateName Type to Enum
     public string? GetEmailTemplate(EmailTemplatesName TemplateName, Dictionary<string, string> keyValuePairs)
     {
+        string processedTemplate = string.Empty;
         // !false means we found it , true means we did not find it
         if (!EmailsBody.TryGetValue(TemplateName.ToString(), out string? content) || string.IsNullOrEmpty(content))
         {
@@ -65,13 +66,14 @@ public class EmailHelper(
                 EmailsBody[TemplateName.ToString()] = content;
             }
         }
+        processedTemplate = content;
 
         foreach (var pair in keyValuePairs)
         {
-            content = content.Replace($"&&{pair.Key}&&", pair.Value);
+            processedTemplate = processedTemplate.Replace($"&&{pair.Key}&&", pair.Value);
         }
 
-        return content;
+        return processedTemplate;
 
     }
 

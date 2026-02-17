@@ -41,5 +41,13 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("set-password")]
     public async Task<IActionResult> SetPassword(SetPasswordRequest request) =>
         (await authService.SetPasswordAsync(request)).Respond();
-     
+
+    [HttpPost("forget-password")]
+    public async Task<IActionResult> ForgetPassword(string email) =>
+        (await authService.ForgetPasswordAsync(email)).Respond();
+
+       [HttpPost("verify-code")]
+       public async Task<IActionResult> VerifyCode(VerifyRestPasswordCodeRequest request, CancellationToken cancellationToken) =>
+        (await authService.VerifyCodeAsync(request, cancellationToken)).Respond();
+
 }

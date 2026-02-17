@@ -31,4 +31,12 @@ public class TestController : ControllerBase
     {
         return Ok($"{HttpContext.User.GetUserId()}You are authorized!");
     }
+
+    [HttpGet("send-reset-Password")]
+    public IActionResult SendResetEmail([FromServices]IEmailHelper emailHelper)
+    {
+        emailHelper.SendresetPasswordEmailAsync("giggo343@gmail.com", 666666);
+        return Ok();
+    }
+
 }

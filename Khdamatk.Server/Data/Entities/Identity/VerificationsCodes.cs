@@ -8,8 +8,8 @@ public class VerificationsCodes :BaseEntity
     public VerificationCodeType Type { get; set; }
 
     [Range(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MaxValue)]
-    public int Value { get; private set; }
-    public bool IsUsed { get; private set; } = false;
+    public int Value { get; set; }
+    public bool IsUsed { get; set; } = false;
 
     public bool IsActive => DateTime.UtcNow < Createdat.AddDays(1) && IsUsed && !IsDelete;
 
