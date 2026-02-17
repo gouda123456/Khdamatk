@@ -2,29 +2,38 @@
 
 public class JobPost
 {
-    public int Id { get; set; } 
+    public int Id { get; set; }
 
-    // المفتاح الأجنبي للعميل (User) - افترضت أن الـ Id هنا من نوع string بناءً على Identity الافتراضي
-    public string CustomerId { get; set; }
+    [ForeignKey(nameof(Customer))]
+    public string CustomerId { get; set; } = string.Empty;
 
-    // المفتاح الأجنبي للتصنيف (Category)
+    [ForeignKey(nameof(Category))]
     public int CategoryId { get; set; }
 
-    public string Title { get; set; }
-    public string Description { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public decimal BudgetMin { get; set; }
     public decimal BudgetMax { get; set; }
 
     public JobPostStatus Status { get; set; } = JobPostStatus.Open;
+    
+    public ExperienceLevel ExperienceLevel { get; set; } 
+    public string ProjectLength { get; set; } = string.Empty;
+    public string TimeCommitment { get; set; } = string.Empty; 
+
     public DateTime Deadline { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+
+
     // Navigation Properties
-    public virtual User Customer { get; set; }
-    public virtual Category Category { get; set; }
+    public virtual User Customer { get; set; } = null!;
+    public virtual Category Category { get; set; } = null!;
 
     // العلاقة مع العروض (One-to-Many)
-    public virtual ICollection<JobOffer> Offers { get; set; } = new HashSet<JobOffer>();
+    public virtual ICollection<JobOffer>? Offers { get; set; } = [];
+    public virtual ICollection<Media>? Images { get; set; } =[];
+    public virtual ICollection<JobSkillRequirement> SkillRequirements { get; set; } = [];
 }
 
 public enum JobPostStatus
@@ -33,4 +42,10 @@ public enum JobPostStatus
     InProgress = 2,
     Completed = 3,
     Cancelled = 4
+}
+public enum ExperienceLevel
+{
+    Entry = 1,
+    Intermediate = 2,
+    Expert = 3
 }

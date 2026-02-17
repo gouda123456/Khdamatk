@@ -9,7 +9,11 @@ public class JobOffer
     public int DeliveryTimeInDays { get; set; }
     public JobOfferStatus Status { get; set; } = JobOfferStatus.Pending;
 
+    // المبلغ الذي سيستلمه الفريلانسر فعلياً بعد خصم عمولة المنصة
+    public decimal NetAmount { get; set; }
 
+    // لتحديد هل هذا العرض هو "العرض الفائز" الذي تحول لطلب (Order)
+    public bool IsAccepted { get; set; } = false;
 
     // الربط مع الوظيفة الأساسية
     public int JobPostId { get; set; }
