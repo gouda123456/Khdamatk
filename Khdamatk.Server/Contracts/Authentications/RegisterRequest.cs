@@ -1,6 +1,6 @@
 ﻿namespace Khdamatk.Server.Contracts.Authentications;
 
-public record RegisterRequest(string userName, string Email, string Password);
+public record RegisterRequest(string userName, string Email, string Password,string? PhoneNumber);
 
 
 
@@ -20,6 +20,10 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 
         RuleFor(r => r.Password)
             .SetValidator(new PasswordValidator());
+
+        RuleFor(p => p.PhoneNumber)
+            .Matches(@"^[0-9]*$")
+            .WithMessage("إذا قمت بإدخال رقم الهاتف، فيجب أن يتكون من أرقام فقط.");
     }
 
 }
