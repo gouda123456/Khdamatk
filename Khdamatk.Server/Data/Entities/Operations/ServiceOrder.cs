@@ -27,7 +27,7 @@ public class ServiceOrder : BaseEntity
     public decimal Amount { get; set; } // المبلغ الكلي المتفق عليه (قد يتضمن ضرائب ورسوم)
 
     [Required]
-    public ServiceOrderStatus Status { get; set; } = ServiceOrderStatus.PendingPayment; // ✅ إضافة الحالة
+    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment; // ✅ إضافة الحالة
 
     public DateTime? CompletionDate { get; set; } // تاريخ الإنجاز الفعلي
 
@@ -49,7 +49,7 @@ public class ServiceOrder : BaseEntity
 
 
 // يمثل دورة حياة العمل على الخدمة
-public enum ServiceOrderStatus
+public enum OrderStatus
 {
     // مرحلة ما قبل بدء العمل
     PendingPayment = 0,     // الطلب موجود ولكن في انتظار الدفع (بدء المعاملة)
