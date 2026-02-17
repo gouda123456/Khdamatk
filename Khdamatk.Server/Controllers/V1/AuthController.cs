@@ -37,4 +37,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("resend-confirmation-email")]
     public async Task<IActionResult> ReSendConfirmationEmail(ReSendConfirmationEmailRequest request) =>
         (await authService.ReSendConfirmationEmailAsync(request)).Respond();
+
+    [HttpPost("set-password")]
+    public async Task<IActionResult> SetPassword(SetPasswordRequest request) =>
+        (await authService.SetPasswordAsync(request)).Respond();
+     
 }

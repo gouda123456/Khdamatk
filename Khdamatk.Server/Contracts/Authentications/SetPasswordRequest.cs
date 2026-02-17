@@ -1,6 +1,6 @@
 ﻿namespace Khdamatk.Server.Contracts.Authentications;
 
-public record SetPasswordRequest(
+public record SetPasswordRequest(string Email,
     string CurrentPassword,
     string NewPassword
 );
@@ -9,6 +9,10 @@ public class SetPasswordRequestValidator : AbstractValidator<SetPasswordRequest>
 {
     public SetPasswordRequestValidator()
     {
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .EmailAddress();
+
         RuleFor(x => x.CurrentPassword)
             .SetValidator(new PasswordValidator());
 

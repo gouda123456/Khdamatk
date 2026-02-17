@@ -250,6 +250,40 @@ public class AuthService(
     }
 
 
+    //TODO:refator the magic strings 
+    public async Task<resultBase> SetPasswordAsync(SetPasswordRequest request)
+    {
+        if(await userManager.FindByEmailAsync(request.Email) is { })
+            return Failure(StatusCodes.Status404NotFound, UserErrors.UserNotFound);
+
+        var user = await userManager.FindByEmailAsync(request.Email);
+
+        var signinCredtion = await signInManager.CheckPasswordSignInAsync(user!,request.CurrentPassword,false);
+        if(signinCredtion.IsNotAllowed)
+        {
+            return Failure(StatusCodes.Status400BadRequest, UserErrors.InvalidPassword);
+        }
+
+        if(signinCredtion.IsLockedOut)
+        {
+            return Failure(StatusCodes.Status400BadRequest, UserErrors.InvalidPassword);
+        }
+
+        var result = await userManager.ChangePasswordAsync(user!, request.CurrentPassword, request.NewPassword);
+
+        if(result.Succeeded)
+        {
+            return Success(StatusCodes.Status200OK, "Password changed successfully", "Your password has been changed successfully");
+        }
+        if(result.Errors.Any())
+        {
+            var errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToArray();
+            return Failure(StatusCodes.Status400BadRequest, errors);
+        }
+
+        return Failure(StatusCodes.Status400BadRequest, "An error occurred while changing the password", "Please try again later");
+    }
+
 
     public async Task<bool> SendConfirmEmailAsync(User user, string code)
     {

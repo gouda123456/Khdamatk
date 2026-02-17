@@ -9,4 +9,5 @@ public interface IAuthService : IService
     Task<resultBase> ReSendConfirmationEmailAsync(ReSendConfirmationEmailRequest request);
     Task<resultBase> ForgetPassword(string Email);
     Task<resultBase> VerifyCode(VerifyCodeRequest request);
+    Task<resultBase> SetPasswordAsync(SetPasswordRequest request);
 }
