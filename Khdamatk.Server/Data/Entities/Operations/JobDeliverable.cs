@@ -6,5 +6,5 @@ public class JobDeliverable : BaseEntity
     public string Description { get; set; }
     public string? FileUrl { get; set; } // رابط الملف المرفوع
 
-    public virtual JobOrder JobOrder { get; set; }
+    public virtual JobOrder JobOrder { get; set; } = null!;
 }
