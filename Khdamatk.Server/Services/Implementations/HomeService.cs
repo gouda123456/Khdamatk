@@ -30,7 +30,7 @@ public class HomeService(Database db) : IHomeService
             u.User.UserName?? "UnKnown",
             u.JobTitle,
             u.HourlyRate,
-            u.Skills.Select(s => s.Name)
+            u.Skills.Select(s => s.Skill.Name)
             .ToList()?? new List<string>() {"there are no skill" }))
             .Take(10)
             .AsNoTracking()

@@ -27,7 +27,6 @@ public class User : IdentityUser<string>
 
     [ForeignKey(nameof(ProfilePicture))]
     public int? ProfilePictureId { get; set; }
-    public Media? ProfilePicture { get; set; }
 
     public bool IsTrustedByAdmin { get; set; } = false;
 
@@ -35,6 +34,7 @@ public class User : IdentityUser<string>
     public bool IsServiceProvider { get { return ServiceProviderProfile != null; }  }
 
 
+    public virtual Media? ProfilePicture { get; set; }
     
     public virtual ServiceProviderProfile? ServiceProviderProfile { get; set; }
 

@@ -22,9 +22,9 @@ public class CreditCard
     [ForeignKey(nameof(User))]
     public string UserId { get; set; } = null!;
 
-    public User User { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 
 
-    public List<PaymentTransaction> Transactions { get; set; } = [];
+    public virtual List<PaymentTransaction> Transactions { get; set; } = [];
 
 }

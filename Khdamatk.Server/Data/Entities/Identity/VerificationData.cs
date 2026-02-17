@@ -6,7 +6,6 @@ public class VerificationData
     [ForeignKey(nameof(User))]
     public string UserId { get; set; } = null!;
 
-    public User User { get; set; } = null!;
 
 
     public string NationalNumber { get; set; } = string.Empty;
@@ -18,6 +17,7 @@ public class VerificationData
 
     public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
 
+    public virtual User User { get; set; } = null!;
 }
 
 

@@ -8,7 +8,7 @@ public static class DependancyInjections
     public static IServiceCollection AddDependancyInjections(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<Database>(options =>
-            options.UseSqlServer(
+            options.UseLazyLoadingProxies().UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
