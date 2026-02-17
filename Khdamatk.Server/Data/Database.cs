@@ -74,6 +74,9 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     public DbSet<ProviderSkill> ProviderSkills { get; set; }
     public DbSet<JobPost> JobPosts { get; set; }
     public DbSet<JobOffer> jobOffers { get; set; }
+    public DbSet<Skill> Skills { get; set; }
+    public DbSet<JobSkillRequirement> JobSkillRequirements { get; set; }
+
     #endregion
 
     #region Financial DbSets
