@@ -220,7 +220,7 @@ public class AuthService(
         {
             //generate Password Reset Token
 
-            var code = Generate6DigitCode();
+            var code = Generate6DigitCode;
             //Send Email
             var body = emailHelper.GetEmailTemplate(EmailTemplatesName.ResetPassword, keyValuePairs: new Dictionary<string, string>
             {
@@ -244,13 +244,10 @@ public class AuthService(
 
     }
 
-    public Task<resultBase> VerifyCode(VerifyCodeRequest request)
-    {
-        throw new NotImplementedException();
-    }
+    
 
 
-    //TODO:refator the magic strings 
+    //TODO: refactor the magic strings 
     public async Task<resultBase> SetPasswordAsync(SetPasswordRequest request)
     {
         if(await userManager.FindByEmailAsync(request.Email) is { })
@@ -284,6 +281,14 @@ public class AuthService(
         return Failure(StatusCodes.Status400BadRequest, "An error occurred while changing the password", "Please try again later");
     }
 
+    public Task<resultBase> VerifyCode(VerifyCodeRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    #region Helper Methods
+
 
     public async Task<bool> SendConfirmEmailAsync(User user, string code)
     {
@@ -307,10 +312,13 @@ public class AuthService(
         return sender;
     }
 
-    private int Generate6DigitCode()
+    private int Generate6DigitCode
     {
-        var random = new Random();
-        return random.Next(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MaxValue +1);
+        get
+        {
+            var random = new Random();
+            return random.Next(VerificationsCodesConstrains.MinValue, VerificationsCodesConstrains.MaxValue + 1);
+        }
     }
 
     [Obsolete("this method is moved to TokensServices For Better Connectability", true, DiagnosticId = nameof(tokensService))]
@@ -341,5 +349,6 @@ public class AuthService(
         return (Roles, Permissions);
     }
 
-    
+    #endregion
+
 }

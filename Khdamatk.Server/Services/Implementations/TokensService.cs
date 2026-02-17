@@ -122,6 +122,12 @@ public class TokensService(
         var jwtToken = tokenHandler.ReadJwtToken(token);
         return jwtToken.Claims.First(x => x.Type == JWTClaimsDefault.UserId).Value;
     }
+
+    public string GetUserIdFromToken(ClaimsPrincipal user)
+    {
+        return user.Claims.First(x => x.Type == JWTClaimsDefault.UserId).Value;
+    }
+
     
 
     string GenerateRefreshToken()
