@@ -123,8 +123,9 @@ public class AuthService(
         // 1. إنشاء كائن مستخدم جديد (Identity سيقوم بتوليد الـ ID فوراً)
         var user = Request.Adapt<User>();
 
+
         // 2. استخدام Mapster لتعبئة البيانات "فوق" الكائن الموجود (Mapping to existing object)
-        
+        user.PhoneNumber = Request.PhoneNumber;
 
         user.UserName = Request.userName.Replace(" ", "_");
         var result = await userManager.CreateAsync(user, Request.Password);
