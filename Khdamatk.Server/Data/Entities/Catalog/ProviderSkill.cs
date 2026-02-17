@@ -3,23 +3,13 @@
 
 public class ProviderSkill 
 {
-    [Key]
-    public int Id { get; set; }
+    public string ServiceProviderProfileId { get; set; } = string.Empty;
+    public int SkillId { get; set; }
 
-    [ForeignKey(nameof(ServiceProviderProfile))]
-    public string ServiceProviderProfileId { get; set; } = null!; 
-    
-    
-    [Required]
-    [StringLength(50, MinimumLength =2)]
-    public string Name { get; set; } = string.Empty;
+    public SkillExperienceLevel MyLevel { get; set; } // خبرة الشخص الفعلية
 
-
-    [Required]
-    public SkillExperienceLevel ExperienceLevel { get; set; } = SkillExperienceLevel.Beginner;
-
-
-    public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+    public virtual ServiceProviderProfile Profile { get; set; } = null!;
+    public virtual Skill Skill { get; set; } = null!;
 }
 
 
