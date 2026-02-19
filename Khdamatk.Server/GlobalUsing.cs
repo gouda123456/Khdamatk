@@ -64,3 +64,7 @@ global using Khdamatk.Server.Services.Implementations;
 
 global using Khdamatk.Server.Authentication.Fillter;
 global using Microsoft.AspNetCore.Authorization;
+
+
+
+global using Khdamatk.Server.Contracts.Jobs;

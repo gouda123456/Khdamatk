@@ -5,6 +5,15 @@ namespace Khdamatk.Server.Controllers.V1;
 
 [Route("api/[controller]")]
 [ApiController]
-public class JobsController : ControllerBase
+public class JobsController(IJobService jobService) : ControllerBase
 {
+    private readonly IJobService jobService = jobService;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllJobs()
+    {
+        var result = await jobService.GetAllJobsAsync();
+        return result.Respond();
+
+    }
 }
