@@ -24,7 +24,11 @@ public static class DependancyInjections
             .AddJsonOptions(options =>
             {
                 // لتحويل الـ Enums من وإلى String في الـ JSON
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());});
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
+
+
 
         services.AddAppServices();
         return services;
@@ -34,7 +38,9 @@ public static class DependancyInjections
     {
         
         services.AddScoped<IHomeService, HomeService>();
-        services.AddScoped<IFileManagement, FileManagement>();
+        services.AddTransient<IFileManagement, FileManagement>();
+        services.AddScoped<IServiceProviderService, ServiceProviderService>();
+        services.AddScoped<IJobService, JobService>();
         return services;
     }
 
