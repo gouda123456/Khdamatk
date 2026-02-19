@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿using System.Text.Json.Serialization;
+using Asp.Versioning;
 using Microsoft.OpenApi.Models;
 
 namespace Khdamatk.Server;
@@ -19,7 +20,11 @@ public static class DependancyInjections
         services.AddScoped<GlobalErrorHandling>();
         services.AddCORS();
         services.AddEmailHelper(configuration);
-
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                // لتحويل الـ Enums من وإلى String في الـ JSON
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());});
 
         services.AddAppServices();
         return services;

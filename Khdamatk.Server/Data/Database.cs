@@ -24,11 +24,13 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
         base.OnModelCreating(builder);
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        
+        // سيتم تحويل أي Enum في أي Entity إلى String في قاعدة البيانات تلقائياً
+        configurationBuilder
+            .Properties<Enum>()
+            .HaveConversion<string>();
     }
-
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         //var userid = httpContextAccessor.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

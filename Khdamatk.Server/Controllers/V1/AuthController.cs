@@ -27,12 +27,12 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest refreshToken) =>
-        (await authService.RefreshToken(refreshToken.Token)).Respond();
+        (await authService.RefreshTokenAsync(refreshToken.Token)).Respond();
 
 
     [HttpGet("Confirm")]
     public async Task<IActionResult> Confirm([FromQuery] ConfirmEmailRequest request) =>
-        (await authService.ConfirmEmail(request)).Respond();
+        (await authService.ConfirmEmailAsync(request)).Respond();
 
     [HttpPost("resend-confirmation-email")]
     public async Task<IActionResult> ReSendConfirmationEmail(ReSendConfirmationEmailRequest request) =>
@@ -51,3 +51,6 @@ public class AuthController(IAuthService authService) : ControllerBase
         (await authService.VerifyCodeAsync(request, cancellationToken)).Respond();
 
 }
+//Giggo343@gmail.com
+//giggo343@gmail.com
+//Giggo343@
