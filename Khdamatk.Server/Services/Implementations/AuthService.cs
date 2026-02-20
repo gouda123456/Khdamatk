@@ -57,7 +57,7 @@ public class AuthService(
 
     // (email , password) => token, token 
 
-    public async Task<resultBase> RefreshToken(string RefreshToken)
+    public async Task<resultBase> RefreshTokenAsync(string RefreshToken, CancellationToken cancellationToken = default)
     {
 
         // get user from token
@@ -84,7 +84,7 @@ public class AuthService(
                     r.RevokedAt = DateTime.UtcNow;
                 }
                 );
-                await db.SaveChangesAsync();
+                await db.SaveChangesAsync(cancellationToken);
                 return Failure(StatusCodes.Status404NotFound, UserErrors.RefreshTokenDoesNotExists); //To deceive the hacker 
             }
             else
@@ -152,7 +152,7 @@ public class AuthService(
         return Failure(StatusCodes.Status400BadRequest, Errors);
     }
 
-    public async Task<resultBase> ConfirmEmail(ConfirmEmailRequest request)
+    public async Task<resultBase> ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)
     {
         //check UserID
         if (await userManager.FindByIdAsync(request.UserId) is not { } user)
@@ -185,7 +185,7 @@ public class AuthService(
         return Failure(StatusCodes.Status400BadRequest, errors);
     }
 
-    public async Task<resultBase> ReSendConfirmationEmailAsync(ReSendConfirmationEmailRequest request)
+    public async Task<resultBase> ReSendConfirmationEmailAsync(ReSendConfirmationEmailRequest request, CancellationToken cancellationToken = default)
     {
         //check email
         if (await userManager.FindByEmailAsync(request.Email) is not { } user)
@@ -213,42 +213,9 @@ public class AuthService(
         return Success(StatusCodes.Status200OK, "the email confirmation has been sent successfully", "the email confirmation has been sent successfully check you mail box");
     }
 
-    //TODO: Add ResetPassword Email Template
-    public async Task<resultBase> ForgetPassword(string Email)
-    {
-        if(await userManager.FindByEmailAsync(Email) is { } user)
-        {
-            //generate Password Reset Token
-
-            var code = Generate6DigitCode;
-            //Send Email
-            var body = emailHelper.GetEmailTemplate(EmailTemplatesName.ResetPassword, keyValuePairs: new Dictionary<string, string>
-            {
-                {"name",user.UserName! },
-                {"code" , code.ToString() }
-            });
-            if (string.IsNullOrEmpty(body))
-            {
-                return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
-            }
-            var sender = await emailHelper.SendEmailAsync(user.Email!, "Password Reset", body);
-            if (!sender)
-            {
-                return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
-            }
-
-            return Success(StatusCodes.Status200OK, "Password reset code sent", "Check your email for the password reset code");
-        }
-
-        return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title,FailureMessages.ServiceUnavailable.Message);
-
-    }
-
-    
-
 
     //TODO: refactor the magic strings 
-    public async Task<resultBase> SetPasswordAsync(SetPasswordRequest request)
+    public async Task<resultBase> SetPasswordAsync(SetPasswordRequest request, CancellationToken cancellationToken = default)
     {
         if(await userManager.FindByEmailAsync(request.Email) is not { } user)
             return Success(StatusCodes.Status200OK, "Password changed successfully", "Your password has been changed successfully");
@@ -286,6 +253,7 @@ public class AuthService(
                      Type= VerificationCodeType.changePassword,
                      UserId = user.Id,
                      Value = code,
+                     
                 });
                 await db.SaveChangesAsync(cancellationToken);
                 return Success(StatusCodes.Status200OK, "Password reset code sent", "Check your email for the password reset code");
@@ -301,15 +269,18 @@ public class AuthService(
         if (user is null)
             return Failure(StatusCodes.Status404NotFound, UserErrors.UserNotFound);
 
-        // 2. البحث عن الكود (صلاحية 6 ساعات كما طلبت، وغير مستخدم)
-        var expiryTime = DateTime.UtcNow.AddHours(-6);
+        
+        var expiryTime = DateTime.UtcNow.AddHours(1);
 
         var validCode = await db.VerificationsCodes.FirstOrDefaultAsync
                 (c => c.UserId == user.Id &&
                     c.Type == request.CodeType &&
                     c.Value == request.Value && 
-                    !c.IsUsed&& c.Createdat >= expiryTime,
+                    !c.IsUsed&& c.Createdat <= expiryTime,
                     cancellationToken);
+
+        
+        
 
         if (validCode is null)
         {
