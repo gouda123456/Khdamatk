@@ -63,30 +63,85 @@ public class HomeService(Database db) : IHomeService
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
-
+    ////////////////////*****///////////////
     public async Task<resultBase> JobsPage(string? service, CancellationToken cancellationToken)
     {
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
-
+    ////////////////////*****///////////////
     public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
     {
 
-        switch (freelancerRequest.Type.ToLower())
+        var servicesSidebar = await db.Categories
+            .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+
+        var query = db.ServiceProviderProfiles
+            .Include(u => u.User)
+            .Include(u => u.Skills).ThenInclude(s => s.Skill)
+            .Include(u => u.Services).ThenInclude(s => s.Category)
+            .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(freelancerRequest.Value))
         {
-            case "service":
-
-                break;
-
-                case "freelancer-name":
-                
-                break;
-            default:
-                return Failure(StatusCodes.Status409Conflict ,"enter the right type", "invalid type you want to swarth with please search about [ service , freelancer-name ]",new Error("wrong value for Type","you entered wrong value for {Type} you should enter [[ service , freelancer-name ]]"));
-
+            query = freelancerRequest.Type.ToLower() switch
+            {
+                "service" => query.Where(u => u.Services.Any(s => s.Category.Name == freelancerRequest.Value)),
+                "freelancer-name" => query.Where(u => u.User.UserName.Contains(freelancerRequest.Value) || u.JobTitle.Contains(freelancerRequest.Value)),
+                "price" => freelancerRequest.Value switch
+                {
+                    "below-50" => query.Where(u => u.HourlyRate < 50),
+                    "50-100" => query.Where(u => u.HourlyRate >= 50 && u.HourlyRate <= 100),
+                    "100-150" => query.Where(u => u.HourlyRate > 100 && u.HourlyRate <= 150),
+                    "above-150" => query.Where(u => u.HourlyRate > 150),
+                    _ => query
+                },
+                _ => query
+            };
         }
 
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
-        
+        var providers = await query
+            .Select(u => new FreelancerCards(
+                u.UserId,
+                u.User.ProfilePictureId,
+                u.User.UserName ?? "Unknown",
+                u.JobTitle,
+                (double)u.HourlyRate,
+                u.Skills.Select(s => s.Skill.Name).ToList()
+            ))
+            .ToListAsync(cancellationToken);
+
+        if (providers.Count < 1)
+        {
+            providers = new List<FreelancerCards>
+        {
+            new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
+            new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" }),
+            new FreelancerCards("3", 103, "Gouda George", "Digital Marketer", 250.0, new List<string> { "SEO", "Ads", "Content" }),
+            new FreelancerCards("4", 104, "Mohamed Hassan", "Graphic Designer", 300.0, new List<string> { "Photoshop", "AI", "Branding" }),
+            new FreelancerCards("5", 105, "Youssef Nabil", "Translator", 200.0, new List<string> { "English", "Arabic", "French" }),
+            new FreelancerCards("6", 106, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }) 
+        };
+
+            if (servicesSidebar.Count < 1)
+            {
+                servicesSidebar = new List<ServicesCard>
+            {
+                new ("1", "Developers"),
+                new ("2", "Designers"),
+                new ("3", "Translators"),
+                new ("4", "Writing"),
+                new ("5", "Digital Marketing")
+            };
+            }
+        }
+
+        var resultData = new Freelancers(providers, servicesSidebar);
+
+        return Success(StatusCodes.Status200OK, resultData);
     }
 }
+
+

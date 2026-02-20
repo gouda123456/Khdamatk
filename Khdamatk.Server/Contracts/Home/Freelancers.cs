@@ -26,5 +26,6 @@ public record ServicesCard(
 public record FreelancerRequest(
     string Type,
     string Value
+
 );
 
