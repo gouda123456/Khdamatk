@@ -63,12 +63,12 @@ public class HomeService(Database db) : IHomeService
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
-    ////////////////////*****///////////////
+    
     public async Task<resultBase> JobsPage(string? service, CancellationToken cancellationToken)
     {
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
-    ////////////////////*****///////////////
+    
     public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
     {
 
