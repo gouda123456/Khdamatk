@@ -12,6 +12,7 @@ import NotFound from './Pages/NotFound/NotFound';
 import SendConfirmEmail from './Pages/SendConfirmEmail/SendConfirmEmail';
 
 import ProfilePage from './Pages/Home/profile';
+import AddExperience from './Pages/Home/AddExperience';
 
 
 function App() {
@@ -57,6 +58,10 @@ function App() {
               {
                     path: 'profile',
                     element: <ProfilePage />
+              },
+              {
+                path: 'add-experience',
+                element: <AddExperience />
               }
 
             ]
