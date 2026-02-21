@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Microsoft.OpenApi.Models;
+using Stripe;
 
 namespace Khdamatk.Server;
 
@@ -27,6 +28,7 @@ public static class DependancyInjections
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+        services.AddPaymentMethod(configuration);
 
 
 
@@ -41,6 +43,27 @@ public static class DependancyInjections
         services.AddTransient<IFileManagement, FileManagement>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
+        return services;
+    }
+
+    public static IServiceCollection AddPaymentMethod(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<StripeSetting>()
+            .BindConfiguration(nameof(StripeSetting))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddScoped<CustomerService>();
+        services.AddScoped<PaymentIntentService>();
+        services.AddScoped<RefundService>();
+        services.AddScoped<ProductService>();
+        services.AddScoped<CheckoutService>();
+        services.AddScoped<SubscriptionService>();
+        services.AddScoped<TokenService>();
+        services.AddScoped<PriceService>();
+        services.AddScoped<InvoiceService>();
+        services.AddScoped<ChargeService>();
+
+        //services.AddScoped<IPaymentService, PaymentService>();
         return services;
     }
 
