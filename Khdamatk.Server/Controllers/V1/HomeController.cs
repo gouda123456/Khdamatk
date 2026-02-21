@@ -18,7 +18,7 @@ public class HomeController(IHomeService homeService) : ControllerBase
     }
 
     [HttpGet("Freelancers")]
-    public async Task<IActionResult> GetFreelancers(FreelancerRequest freelancerRequest,CancellationToken cancellationToken)
+    public async Task<IActionResult> GetFreelancers([FromQuery] FreelancerRequest freelancerRequest,CancellationToken cancellationToken)
     {
         var result = await homeService.FreelancersPage(freelancerRequest,cancellationToken);
         return result.Respond();
