@@ -22,7 +22,7 @@ public class HomeService(Database db) : IHomeService
     //TODO: Review the Code and make sure it follows the best practices
     public async Task<resultBase> MainPage(CancellationToken cancellationToken)
     {
-        var Categories = await db.Categories.Select(c => c.Name).AsNoTracking().Take(10).ToListAsync(cancellationToken);
+        var Categories = await db.Categories.Select(c => c.Name).AsNoTracking().Take(10).ToListAsync();
         
         var FreelancerCards = await db.ServiceProviderProfiles.Include(u => u.User)
             .Select(u => new FreelancerCard(u.UserId,
