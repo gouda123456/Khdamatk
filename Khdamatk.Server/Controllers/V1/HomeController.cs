@@ -23,5 +23,14 @@ public class HomeController(IHomeService homeService) : ControllerBase
         var result = await homeService.FreelancersPage(freelancerRequest,cancellationToken);
         return result.Respond();
     }
-    
+
+
+    [HttpGet("freelancer-profile/{userId}")]
+    public async Task<IActionResult> GetProfile(string userId, CancellationToken cancellationToken)
+    {
+        var result = await homeService.FreelancerProfile(userId, cancellationToken);
+
+        return result.Respond();
+    }
+
 }

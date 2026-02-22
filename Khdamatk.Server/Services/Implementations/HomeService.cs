@@ -1,5 +1,4 @@
-﻿
-using Khdamatk.Server.Contracts.Home;
+﻿using Khdamatk.Server.Contracts.Home;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -7,7 +6,7 @@ public class HomeService(Database db) : IHomeService
 {
     private readonly Database db = db;
 
-    
+
 
     //TODO: Send Picture URL instead of PictureId
     //TODO: Implement Caching for this method
@@ -20,6 +19,7 @@ public class HomeService(Database db) : IHomeService
     //TODO: Implement Unit Tests for this method
     //TODO: Test the Query , optimize it if needed , and make sure it works as expected , add Fake Data (hundred of Rows )
     //TODO: Review the Code and make sure it follows the best practices
+    ///////////MainPage////////////////
     public async Task<resultBase> MainPage(CancellationToken cancellationToken)
     {
         var Categories = await db.Categories.Select(c => c.Name).AsNoTracking().Take(10).ToListAsync();
@@ -63,12 +63,12 @@ public class HomeService(Database db) : IHomeService
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
-    
+    ////////////////////JobsPage///////////////
     public async Task<resultBase> JobsPage(string? service, CancellationToken cancellationToken)
     {
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
-    
+    ////////////////////FreelancersPage///////////////
     public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
     {
 
@@ -141,6 +141,82 @@ public class HomeService(Database db) : IHomeService
         var resultData = new Freelancers(providers, servicesSidebar);
 
         return Success(StatusCodes.Status200OK, resultData);
+    }
+    //////////FreelancerProfile////////
+    public async Task<resultBase> FreelancerProfile(string userId, CancellationToken cancellationToken)
+    {
+        
+        var profile = await db.ServiceProviderProfiles
+            .Include(u => u.User)
+            .Include(u => u.Skills).ThenInclude(s => s.Skill)
+            .Include(u => u.Certificates)      
+            .Include(u => u.PortfolioItems)    
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+        
+        if (profile == null)
+        {
+            var fakeProfile = new FreelancerProfileResponse(
+                UserId: Guid.NewGuid().ToString(),
+                FullName: "Omnia Salah",
+                JobTitle: "Software engineer",
+                Location: "Cairo, Egypt",
+                MemberSince: "2023 Nov",
+                Rating: 4.5,
+                YearsOfExperience: 2,
+                WorkingHours: "Working 3 hours a week as a freelancer",
+                Bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                HourlyRate: 50.0,
+                Skills: new List<string> { "Skill1", "Skill2" },
+                Portfolio: new List<_PortfolioItem>
+                {
+                new ("Name Work", null, new List<string>{"v1", "v2", "v3"}),
+                new ("Name Work", null, new List<string>{"v1", "v2", "v3"})
+                },
+                Education: new List<EducationItem>
+                {
+                new ("Educational Name", "Specialty", "Lorem ipsum description...", "2022/2/1 - 2026/5/1")
+                },
+                Certifications: new List<CertificationItem>
+                {
+                new ("Certification Name", "Lorem ipsum description...", "2022/2/1 - 2026/5/1")
+                },
+                Experiences: new List<ExperienceItem>
+                {
+                new ("Name: Experience", "Lorem ipsum description...")
+                },
+                ProfilePictureUrl: null,
+                CoverPictureUrl: null
+            );
+
+            return Success(StatusCodes.Status200OK, fakeProfile);
+        }
+
+        var response = new FreelancerProfileResponse(
+            profile.UserId,
+            profile.User.UserName ?? "Unknown",
+            profile.JobTitle,
+            "Cairo, Egypt", 
+            profile.DateOfJoin.ToString("yyyy MMM"),
+            4.5, 
+            2,   
+            "Flexible hours",
+            profile.Bio ?? "",
+            (double)profile.HourlyRate,
+            profile.Skills.Select(s => s.Skill.Name).ToList(),
+            profile.PortfolioItems.Select(p => new _PortfolioItem(p.Title, null, new List<string> { p.Description ?? string.Empty })).ToList(),
+   
+            new List<EducationItem>(),      
+           
+            profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
+            // No Experiences navigation: return empty list
+            new List<ExperienceItem>(),
+            null,
+            null
+        );
+
+        return Success(StatusCodes.Status200OK, response);
     }
 }
 
