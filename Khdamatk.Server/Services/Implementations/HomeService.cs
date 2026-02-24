@@ -1,7 +1,6 @@
 ﻿using Khdamatk.Server.Contracts.Home;
 
 namespace Khdamatk.Server.Services.Implementations;
-
 public class HomeService(Database db) : IHomeService
 {
     private readonly Database db = db;
@@ -210,13 +209,154 @@ public class HomeService(Database db) : IHomeService
             new List<EducationItem>(),      
            
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
-            // No Experiences navigation: return empty list
+           
             new List<ExperienceItem>(),
             null,
             null
         );
 
         return Success(StatusCodes.Status200OK, response);
+    }
+
+
+        /////////////////*************///////////////////
+
+    public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
+    {
+        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        
+      
+        if (profile == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "profile is not found");
+
+        profile.JobTitle = request.JobTitle;
+        profile.Bio = request.Bio;
+        profile.HourlyRate = request.HourlyRate;
+        profile.ExperienceYears = request.ExperienceYears;
+
+        await db.SaveChangesAsync();
+        return Success(StatusCodes.Status200OK, "The data has been updated effectively");
+    }
+
+         /////////////////**************///////////
+
+    public async Task<resultBase> AddPortfolioItem(string userId, AddPortfolioRequest request)
+    {
+
+        var newItem = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
+        {
+            ServiceProviderProfileId = userId,
+            Title = request.Title,
+            Description = request.Description,
+            ProjectUrl = request.ImageUrl, 
+            CompletionDate = DateTime.UtcNow 
+        };
+
+        await db.PortfolioItems.AddAsync(newItem);
+        await db.SaveChangesAsync();
+
+
+        return Success(StatusCodes.Status200OK, "Added successfully");
+    }
+
+           ////////////////////***********///////////////
+
+    public async Task<resultBase> AddEducation(string userId, AddEducationRequest request)
+    {
+        // 1. نتأكد إن البروفايل موجود
+        var profile = await db.ServiceProviderProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+
+        // 2. إضافة السجل الجديد (بافتراض اسم الـ Entity عندك Education)
+        var education = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
+        {
+            ServiceProviderProfileId = userId,
+            SchoolName = request.SchoolName,
+            Degree = request.Degree,
+            FieldOfStudy = request.FieldOfStudy,
+            Description = request.Description,
+            StartDate = request.StartDate,
+            EndDate = request.EndDate
+        };
+
+        await db.PortfolioItems.AddAsync(education);
+        await db.SaveChangesAsync();
+
+        return Success(StatusCodes.Status201Created, "Education added successfully");
+    }
+
+    /////////////////////*************///////////////
+
+    public async Task<resultBase> AddExperience(string userId, AddExperienceRequest request)
+    {
+        // 1. التأكد من وجود البروفايل
+        var profile = await db.ServiceProviderProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+
+       
+        var experience = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
+        {
+            ServiceProviderProfileId = userId,
+            Title = request.Title,
+            Company = request.CompanyName,
+            Description = request.Description,
+            StartDate = request.StartDate,
+            EndDate = request.EndDate
+        };
+
+        await db.PortfolioItems.AddAsync(experience);
+        await db.SaveChangesAsync();
+
+        return Success(StatusCodes.Status201Created, "Experience added successfully");
+    }
+    public async Task<resultBase> DeletePortfolioItem(string userId, int itemId)
+    {
+        // 1. بندور على العمل بالـ ID وبنتأكد إنه بتاع اليوزر ده
+        var item = await db.PortfolioItems
+            .FirstOrDefaultAsync(p => p.Id == itemId && p.ServiceProviderProfileId == userId);
+
+        // 2. لو مش موجود أو مش بتاعه
+        if (item == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Item not found or you don't have permission to delete it");
+
+        // 3. المسح من الداتابيز
+        db.PortfolioItems.Remove(item);
+        await db.SaveChangesAsync();
+
+        return Success(StatusCodes.Status200OK, "Project deleted successfully from your portfolio");
+    }
+    public async Task<resultBase> UpdateSkills(string userId, UpdateSkillsRequest request)
+    {
+        // 1. بنجيب البروفايل بالمهارات الحالية بتاعته
+        var profile = await db.ServiceProviderProfiles
+            .Include(p => p.Skills)
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+
+        // 2. بنمسح المهارات القديمة المرتبطة بالبروفايل ده
+        profile.Skills.Clear();
+
+        // 3. بنضيف المهارات الجديدة من الـ IDs اللي جاية في الـ Request
+        foreach (var skillId in request.SkillIds)
+        {
+            profile.Skills.Add(new ProviderSkill
+            {
+                SkillId = skillId,
+                ServiceProviderProfileId = userId
+            });
+        }
+
+        await db.SaveChangesAsync();
+
+        return Success(StatusCodes.Status200OK, "Skills updated successfully");
     }
 }
 
