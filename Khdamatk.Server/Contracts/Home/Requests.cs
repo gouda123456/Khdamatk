@@ -10,21 +10,21 @@ public record AddPortfolioRequest(
 
 
 public record AddEducationRequest(
-    string SchoolName,      // اسم الجامعة أو المدرسة
-    string Degree,          // الدرجة العلمية (مثلاً Bachelor's)
-    string FieldOfStudy,    // التخصص
-    string Description,     // وصف بسيط
-    DateTime StartDate,     // تاريخ البدء
-    DateTime? EndDate       // تاريخ التخرج (ممكن يكون null لو لسه بيدرس)
+    string SchoolName,      
+    string Degree,          
+    string FieldOfStudy,    
+    string Description,     
+    DateTime StartDate,    
+    DateTime? EndDate      
 );
 
 
 public record AddExperienceRequest(
-    string Title,           // المسمى الوظيفي (مثلاً Senior Developer)
-    string CompanyName,     // اسم الشركة
-    string Description,     // المهام اللي كنت بتعملها
-    DateTime StartDate,     // تاريخ البداية
-    DateTime? EndDate       // تاريخ النهاية (null لو لسه شغال هناك)
+    string Title,          
+    string CompanyName,     
+    string Description,     
+    DateTime StartDate,    
+    DateTime? EndDate       
 );
 public record UpdateProfileRequest(
     string JobTitle,
@@ -33,5 +33,5 @@ public record UpdateProfileRequest(
     int ExperienceYears
 );
 public record UpdateSkillsRequest(
-    List<int> SkillIds // لستة بـ IDs المهارات اللي اليوزر اختارها من الـ Dropdown
+    List<int> SkillIds 
 );

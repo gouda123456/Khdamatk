@@ -158,7 +158,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     }
 
 
-    /////////////////*************///////////////////
+    /////////////////UpdateProfileBasicInfo///////////////////
 
     public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
     {
@@ -177,7 +177,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status200OK, "The data has been updated effectively");
     }
 
-    /////////////////**************///////////
+    /////////////////AddPortfolioItem///////////
 
     public async Task<resultBase> AddPortfolioItem(string userId, AddPortfolioRequest request)
     {
@@ -198,18 +198,18 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status200OK, "Added successfully");
     }
 
-    ////////////////////***********///////////////
+    ////////////////////AddEducation///////////////
 
     public async Task<resultBase> AddEducation(string userId, AddEducationRequest request)
     {
-        // 1. نتأكد إن البروفايل موجود
+       
         var profile = await db.ServiceProviderProfiles
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
         if (profile == null)
             return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
-        // 2. إضافة السجل الجديد (بافتراض اسم الـ Entity عندك Education)
+        
         var education = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
             ServiceProviderProfileId = userId,
@@ -227,11 +227,11 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status201Created, "Education added successfully");
     }
 
-    /////////////////////*************///////////////
+    /////////////////////AddExperience///////////////
 
     public async Task<resultBase> AddExperience(string userId, AddExperienceRequest request)
     {
-        // 1. التأكد من وجود البروفايل
+       
         var profile = await db.ServiceProviderProfiles
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
@@ -256,15 +256,15 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     }
     public async Task<resultBase> DeletePortfolioItem(string userId, int itemId)
     {
-        // 1. بندور على العمل بالـ ID وبنتأكد إنه بتاع اليوزر ده
+      
         var item = await db.PortfolioItems
             .FirstOrDefaultAsync(p => p.Id == itemId && p.ServiceProviderProfileId == userId);
 
-        // 2. لو مش موجود أو مش بتاعه
+        
         if (item == null)
             return Failure(StatusCodes.Status404NotFound, "Error", "Item not found or you don't have permission to delete it");
 
-        // 3. المسح من الداتابيز
+       
         db.PortfolioItems.Remove(item);
         await db.SaveChangesAsync();
 
@@ -272,7 +272,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     }
     public async Task<resultBase> UpdateSkills(string userId, UpdateSkillsRequest request)
     {
-        // 1. بنجيب البروفايل بالمهارات الحالية بتاعته
+        
         var profile = await db.ServiceProviderProfiles
             .Include(p => p.Skills)
             .FirstOrDefaultAsync(p => p.UserId == userId);
@@ -280,10 +280,10 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         if (profile == null)
             return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
-        // 2. بنمسح المهارات القديمة المرتبطة بالبروفايل ده
+        
         profile.Skills.Clear();
 
-        // 3. بنضيف المهارات الجديدة من الـ IDs اللي جاية في الـ Request
+  
         foreach (var skillId in request.SkillIds)
         {
             profile.Skills.Add(new ProviderSkill
