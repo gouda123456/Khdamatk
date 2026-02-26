@@ -10,5 +10,7 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
             .WithOne()
             .HasForeignKey<User>(u => u.ProfilePictureId)
             .OnDelete(DeleteBehavior.SetNull);
+
+       
     }
 }

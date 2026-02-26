@@ -2,6 +2,7 @@
 using Asp.Versioning;
 using Microsoft.OpenApi.Models;
 using Stripe;
+using Stripe.BillingPortal;
 
 namespace Khdamatk.Server;
 
@@ -52,18 +53,30 @@ public static class DependancyInjections
             .BindConfiguration(nameof(StripeSetting))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        StripeConfiguration.AppInfo = new AppInfo
+        {
+            Name = "Khdamatk API",
+            Version = "1.0.0",
+            Url = "https://khdamatk.com",
+            PartnerId = "pp_partner_123456789"
+        };
+        StripeConfiguration.ApiKey = configuration.GetSection(nameof(StripeSetting)).Get<StripeSetting>()!.SecretKey;
+        //services.AddScoped<TokenService>();
         services.AddScoped<CustomerService>();
         services.AddScoped<PaymentIntentService>();
         services.AddScoped<RefundService>();
         services.AddScoped<ProductService>();
-        services.AddScoped<CheckoutService>();
         services.AddScoped<SubscriptionService>();
-        services.AddScoped<TokenService>();
         services.AddScoped<PriceService>();
         services.AddScoped<InvoiceService>();
         services.AddScoped<ChargeService>();
+        services.AddScoped<RefundService>();
+        services.AddScoped<SessionService>();
 
-        //services.AddScoped<IPaymentService, PaymentService>();
+
+
+        services.AddScoped<IPaymentHelper, PaymentHelper>();
         return services;
     }
 
