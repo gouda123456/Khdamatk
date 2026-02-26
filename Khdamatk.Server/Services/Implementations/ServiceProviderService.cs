@@ -7,7 +7,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     private readonly Database db = db;
 
     ////////////////////FreelancersPage///////////////
-    public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
+    public async Task<resultBase> FreelancersPage(FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
     {
 
         var servicesSidebar = await db.Categories
@@ -160,7 +160,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
     /////////////////UpdateProfileBasicInfo///////////////////
 
-    public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
+    public async Task<resultBase> UpdateProfileBasicInfo(string? userId, UpdateProfileRequest request)
     {
         var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
 

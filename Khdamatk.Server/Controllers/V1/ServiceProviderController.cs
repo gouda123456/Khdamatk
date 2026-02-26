@@ -11,7 +11,7 @@ public class ServiceProviderController(IServiceProviderService ServiceProviderSe
     private readonly IServiceProviderService ServiceProviderService = ServiceProviderService;
 
     [HttpGet("Freelancers")]
-    public async Task<IActionResult> GetFreelancers([FromQuery] FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetFreelancers([FromQuery] FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
     {
         var result = await ServiceProviderService.FreelancersPage(freelancerRequest, cancellationToken);
         return result.Respond();
@@ -27,7 +27,7 @@ public class ServiceProviderController(IServiceProviderService ServiceProviderSe
     [HttpPut("update-basic-info")]
     public async Task<IActionResult> UpdateInfo(UpdateProfileRequest request)
     {
-        var result = await ServiceProviderService.UpdateProfileBasicInfo(User.GetUserId(), request);
+        var result = await ServiceProviderService.UpdateProfileBasicInfo(User?.GetUserId(), request);
         return result.Respond();
     }
 

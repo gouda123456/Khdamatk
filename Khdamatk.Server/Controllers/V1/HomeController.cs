@@ -6,9 +6,10 @@ namespace Khdamatk.Server.Controllers.V1;
 
 [Route("api/[controller]")]
 [ApiController]
-public class HomeController(IHomeService homeService) : ControllerBase
+public class HomeController(IHomeService homeService,IServiceProviderService serviceProviderService) : ControllerBase
 {
     private readonly IHomeService homeService = homeService;
+    private readonly IServiceProviderService serviceProviderService = serviceProviderService;
 
 
     [HttpGet("")]

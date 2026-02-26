@@ -41,6 +41,7 @@ public static class DependancyInjections
         services.AddTransient<IFileManagement, FileManagement>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
+        services.AddScoped<IServiceProviderService, ServiceProviderService>();
         return services;
     }
 

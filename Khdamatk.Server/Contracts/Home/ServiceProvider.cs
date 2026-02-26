@@ -7,6 +7,17 @@ public record AddPortfolioRequest(
     string ImageUrl
 );
 
+public class AddPortfolioRequestValidator : AbstractValidator<AddPortfolioRequest>
+{
+    public AddPortfolioRequestValidator()
+    {
+        RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required.");
+        RuleFor(x => x.Description).NotEmpty().WithMessage("Description is required.");
+        RuleFor(x => x.ImageUrl).NotEmpty().WithMessage("Image URL is required.")
+            .Must(uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute)).WithMessage("Invalid URL format.");
+    }
+}
+
 
 
 public record AddEducationRequest(
