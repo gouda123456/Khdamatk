@@ -10,7 +10,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-                configuration.GetConnectionString("YoussefFathy"),
+                configuration.GetConnectionString("menna"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -41,6 +41,7 @@ public static class DependancyInjections
         services.AddTransient<IFileManagement, FileManagement>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
+        services.AddScoped<IServiceProviderService, ServiceProviderService>();
         return services;
     }
 
