@@ -45,4 +45,5 @@ public class ServiceProviderProfile
     public virtual ICollection<Review> Reviews { get; set; } = [];
     // الربط مع نظام العروض الجديد
     public virtual ICollection<JobOffer> JobOffers { get; set; } = [];
+
 }

@@ -1,13 +1,11 @@
-﻿
-using Khdamatk.Server.Contracts.Home;
+﻿using Khdamatk.Server.Contracts.Home;
 
 namespace Khdamatk.Server.Services.Implementations;
-
 public class HomeService(Database db) : IHomeService
 {
     private readonly Database db = db;
 
-    
+
 
     //TODO: Send Picture URL instead of PictureId
     //TODO: Implement Caching for this method
@@ -20,9 +18,10 @@ public class HomeService(Database db) : IHomeService
     //TODO: Implement Unit Tests for this method
     //TODO: Test the Query , optimize it if needed , and make sure it works as expected , add Fake Data (hundred of Rows )
     //TODO: Review the Code and make sure it follows the best practices
+    ///////////MainPage////////////////
     public async Task<resultBase> MainPage(CancellationToken cancellationToken)
     {
-        var Categories = await db.Categories.Select(c => c.Name).AsNoTracking().Take(10).ToListAsync(cancellationToken);
+        var Categories = await db.Categories.Select(c => c.Name).AsNoTracking().Take(10).ToListAsync();
         
         var FreelancerCards = await db.ServiceProviderProfiles.Include(u => u.User)
             .Select(u => new FreelancerCard(u.UserId,
@@ -63,85 +62,12 @@ public class HomeService(Database db) : IHomeService
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
-    
+    ////////////////////JobsPage///////////////
     public async Task<resultBase> JobsPage(string? service, CancellationToken cancellationToken)
     {
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
     
-    public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
-    {
-
-        var servicesSidebar = await db.Categories
-            .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-
-        var query = db.ServiceProviderProfiles
-            .Include(u => u.User)
-            .Include(u => u.Skills).ThenInclude(s => s.Skill)
-            .Include(u => u.Services).ThenInclude(s => s.Category)
-            .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(freelancerRequest.Value))
-        {
-            query = freelancerRequest.Type.ToLower() switch
-            {
-                "service" => query.Where(u => u.Services.Any(s => s.Category.Name == freelancerRequest.Value)),
-                "freelancer-name" => query.Where(u => u.User.UserName.Contains(freelancerRequest.Value) || u.JobTitle.Contains(freelancerRequest.Value)),
-                "price" => freelancerRequest.Value switch
-                {
-                    "below-50" => query.Where(u => u.HourlyRate < 50),
-                    "50-100" => query.Where(u => u.HourlyRate >= 50 && u.HourlyRate <= 100),
-                    "100-150" => query.Where(u => u.HourlyRate > 100 && u.HourlyRate <= 150),
-                    "above-150" => query.Where(u => u.HourlyRate > 150),
-                    _ => query
-                },
-                _ => query
-            };
-        }
-
-        var providers = await query
-            .Select(u => new FreelancerCards(
-                u.UserId,
-                u.User.ProfilePictureId,
-                u.User.UserName ?? "Unknown",
-                u.JobTitle,
-                (double)u.HourlyRate,
-                u.Skills.Select(s => s.Skill.Name).ToList()
-            ))
-            .ToListAsync(cancellationToken);
-
-        if (providers.Count < 1)
-        {
-            providers = new List<FreelancerCards>
-        {
-            new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
-            new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" }),
-            new FreelancerCards("3", 103, "Gouda George", "Digital Marketer", 250.0, new List<string> { "SEO", "Ads", "Content" }),
-            new FreelancerCards("4", 104, "Mohamed Hassan", "Graphic Designer", 300.0, new List<string> { "Photoshop", "AI", "Branding" }),
-            new FreelancerCards("5", 105, "Youssef Nabil", "Translator", 200.0, new List<string> { "English", "Arabic", "French" }),
-            new FreelancerCards("6", 106, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }) 
-        };
-
-            if (servicesSidebar.Count < 1)
-            {
-                servicesSidebar = new List<ServicesCard>
-            {
-                new ("1", "Developers"),
-                new ("2", "Designers"),
-                new ("3", "Translators"),
-                new ("4", "Writing"),
-                new ("5", "Digital Marketing")
-            };
-            }
-        }
-
-        var resultData = new Freelancers(providers, servicesSidebar);
-
-        return Success(StatusCodes.Status200OK, resultData);
-    }
 }
 
 

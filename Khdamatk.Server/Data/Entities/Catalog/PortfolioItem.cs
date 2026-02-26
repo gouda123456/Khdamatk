@@ -23,6 +23,14 @@ public class PortfolioItem : BaseEntity
     // التاريخ الذي تم فيه إنجاز العمل
     public DateTime CompletionDate { get; set; }
 
+    public string SchoolName { get; set; } = string.Empty;
+    public string Degree { get; set; } = string.Empty;
+    public string FieldOfStudy { get; set; } = string.Empty;
+    public string Company {  get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+
+
     // علاقة Many:Many مع كيان Media لحفظ الصور/الملفات المرتبطة بالمشروع
     public virtual ICollection<PortfolioMedia> ProjectMediaLinks { get; set; } = [];
 

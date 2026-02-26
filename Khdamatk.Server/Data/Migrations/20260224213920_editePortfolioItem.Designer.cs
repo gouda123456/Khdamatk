@@ -4,6 +4,7 @@ using Khdamatk.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20260224213920_editePortfolioItem")]
+    partial class editePortfolioItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,7 +45,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Certificate", b =>
@@ -100,7 +103,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Certificates", (string)null);
+                    b.ToTable("Certificates");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
@@ -149,7 +152,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ProviderProfileId");
 
-                    b.ToTable("jobOffers", (string)null);
+                    b.ToTable("jobOffers");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobPost", b =>
@@ -209,7 +212,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("JobPosts", (string)null);
+                    b.ToTable("JobPosts");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobSkillRequirement", b =>
@@ -265,7 +268,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("JobPostId");
 
-                    b.ToTable("Medias", (string)null);
+                    b.ToTable("Medias");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioItem", b =>
@@ -338,7 +341,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("PortfolioItems", (string)null);
+                    b.ToTable("PortfolioItems");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioMedia", b =>
@@ -353,7 +356,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("PortfolioMedia", (string)null);
+                    b.ToTable("PortfolioMedia");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ProviderSkill", b =>
@@ -443,7 +446,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Services", (string)null);
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ServiceMedia", b =>
@@ -458,7 +461,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("ServiceMedia", (string)null);
+                    b.ToTable("ServiceMedia");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Skill", b =>
@@ -475,7 +478,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills", (string)null);
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.CreditCard", b =>
@@ -509,7 +512,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CreditCards", (string)null);
+                    b.ToTable("CreditCards");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", b =>
@@ -566,7 +569,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("TokenizedCreditCardId");
 
-                    b.ToTable("PaymentTransactions", (string)null);
+                    b.ToTable("PaymentTransactions");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.RefreshTokens", b =>
@@ -614,7 +617,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Role", b =>
@@ -714,7 +717,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("IsAvailable");
 
-                    b.ToTable("ServiceProviderProfiles", (string)null);
+                    b.ToTable("ServiceProviderProfiles");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
@@ -861,7 +864,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("VerificationData", (string)null);
+                    b.ToTable("VerificationData");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationsCodes", b =>
@@ -906,7 +909,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("VerificationsCodes", (string)null);
+                    b.ToTable("VerificationsCodes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
@@ -970,7 +973,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("ServiceOrderId")
                         .IsUnique();
 
-                    b.ToTable("Conversations", (string)null);
+                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Dispute", b =>
@@ -1062,7 +1065,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Disputes", (string)null);
+                    b.ToTable("Disputes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Message", b =>
@@ -1117,7 +1120,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceOrderId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Review", b =>
@@ -1177,7 +1180,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
@@ -1239,7 +1242,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("serviceOrders", (string)null);
+                    b.ToTable("serviceOrders");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.UserFavorites", b =>
@@ -1265,7 +1268,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFavorites", (string)null);
+                    b.ToTable("UserFavorites");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1466,7 +1469,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany("Certificates")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CertificateMedia");
@@ -1524,7 +1527,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "JobPost")
                         .WithMany("SkillRequirements")
                         .HasForeignKey("JobPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Skill", "Skill")
@@ -1581,7 +1584,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "Profile")
                         .WithMany("Skills")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Skill", "Skill")
@@ -1606,12 +1609,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "MainImage")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Catalog.Service", "MainMediaId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany("Services")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1655,7 +1658,8 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     b.HasOne("Khdamatk.Server.Data.Entities.Financial.CreditCard", null)
                         .WithMany("Transactions")
-                        .HasForeignKey("CreditCardId");
+                        .HasForeignKey("CreditCardId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne("PaymentTransaction")
@@ -1678,7 +1682,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1689,7 +1693,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1700,11 +1704,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "ProfilePicture")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.User", "ProfilePictureId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany()
-                        .HasForeignKey("ServiceProviderProfileUserId");
+                        .HasForeignKey("ServiceProviderProfileUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ProfilePicture");
 
@@ -1727,7 +1732,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithMany("VerificationsCodes")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1750,7 +1755,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Client");
@@ -1815,7 +1820,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "Conversation")
                         .WithMany("Messages")
                         .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Sender")
@@ -1839,7 +1844,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne("Review")
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Reviewer")
@@ -1851,7 +1856,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProvider")
                         .WithMany("Reviews")
                         .HasForeignKey("ServiceProviderId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Reviewer");
@@ -1904,7 +1909,8 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", null)
                         .WithMany("UserFavorites")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Service");
 

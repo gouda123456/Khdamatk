@@ -275,11 +275,12 @@ public class AuthService(
         var validCode = await db.VerificationsCodes.FirstOrDefaultAsync
                 (c => c.UserId == user.Id &&
                     c.Type == request.CodeType &&
-                    c.Value == request.Value && 
-                    !c.IsUsed&& c.Createdat <= expiryTime,
+                    c.Value == request.Value ,
+
                     cancellationToken);
 
-        
+        if (validCode?.Createdat >= expiryTime)
+            return Failure(StatusCodes.Status409Conflict);
         
 
         if (validCode is null)
