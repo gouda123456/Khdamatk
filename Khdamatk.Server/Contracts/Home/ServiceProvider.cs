@@ -37,12 +37,42 @@ public record AddExperienceRequest(
     DateTime StartDate,    
     DateTime? EndDate       
 );
-public record UpdateProfileRequest(
-    string JobTitle,
-    string? Bio,
-    double HourlyRate,
-    int ExperienceYears
-);
+
 public record UpdateSkillsRequest(
     List<int> SkillIds 
 );
+public record AddCertificateRequest(
+    string Title,
+    string Issuer, 
+    string Type,   
+    int YearAcquired
+);
+
+public record UpdateProfileRequest(
+    string JobTitle,
+    string Bio,
+    double HourlyRate,
+    int ExperienceYears,
+    string? FacebookUrl,
+    string? LinkedInUrl,
+    string? GithubUrl,
+    string? TwitterUrl
+);
+
+public record UpdateEducationRequest(
+    int Id,
+    string SchoolName,
+    string Degree,
+    string FieldOfStudy,
+    string Description,
+    DateTime StartDate,
+    DateTime EndDate
+    );
+public record UpdateExperienceRequest(
+    int Id,
+    string Title,
+    string CompanyName,
+    string Description,
+    DateTime StartDate,
+    DateTime EndDate
+    );
