@@ -1,6 +1,7 @@
-﻿using System.Text.Json.Serialization;
-using Asp.Versioning;
+﻿using Asp.Versioning;
+using Khdamatk.Server.Services;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 namespace Khdamatk.Server;
 
@@ -42,6 +43,10 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
+        services.AddScoped<IAdminDashboardSerivce, AdminDashboardService>();
+
+        services.AddScoped<IUserDashboardService, UserDashoardService>();
+        services.AddScoped<IReportDashboardService, ReportDashboardService>();
         return services;
     }
 

@@ -14,7 +14,6 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
 {
     private readonly IServiceProviderService _service = _service;
 
-
     /// Retrieves a list of freelancers based on search and filter criteria.
 
     [HttpGet("Freelancers")]

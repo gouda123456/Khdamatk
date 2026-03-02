@@ -52,7 +52,6 @@
 	<Folder Include="Configurations\Documentations\Swagger\" />
 	<Folder Include="Configurations\Logging\" />
 	<Folder Include="Configurations\Validations\" />
-	<Folder Include="Contracts\Dashboard\" />
 	<Folder Include="wwwRoot\Images\" />
   </ItemGroup>
 
