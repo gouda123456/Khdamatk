@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Asp.Versioning;
+using Khdamatk.Server.Helper.Payment;
 using Microsoft.OpenApi.Models;
 using Stripe;
 using Stripe.BillingPortal;
@@ -12,7 +13,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-                configuration.GetConnectionString("menna"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -21,6 +22,7 @@ public static class DependancyInjections
         services.AddValidation();
         services.AddScoped<GlobalErrorHandling>();
         services.AddCORS();
+        services.AddHttpClient();
         services.AddEmailHelper(configuration);
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -45,11 +47,13 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
+        services.AddScoped<IOrderService, OrderService>();
         return services;
     }
 
     public static IServiceCollection AddPaymentMethod(this IServiceCollection services, IConfiguration configuration)
     {
+        //Stripe
         services.AddOptions<StripeSetting>()
             .BindConfiguration(nameof(StripeSetting))
             .ValidateDataAnnotations()
@@ -74,6 +78,13 @@ public static class DependancyInjections
         services.AddScoped<ChargeService>();
         services.AddScoped<RefundService>();
         services.AddScoped<SessionService>();
+
+        //Fawaterak
+        services.AddOptions<FawaterakSettings>()
+            .BindConfiguration(nameof(FawaterakSettings))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddTransient<IFawaterakPaymentHelper, FawaterakPaymentHelper>();
 
 
 
