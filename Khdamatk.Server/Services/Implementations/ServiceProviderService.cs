@@ -1,4 +1,5 @@
 ﻿using Khdamatk.Server.Contracts.Home;
+using Microsoft.EntityFrameworkCore;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -6,22 +7,25 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 {
     private readonly Database db = db;
 
-    ////////////////////FreelancersPage///////////////
-    public async Task<resultBase> FreelancersPage(FreelancerRequest freelancerRequest, CancellationToken cancellationToken)
-    {
 
+    /// Retrieves the main freelancers list with support for search filters (Category, Name, or Price).
+
+    public async Task<resultBase> FreelancersPage(FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
+    {
+        // 1. Fetch sidebar categories for display
         var servicesSidebar = await db.Categories
             .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-
+        // 2. Build the base query with related entities (User, Skills, Services)
         var query = db.ServiceProviderProfiles
             .Include(u => u.User)
             .Include(u => u.Skills).ThenInclude(s => s.Skill)
             .Include(u => u.Services).ThenInclude(s => s.Category)
             .AsNoTracking();
 
+        // 3. Apply search filters based on request type
         if (!string.IsNullOrWhiteSpace(freelancerRequest.Value))
         {
             query = freelancerRequest.Type.ToLower() switch
@@ -40,6 +44,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             };
         }
 
+        // 4. Map results to the required UI structure (FreelancerCards)
         var providers = await query
             .Select(u => new FreelancerCards(
                 u.UserId,
@@ -51,39 +56,28 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             ))
             .ToListAsync(cancellationToken);
 
+        // 5. Mock Data Fallback: Returns dummy data if database is empty to prevent UI breaking during development
         if (providers.Count < 1)
         {
             providers = new List<FreelancerCards>
-        {
-            new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
-            new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" }),
-            new FreelancerCards("3", 103, "Gouda George", "Digital Marketer", 250.0, new List<string> { "SEO", "Ads", "Content" }),
-            new FreelancerCards("4", 104, "Mohamed Hassan", "Graphic Designer", 300.0, new List<string> { "Photoshop", "AI", "Branding" }),
-            new FreelancerCards("5", 105, "Youssef Nabil", "Translator", 200.0, new List<string> { "English", "Arabic", "French" }),
-            new FreelancerCards("6", 106, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" })
-        };
+            {
+                new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
+                new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" })
+            };
 
             if (servicesSidebar.Count < 1)
             {
-                servicesSidebar = new List<ServicesCard>
-            {
-                new ("1", "Developers"),
-                new ("2", "Designers"),
-                new ("3", "Translators"),
-                new ("4", "Writing"),
-                new ("5", "Digital Marketing")
-            };
+                servicesSidebar = new List<ServicesCard> { new("1", "Developers"), new("2", "Designers") };
             }
         }
 
         var resultData = new Freelancers(providers, servicesSidebar);
-
         return Success(StatusCodes.Status200OK, resultData);
     }
-    //////////FreelancerProfile////////
+
+    /// Retrieves full profile details for a specific service provider, including skills, portfolio, and certificates.
     public async Task<resultBase> FreelancerProfile(string userId, CancellationToken cancellationToken)
     {
-
         var profile = await db.ServiceProviderProfiles
             .Include(u => u.User)
             .Include(u => u.Skills).ThenInclude(s => s.Skill)
@@ -92,44 +86,23 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
-        if (profile == null)
-        {
-            var fakeProfile = new FreelancerProfileResponse(
-                UserId: Guid.NewGuid().ToString(),
-                FullName: "Omnia Salah",
-                JobTitle: "Software engineer",
-                Location: "Cairo, Egypt",
-                MemberSince: "2023 Nov",
-                Rating: 4.5,
-                YearsOfExperience: 2,
-                WorkingHours: "Working 3 hours a week as a freelancer",
-                Bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-                HourlyRate: 50.0,
-                Skills: new List<string> { "Skill1", "Skill2" },
-                Portfolio: new List<_PortfolioItem>
-                {
-                new ("Name Work", null, new List<string>{"v1", "v2", "v3"}),
-                new ("Name Work", null, new List<string>{"v1", "v2", "v3"})
-                },
-                Education: new List<EducationItem>
-                {
-                new ("Educational Name", "Specialty", "Lorem ipsum description...", "2022/2/1 - 2026/5/1")
-                },
-                Certifications: new List<CertificationItem>
-                {
-                new ("Certification Name", "Lorem ipsum description...", "2022/2/1 - 2026/5/1")
-                },
-                Experiences: new List<ExperienceItem>
-                {
-                new ("Name: Experience", "Lorem ipsum description...")
-                },
-                ProfilePictureUrl: null,
-                CoverPictureUrl: null
-            );
+        // 1. Separate Portfolio Items based on properties (Assuming Title/SchoolName/Company distinguish them)
+        var education = profile.PortfolioItems
+            .Where(p => !string.IsNullOrEmpty(p.SchoolName))
+            .Select(p => new EducationItem(p.SchoolName!, p.Degree ?? "", p.Description ?? "", $"{p.StartDate:yyyy/M/d} - {p.EndDate:yyyy/M/d}"))
+            .ToList();
 
-            return Success(StatusCodes.Status200OK, fakeProfile);
-        }
+        var experiences = profile.PortfolioItems
+            .Where(p => !string.IsNullOrEmpty(p.Company))
+            .Select(p => new ExperienceItem(p.Company!, p.Description ?? ""))
+            .ToList();
+
+        var portfolio = profile.PortfolioItems
+            .Where(p => string.IsNullOrEmpty(p.SchoolName) && string.IsNullOrEmpty(p.Company))
+            .Select(p => new _PortfolioItem(p.Title, p.ProjectUrl, new List<string> { p.Description ?? "" }))
+            .ToList();
 
         var response = new FreelancerProfileResponse(
             profile.UserId,
@@ -138,50 +111,44 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             "Cairo, Egypt",
             profile.DateOfJoin.ToString("yyyy MMM"),
             4.5,
-            2,
+            profile.ExperienceYears,
             "Flexible hours",
             profile.Bio ?? "",
             (double)profile.HourlyRate,
             profile.Skills.Select(s => s.Skill.Name).ToList(),
-            profile.PortfolioItems.Select(p => new _PortfolioItem(p.Title, null, new List<string> { p.Description ?? string.Empty })).ToList(),
-
-            new List<EducationItem>(),
-
+            portfolio,
+            education, 
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
-
-            new List<ExperienceItem>(),
-            null,
-            null
+            experiences, 
+            null, // Replace with profile.User.ProfilePictureUrl if available
+            null  // Replace with profile.User.CoverPictureUrl if available
         );
 
         return Success(StatusCodes.Status200OK, response);
     }
 
-
-    /////////////////UpdateProfileBasicInfo///////////////////
-
+    /// Updates core profile information such as Bio, Job Title, and social media links.
     public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
     {
         var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-
-
-        if (profile == null)
-            return Failure(StatusCodes.Status404NotFound, "Error", "profile is not found");
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
         profile.JobTitle = request.JobTitle;
         profile.Bio = request.Bio;
-        profile.HourlyRate = request.HourlyRate;
+        profile.HourlyRate = (double)request.HourlyRate;
         profile.ExperienceYears = request.ExperienceYears;
 
+        profile.FacebookUrl = request.FacebookUrl;
+        profile.LinkedInUrl = request.LinkedInUrl;
+        profile.GithubUrl = request.GithubUrl;
+
         await db.SaveChangesAsync();
-        return Success(StatusCodes.Status200OK, "The data has been updated effectively");
+        return Success(StatusCodes.Status200OK, "Profile updated successfully");
     }
 
-    /////////////////AddPortfolioItem///////////
-
+    /// Adds a new project item to the provider's portfolio.
     public async Task<resultBase> AddPortfolioItem(string userId, AddPortfolioRequest request)
     {
-
         var newItem = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
             ServiceProviderProfileId = userId,
@@ -193,23 +160,15 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
         await db.PortfolioItems.AddAsync(newItem);
         await db.SaveChangesAsync();
-
-
         return Success(StatusCodes.Status200OK, "Added successfully");
     }
 
-    ////////////////////AddEducation///////////////
-
+    /// Adds educational background details to the provider's profile.
     public async Task<resultBase> AddEducation(string userId, AddEducationRequest request)
     {
-       
-        var profile = await db.ServiceProviderProfiles
-            .FirstOrDefaultAsync(p => p.UserId == userId);
+        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
-        if (profile == null)
-            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
-
-        
         var education = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
             ServiceProviderProfileId = userId,
@@ -223,21 +182,14 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
         await db.PortfolioItems.AddAsync(education);
         await db.SaveChangesAsync();
-
         return Success(StatusCodes.Status201Created, "Education added successfully");
     }
 
-    /////////////////////AddExperience///////////////
-
+    /// Adds work experience records to the provider's profile.
     public async Task<resultBase> AddExperience(string userId, AddExperienceRequest request)
     {
-       
-        var profile = await db.ServiceProviderProfiles
-            .FirstOrDefaultAsync(p => p.UserId == userId);
-
-        if (profile == null)
-            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
-
+        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
         var experience = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
@@ -251,39 +203,35 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
         await db.PortfolioItems.AddAsync(experience);
         await db.SaveChangesAsync();
-
         return Success(StatusCodes.Status201Created, "Experience added successfully");
     }
+
+    /// Deletes a specific item (Portfolio, Education, or Experience) by ID.
     public async Task<resultBase> DeletePortfolioItem(string userId, int itemId)
     {
-      
         var item = await db.PortfolioItems
             .FirstOrDefaultAsync(p => p.Id == itemId && p.ServiceProviderProfileId == userId);
 
-        
-        if (item == null)
-            return Failure(StatusCodes.Status404NotFound, "Error", "Item not found or you don't have permission to delete it");
+        if (item == null) return Failure(StatusCodes.Status404NotFound, "Error", "Item not found");
 
-       
         db.PortfolioItems.Remove(item);
         await db.SaveChangesAsync();
-
-        return Success(StatusCodes.Status200OK, "Project deleted successfully from your portfolio");
+        return Success(StatusCodes.Status200OK, "Deleted successfully");
     }
+
+    /// Updates the provider's skill set by clearing existing skills and adding the newly provided ones.
     public async Task<resultBase> UpdateSkills(string userId, UpdateSkillsRequest request)
     {
-        
         var profile = await db.ServiceProviderProfiles
             .Include(p => p.Skills)
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        if (profile == null)
-            return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
-        
+        // Clear existing skill links
         profile.Skills.Clear();
 
-  
+        // Add new skill links
         foreach (var skillId in request.SkillIds)
         {
             profile.Skills.Add(new ProviderSkill
@@ -294,7 +242,47 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         }
 
         await db.SaveChangesAsync();
-
         return Success(StatusCodes.Status200OK, "Skills updated successfully");
     }
+
+    /// Adds a professional certificate or license record to the profile.
+    public async Task<resultBase> AddCertificate(string userId, AddCertificateRequest request)
+    {
+        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+
+        var certificate = new Certificate
+        {
+            ServiceProviderProfileId = userId,
+            Title = request.Title,
+            Issuer = request.Issuer,
+            Type = request.Type,
+            YearAcquired = request.YearAcquired
+        };
+
+        await db.Certificates.AddAsync(certificate);
+        await db.SaveChangesAsync();
+        return Success(StatusCodes.Status201Created, "Certificate added successfully");
+    }
+
+    /// Updates an existing item (Portfolio/Education/Experience) in the PortfolioItems table.
+    public async Task<resultBase> UpdatePortfolioItem(string userId, int itemId, AddPortfolioRequest request)
+    {
+        var item = await db.PortfolioItems.FirstOrDefaultAsync(p => p.Id == itemId && p.ServiceProviderProfileId == userId);
+        if (item == null) return Failure(StatusCodes.Status404NotFound, "Error", "Item not found");
+
+        item.Title = request.Title;
+        item.Description = request.Description;
+        item.ProjectUrl = request.ImageUrl; // This can also store SchoolName/Company if logic requires
+
+        await db.SaveChangesAsync();
+        return Success(StatusCodes.Status200OK, "Item updated successfully");
+    }
+    /// Deletes an education record using the general portfolio deletion logic.
+    public async Task<resultBase> DeleteEducation(string userId, int eduId) => await DeletePortfolioItem(userId, eduId);
+
+
+    /// Deletes an experience record using the general portfolio deletion logic.
+
+    public async Task<resultBase> DeleteExperience(string userId, int expId) => await DeletePortfolioItem(userId, expId);
 }

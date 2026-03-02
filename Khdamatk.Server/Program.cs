@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDependancyInjections(builder.Configuration);
 
 
+
 var app = builder.Build();
 
 app.UseDefaultFiles();
@@ -33,7 +34,6 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 app.UseMiddleware<GlobalErrorHandling>();
-
 
 app.UseAuthentication();
 app.UseAuthorization();
