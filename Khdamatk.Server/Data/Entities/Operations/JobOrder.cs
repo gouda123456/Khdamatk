@@ -15,6 +15,11 @@ public class JobOrder : BaseEntity
     public DateTime ExpectedDeliveryDate { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Active;
 
+
+    public int invoiceId { get; set; }
+    public string invoiceKey { get; set; }
+
+
     // العلاقات (Navigation Properties)
     public virtual JobPost JobPost { get; set; } = null!;
     public virtual JobOffer AcceptedOffer { get; set; } = null!;

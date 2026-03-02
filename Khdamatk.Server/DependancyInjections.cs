@@ -11,7 +11,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-                configuration.GetConnectionString("YoussefFathy"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -20,6 +20,7 @@ public static class DependancyInjections
         services.AddValidation();
         services.AddScoped<GlobalErrorHandling>();
         services.AddCORS();
+        services.AddHttpClient();
         services.AddEmailHelper(configuration);
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -28,6 +29,7 @@ public static class DependancyInjections
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+        services.AddPaymentMethod(configuration);
 
 
 

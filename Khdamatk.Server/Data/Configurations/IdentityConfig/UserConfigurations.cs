@@ -11,9 +11,6 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
             .HasForeignKey<User>(u => u.ProfilePictureId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasMany(u => u.VerificationsCodes)
-            .WithOne(vc => vc.User)
-            .HasForeignKey(u => u.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+       
     }
 }

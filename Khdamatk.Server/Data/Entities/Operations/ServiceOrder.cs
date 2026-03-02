@@ -35,9 +35,14 @@ public class ServiceOrder : BaseEntity
     public string? AdditionalDetails { get; set; }
 
 
+    public int invoiceId { get; set; }
+    public string invoiceKey { get; set; }
+
+
     // === Navigation Properties ===
     public virtual User User { get; set; } = null!;
     public virtual Service Service { get; set; } = null!;
+
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
 
     // ✅ إضافة الروابط العكسية للكيانات التابعة لهذا الطلب

@@ -13,13 +13,14 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         var foreKeys = builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys());
         foreach (var key in foreKeys)
         {
             key.DeleteBehavior = DeleteBehavior.Restrict;
         }
+
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(builder);
     }
