@@ -1,16 +1,16 @@
-<<<<<<< HEAD
+
 ﻿using Asp.Versioning;
 using Khdamatk.Server.Services;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
-=======
+
 ﻿using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Khdamatk.Server.Helper.Payment;
 using Microsoft.OpenApi.Models;
 using Stripe;
 using Stripe.BillingPortal;
->>>>>>> 0d1a058297a2960869e173befa070e5eabf88e53
+
 
 namespace Khdamatk.Server;
 
@@ -54,12 +54,12 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
-<<<<<<< HEAD
+
         services.AddScoped<IAdminDashboardSerivce, AdminDashboardService>();
 
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
         services.AddScoped<IReportDashboardService, ReportDashboardService>();
-=======
+
         services.AddScoped<IOrderService, OrderService>();
         return services;
     }
@@ -102,7 +102,7 @@ public static class DependancyInjections
 
 
         services.AddScoped<IPaymentHelper, PaymentHelper>();
->>>>>>> 0d1a058297a2960869e173befa070e5eabf88e53
+
         return services;
     }
 
