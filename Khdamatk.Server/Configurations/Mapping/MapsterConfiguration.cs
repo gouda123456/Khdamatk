@@ -53,6 +53,21 @@ public class MapsterConfiguration : IRegister
             .IgnoreNonMapped(true)
             .TwoWays();
 
+        config.NewConfig<AddJopRequest, JobPost>()
+            .Map(dest => dest.CustomerId, src => src.UserId)
+            .Map(dest => dest.Title, src => src.Title)
+            .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.BudgetMin, src => src.BudgetMin)
+            .Map(dest => dest.BudgetMax, src => src.BudgetMax)
+            .Map(dest => dest.Deadline, src => src.Deadline)
+            .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
+            .Map(dest => dest.TimeCommitment, src => src.TimeCommitment.ToString())
+            // Mapping CategoryName to CategoryId will require a custom resolver or additional logic
+            .IgnoreNonMapped(true);
+
+
+
+
 
 
     }
