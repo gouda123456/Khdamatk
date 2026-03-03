@@ -63,7 +63,8 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment.ToString())
             // Mapping CategoryName to CategoryId will require a custom resolver or additional logic
-            .IgnoreNonMapped(true);
+            .IgnoreNonMapped(true)
+            .TwoWays();
 
 
 
