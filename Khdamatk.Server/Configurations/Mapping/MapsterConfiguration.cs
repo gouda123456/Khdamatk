@@ -67,7 +67,16 @@ public class MapsterConfiguration : IRegister
             .TwoWays();
 
 
-
+        config.NewConfig<AddJopOfferRequest, JobOffer>()
+            .Map(dest => dest.ProviderProfileId, src => src.ProviderServiceId)
+            .Map(dest => dest.NetAmount, src => src.OfferAmount)
+            .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
+            .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
+            .Map(dest => dest.Deadline, src => src.Deadline)
+            
+            .IgnoreNonMapped(true)
+            .TwoWays();
 
 
 
