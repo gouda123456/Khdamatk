@@ -4,10 +4,10 @@ public record AddJopOfferRequest(
     string ProviderServiceId, 
     decimal OfferAmount,
     string Description,
-    TimeCommitment? TimeCommitment, //TODO: Add TimeCommitment to job Entity
+    TimeCommit? TimeCommitment, //TODO: Add TimeCommitment to job Entity
     ExperienceLevel? ExperienceLevel,
     DateTime Deadline,
-    byte[]? Attachment,
+    IFormFile? Attachment,
     string? SimilarWorkExamples 
     );
 

@@ -19,7 +19,7 @@ public class JobPost
     
     public ExperienceLevel ExperienceLevel { get; set; } 
     public string ProjectLength { get; set; } = string.Empty;
-    public TimeCommitment TimeCommitment { get; set; } = TimeCommitment.PartTime; 
+    public TimeCommit TimeCommitment { get; set; } = TimeCommit.PartTime; 
 
     public DateTime Deadline { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

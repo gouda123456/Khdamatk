@@ -8,11 +8,11 @@ public record AddJopRequest(
     List<string> Skills,
     decimal BudgetMin,    
     decimal BudgetMax,
-    TimeCommitment TimeCommitment, //TODO: Add TimeCommitment to job Entity
+    TimeCommit TimeCommitment, //TODO: Add TimeCommitment to job Entity
     ExperienceLevel ExperienceLevel,
     DateTime Deadline
     );
-public enum TimeCommitment
+public enum TimeCommit
 {
     PartTime,
     FullTime,

@@ -68,3 +68,4 @@ global using Microsoft.AspNetCore.Authorization;
 
 
 global using Khdamatk.Server.Contracts.Jobs;
+
