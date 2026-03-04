@@ -31,11 +31,12 @@ public class JobPost
     public virtual Category Category { get; set; } = null!;
 
     // العلاقة مع العروض (One-to-Many)
+    public virtual ICollection<MileStone> MileStones { get; set; } = [];
     public virtual ICollection<JobOffer>? Offers { get; set; } = [];
     public virtual ICollection<Media>? Media { get; set; } =[];
     public virtual ICollection<JobSkillRequirement> SkillRequirements { get; set; } = [];
 }
-
+ 
 public enum JobPostStatus
 {
     Open = 1,
