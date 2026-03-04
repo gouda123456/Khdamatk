@@ -21,4 +21,3 @@ public enum TimeCommit
     Flexible
 }
 
-public class AddJobRequestValidator : AbstractValidator<AddJo>
