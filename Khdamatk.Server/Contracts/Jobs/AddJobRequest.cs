@@ -13,6 +13,7 @@ public record AddJobRequest(
     ICollection<Media>? Media,
     DateTime Deadline
     );
+
 public enum TimeCommit
 {
     PartTime,
@@ -20,4 +21,3 @@ public enum TimeCommit
     Hourly,
     Flexible
 }
-

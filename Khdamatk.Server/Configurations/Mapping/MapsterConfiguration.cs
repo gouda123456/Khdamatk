@@ -1,5 +1,6 @@
 ﻿using Khdamatk.Server.Contracts.Home;
 using Khdamatk.Server.Contracts.Jobs;
+using Khdamatk.Server.Contracts.Service;
 
 namespace Khdamatk.Server.Configurations.Mapping;
 
@@ -99,6 +100,32 @@ public class MapsterConfiguration : IRegister
                 : new List<Media>())
             .IgnoreNonMapped(true)
             .TwoWays();
+
+
+        config.NewConfig<Service,AddServiceRequest>()
+            .Map(dest => dest.ProviderProfileId, src => src.ServiceProviderProfileId)
+            .Map(dest => dest.Title, src => src.Title)
+            .Map(dest => dest.ShortDescription, src => src.ShortDescription)
+            .Map(dest => dest.DetailedDescription, src => src.DetailedDescription)
+            .Map(dest => dest.Concepts, src => src.Concepts)
+            .Map(dest => dest.RevisionCount, src => src.RevisionCount)
+            .Map(dest => dest.Price, src => src.Price)
+            .Map(dest => dest.DeliverTimeInDays, src => src.DeliverTimeInDays)
+            .Map(dest => dest.ServiceEnvelope, src => src.MainImage != null
+                ?   new Media
+                    {
+                        FileName = src.MainImage.FileName ?? string.Empty,
+                        StoredFileName = Path.GetRandomFileName(),
+                        ContentType = src.MainImage.ContentType ?? string.Empty,
+                        FileExtension = Path.GetExtension(src.MainImage.FileName ?? string.Empty),
+                        Size = src.MainImage.Size
+                }
+                
+                : null)
+            .IgnoreNonMapped(true)
+            .TwoWays();
+
+
 
 
 
