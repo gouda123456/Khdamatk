@@ -44,8 +44,8 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
 
             //Mapping (ImageUrls , RequiredSkills)
-            .Map(dest => dest.ImageUrls, src => src.Images != null
-                ? src.Images.Select(img => img.FileName)
+            .Map(dest => dest.ImageUrls, src => src.Media != null
+                ? src.Media.Select(img => img.FileName)
                 : new List<string>())
             .Map(dest => dest.RequiredSkills, src => src.SkillRequirements != null
                 ? src.SkillRequirements.Select(s => s.Skill.Name)
@@ -53,7 +53,7 @@ public class MapsterConfiguration : IRegister
             .IgnoreNonMapped(true)
             .TwoWays();
 
-        config.NewConfig<AddJopRequest, JobPost>()
+        config.NewConfig<AddJobRequest, JobPost>()
             .Map(dest => dest.CustomerId, src => src.UserId)
             .Map(dest => dest.Title, src => src.Title)
             .Map(dest => dest.Description, src => src.Description)
@@ -61,7 +61,16 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.BudgetMax, src => src.BudgetMax)
             .Map(dest => dest.Deadline, src => src.Deadline)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
-            .Map(dest => dest.TimeCommitment, src => src.TimeCommitment.ToString())
+            .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
+            .Map(dest => dest.Media , src => new List<Media>(src.Media != null 
+                ? src.Media.Select(List => new Media
+                {
+                    FileName = List.FileName,
+                    StoredFileName = Path.GetRandomFileName(),
+                    ContentType = List.ContentType,
+                    FileExtension = List.FileExtension,
+                    Size = List.Size
+                }) : null!))
             // Mapping CategoryName to CategoryId will require a custom resolver or additional logic
             .IgnoreNonMapped(true)
             .TwoWays();
@@ -71,10 +80,23 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ProviderProfileId, src => src.ProviderServiceId)
             .Map(dest => dest.NetAmount, src => src.OfferAmount)
             .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.SimilarWorkExamplesURL, src => src.SimilarWorkExamplesURL)
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
             .Map(dest => dest.Deadline, src => src.Deadline)
-            
+            .Map(dest => dest.Attachments, src => src.Attachment != null
+                ? new List<Media>
+                {
+                    new Media
+                    {
+                        FileName = src.Attachment.FileName,
+                        StoredFileName = Path.GetRandomFileName(),
+                        ContentType = src.Attachment.ContentType,
+                        FileExtension = Path.GetExtension(src.Attachment.FileName),
+                        Size = src.Attachment.Length
+                    }
+                }
+                : new List<Media>())
             .IgnoreNonMapped(true)
             .TwoWays();
 

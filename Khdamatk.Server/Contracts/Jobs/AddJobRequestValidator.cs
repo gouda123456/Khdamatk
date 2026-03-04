@@ -1,6 +1,6 @@
 ﻿namespace Khdamatk.Server.Contracts.Jobs;
 
-public class AddJobRequestValidator : AbstractValidator<AddJopRequest>
+public class AddJobRequestValidator : AbstractValidator<AddJobRequest>
 {
     public AddJobRequestValidator()
     {

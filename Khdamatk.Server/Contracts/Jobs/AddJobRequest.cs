@@ -1,6 +1,6 @@
 ﻿namespace Khdamatk.Server.Contracts.Jobs;
 
-public record AddJopRequest(
+public record AddJobRequest(
     string UserId,
     string Title,
     string CategoryName,
@@ -10,6 +10,7 @@ public record AddJopRequest(
     decimal BudgetMax,
     TimeCommit TimeCommitment, //TODO: Add TimeCommitment to job Entity
     ExperienceLevel ExperienceLevel,
+    ICollection<Media>? Media,
     DateTime Deadline
     );
 public enum TimeCommit
@@ -19,3 +20,5 @@ public enum TimeCommit
     Hourly,
     Flexible
 }
+
+public class AddJobRequestValidator : AbstractValidator<AddJo>

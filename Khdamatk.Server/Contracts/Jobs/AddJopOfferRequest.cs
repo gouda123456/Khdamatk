@@ -4,11 +4,11 @@ public record AddJopOfferRequest(
     string ProviderServiceId, 
     decimal OfferAmount,
     string Description,
-    TimeCommit? TimeCommitment, //TODO: Add TimeCommitment to job Entity
-    ExperienceLevel? ExperienceLevel,
+    string? SimilarWorkExamplesURL,
     DateTime Deadline,
     IFormFile? Attachment,
-    string? SimilarWorkExamples 
+    TimeCommit? TimeCommitment = TimeCommit.PartTime, //TODO: Add TimeCommitment to job Entity
+    ExperienceLevel? ExperienceLevel = ExperienceLevel.Entry
     );
 
 public class AddJopOfferValidator : AbstractValidator<AddJopOfferRequest>

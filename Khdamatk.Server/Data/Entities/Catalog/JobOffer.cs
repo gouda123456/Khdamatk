@@ -8,6 +8,7 @@ public class JobOffer
     public string Description { get; set; } = string.Empty;
     public decimal ProposedPrice { get; set; }
     public int DeliveryTimeInDays { get; set; }
+    public string? SimilarWorkExamplesURL { get; set; }
     public JobOfferStatus Status { get; set; } = JobOfferStatus.Pending;
     public ExperienceLevel ExperienceLevel { get; set; } = ExperienceLevel.Entry;
 
@@ -17,6 +18,7 @@ public class JobOffer
 
     // لتحديد هل هذا العرض هو "العرض الفائز" الذي تحول لطلب (Order)
     public bool IsAccepted { get; set; } = false;
+
 
     // الربط مع الوظيفة الأساسية
     public int JobPostId { get; set; }

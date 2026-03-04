@@ -32,7 +32,7 @@ public class JobPost
 
     // العلاقة مع العروض (One-to-Many)
     public virtual ICollection<JobOffer>? Offers { get; set; } = [];
-    public virtual ICollection<Media>? Images { get; set; } =[];
+    public virtual ICollection<Media>? Media { get; set; } =[];
     public virtual ICollection<JobSkillRequirement> SkillRequirements { get; set; } = [];
 }
 
