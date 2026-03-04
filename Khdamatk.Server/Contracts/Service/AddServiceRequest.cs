@@ -11,7 +11,7 @@ public record AddServiceRequest(
     decimal Price,
     int RevisionCount,
     List<string> Concepts,
-    TimeSpan DeliverTimeInDays, 
+    int DeliverTimeInDays, 
     ExperienceLevel ExperienceLevel,
     Media? ServiceEnvelope,
     List<IFormFile>? Attachment
@@ -29,6 +29,6 @@ public class AddServiceValidator : AbstractValidator<AddServiceRequest>
         RuleFor(x => x.Price).GreaterThan(0);
         RuleFor(x => x.RevisionCount).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Concepts).NotEmpty();
-        RuleFor(x => x.DeliverTimeInDays).GreaterThan(TimeSpan.Zero);
+        RuleFor(x => x.DeliverTimeInDays).GreaterThan(0);
     }
 }

@@ -39,7 +39,7 @@ public class Service : BaseEntity
     [ForeignKey(nameof(MainImage))]
     public int? MainMediaId { get; set; }
 
-    public TimeSpan DeliverTimeInDays { get; set; }
+    
 
     public virtual List<string> Concepts { get; set; } = [];
 
@@ -49,7 +49,7 @@ public class Service : BaseEntity
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
     public virtual ICollection<ServiceMedia> MediaGalleryLinks { get; set; } = [];
 
-
+    public virtual ICollection<ServiceOrder> Orders { get; set; } = [];
 
     //TODO: public virtual ICollection<ServicePackage> Packages { get; set; } FOR LATER IMPLEMENTATION
 }

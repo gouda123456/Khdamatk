@@ -12,7 +12,11 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.UserName, src => src.userName)
             .Map(dest => dest.Email, src => src.Email)
             .Map(src => src.PhoneNumber, dest => dest.PhoneNumber)
-            .IgnoreNonMapped(true);
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
+
+
 
         config.NewConfig<JobPost, JobCard>()
             .Map(dest => dest.Id, src => src.Id.ToString())
@@ -21,7 +25,11 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.PostedDate, src => src.CreatedAt)
             .Map(dest => dest.BudgetMin, src => src.BudgetMin)
             .Map(dest => dest.BudgetMax, src => src.BudgetMax)
-            .IgnoreNonMapped(true);
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
+
+
 
         config.NewConfig<JobPost, jobDetailed>()
             //Mapping (id , title , offer count , Expert Level , Project length , budget)
@@ -51,8 +59,9 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.RequiredSkills, src => src.SkillRequirements != null
                 ? src.SkillRequirements.Select(s => s.Skill.Name)
                 : new List<string>())
+            .TwoWays()
             .IgnoreNonMapped(true)
-            .TwoWays();
+            .IgnoreNullValues(true);
 
         config.NewConfig<AddJobRequest, JobPost>()
             .Map(dest => dest.CustomerId, src => src.UserId)
@@ -73,8 +82,9 @@ public class MapsterConfiguration : IRegister
                     Size = List.Size
                 }) : null!))
             // Mapping CategoryName to CategoryId will require a custom resolver or additional logic
+            .TwoWays()
             .IgnoreNonMapped(true)
-            .TwoWays();
+            .IgnoreNullValues(true);
 
 
         config.NewConfig<AddJopOfferRequest, JobOffer>()
@@ -98,8 +108,9 @@ public class MapsterConfiguration : IRegister
                     }
                 }
                 : new List<Media>())
+            .TwoWays()
             .IgnoreNonMapped(true)
-            .TwoWays();
+            .IgnoreNullValues(true);
 
 
         config.NewConfig<Service,AddServiceRequest>()
@@ -110,7 +121,7 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.Concepts, src => src.Concepts)
             .Map(dest => dest.RevisionCount, src => src.RevisionCount)
             .Map(dest => dest.Price, src => src.Price)
-            .Map(dest => dest.DeliverTimeInDays, src => src.DeliverTimeInDays)
+            .Map(dest => dest.DeliverTimeInDays, src => src.DeliveryTimeInDays)
             .Map(dest => dest.ServiceEnvelope, src => src.MainImage != null
                 ?   new Media
                     {
@@ -122,10 +133,49 @@ public class MapsterConfiguration : IRegister
                 }
                 
                 : null)
+            .TwoWays()
             .IgnoreNonMapped(true)
-            .TwoWays();
+            .IgnoreNullValues(true);
 
 
+
+        config.NewConfig<Service, ServiceDetailsResponse>()
+            .Map(dest => dest.ServiceId, src => src.Id)
+            .Map(dest => dest.ServiceTitle, src => src.Title)
+            .Map(dest => dest.ShortDescription, src => src.ShortDescription)
+            .Map(dest => dest.DetailDescription, src => src.DetailedDescription)
+            .Map(dest => dest.Price, src => src.Price)
+            .Map(dest => dest.MainImage, src => src.ServiceProviderProfile.User.ProfilePicture != null ? File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.StoredFileName) : null)
+            .Map(dest => dest.ServiceImages, src => new List<byte[]>())
+            .Map(dest => dest.ProviderServiceInfo, src => new ProviderServiceInfo(
+                src.ServiceProviderProfileId.ToString(),
+                src.ServiceProviderProfile.User.UserName,
+                src.ServiceProviderProfile.JobTitle,
+                File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.StoredFileName),
+                (int)src.ServiceProviderProfile.AverageRating,
+                (int)src.ServiceProviderProfile.AverageResponseTime,
+                (int)src.Orders.Where(s => s.Status == OrderStatus.Active).Count(),
+                (int)src.Orders.Where(s => s.Status == OrderStatus.Pending || s.Status == OrderStatus.PendingPayment).Count(),
+                (int)src.Orders.Where(s => s.Status == OrderStatus.Completed).Count(),
+                src.DeliveryTimeInDays
+            ))
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
+
+
+
+        config.NewConfig<JobOffer, OfferForServiceResponse>()
+            .Map(dest => dest.ProviderId, src => src.ProviderProfileId)
+            .Map(dest => dest.OfferId, src => src.Id)
+            .Map(dest => dest.ProviderName, src => src.ProviderProfile.User.UserName)
+            .Map(dest => dest.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
+            .Map(dest => dest.ProviderRate, src => src.ProviderProfile.AverageRating)
+            .Map(dest => dest.OfferPrice, src => src.NetAmount)
+            .Map(dest => dest.Description, src => src.Description)
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
 
 
 
