@@ -1,5 +1,6 @@
 using Khdamatk.Server;
 using Khdamatk.Server.MiddleWares;
+using Khdamatk.Server.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDependancyInjections(builder.Configuration);
+
 
 
 

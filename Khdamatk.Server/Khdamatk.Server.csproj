@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Stripe.net" Version="50.3.0" />
 	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	<PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
 	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
@@ -52,7 +53,6 @@
 	<Folder Include="Configurations\Documentations\Swagger\" />
 	<Folder Include="Configurations\Logging\" />
 	<Folder Include="Configurations\Validations\" />
-	<Folder Include="Contracts\Dashboard\" />
 	<Folder Include="wwwRoot\Images\" />
   </ItemGroup>
 

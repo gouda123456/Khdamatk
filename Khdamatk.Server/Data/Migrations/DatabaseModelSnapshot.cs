@@ -1478,7 +1478,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany("Certificates")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CertificateMedia");
@@ -1536,7 +1536,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "JobPost")
                         .WithMany("SkillRequirements")
                         .HasForeignKey("JobPostId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Skill", "Skill")
@@ -1593,7 +1593,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "Profile")
                         .WithMany("Skills")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Skill", "Skill")
@@ -1618,12 +1618,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "MainImage")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Catalog.Service", "MainMediaId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany("Services")
                         .HasForeignKey("ServiceProviderProfileId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1667,8 +1667,7 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     b.HasOne("Khdamatk.Server.Data.Entities.Financial.CreditCard", null)
                         .WithMany("Transactions")
-                        .HasForeignKey("CreditCardId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CreditCardId");
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne("PaymentTransaction")
@@ -1691,7 +1690,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1702,7 +1701,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1713,12 +1712,11 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "ProfilePicture")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Identity.User", "ProfilePictureId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
                         .WithMany()
-                        .HasForeignKey("ServiceProviderProfileUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ServiceProviderProfileUserId");
 
                     b.Navigation("ProfilePicture");
 
@@ -1741,7 +1739,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
                         .WithMany("VerificationsCodes")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1764,7 +1762,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Client");
@@ -1829,7 +1827,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "Conversation")
                         .WithMany("Messages")
                         .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Sender")
@@ -1853,7 +1851,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne("Review")
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Reviewer")
@@ -1865,7 +1863,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProvider")
                         .WithMany("Reviews")
                         .HasForeignKey("ServiceProviderId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Reviewer");
@@ -1918,8 +1916,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", null)
                         .WithMany("UserFavorites")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Service");
 

@@ -1,6 +1,16 @@
+
+﻿using Asp.Versioning;
+using Khdamatk.Server.Services;
+using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
+
 ﻿using System.Text.Json.Serialization;
 using Asp.Versioning;
+using Khdamatk.Server.Helper.Payment;
 using Microsoft.OpenApi.Models;
+using Stripe;
+using Stripe.BillingPortal;
+
 
 namespace Khdamatk.Server;
 
@@ -19,6 +29,7 @@ public static class DependancyInjections
         services.AddValidation();
         services.AddScoped<GlobalErrorHandling>();
         services.AddCORS();
+        services.AddHttpClient();
         services.AddEmailHelper(configuration);
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -27,6 +38,7 @@ public static class DependancyInjections
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+        services.AddPaymentMethod(configuration);
 
 
 
@@ -42,6 +54,55 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
+
+        services.AddScoped<IAdminDashboardSerivce, AdminDashboardService>();
+
+        services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
+        services.AddScoped<IReportDashboardService, ReportDashboardService>();
+
+        services.AddScoped<IOrderService, OrderService>();
+        return services;
+    }
+
+    public static IServiceCollection AddPaymentMethod(this IServiceCollection services, IConfiguration configuration)
+    {
+        //Stripe
+        services.AddOptions<StripeSetting>()
+            .BindConfiguration(nameof(StripeSetting))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        StripeConfiguration.AppInfo = new AppInfo
+        {
+            Name = "Khdamatk API",
+            Version = "1.0.0",
+            Url = "https://khdamatk.com",
+            PartnerId = "pp_partner_123456789"
+        };
+        StripeConfiguration.ApiKey = configuration.GetSection(nameof(StripeSetting)).Get<StripeSetting>()!.SecretKey;
+        //services.AddScoped<TokenService>();
+        services.AddScoped<CustomerService>();
+        services.AddScoped<PaymentIntentService>();
+        services.AddScoped<RefundService>();
+        services.AddScoped<ProductService>();
+        services.AddScoped<SubscriptionService>();
+        services.AddScoped<PriceService>();
+        services.AddScoped<InvoiceService>();
+        services.AddScoped<ChargeService>();
+        services.AddScoped<RefundService>();
+        services.AddScoped<SessionService>();
+
+        //Fawaterak
+        services.AddOptions<FawaterakSettings>()
+            .BindConfiguration(nameof(FawaterakSettings))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddTransient<IFawaterakPaymentHelper, FawaterakPaymentHelper>();
+
+
+
+        services.AddScoped<IPaymentHelper, PaymentHelper>();
+
         return services;
     }
 

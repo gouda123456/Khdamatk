@@ -16,5 +16,6 @@ public class RefreshTokensConfigurations : IEntityTypeConfiguration<RefreshToken
 
         builder.HasIndex(rt => rt.Token).IsUnique();
 
+
     }
 }

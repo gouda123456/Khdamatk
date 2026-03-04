@@ -52,5 +52,8 @@ public class MapsterConfiguration : IRegister
                 : new List<string>())
             .IgnoreNonMapped(true)
             .TwoWays();
+
+
+
     }
 }
