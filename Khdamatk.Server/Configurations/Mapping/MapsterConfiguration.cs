@@ -9,6 +9,7 @@ public class MapsterConfiguration : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
+        
         config.NewConfig<RegisterRequest, User>()
             .Map(dest => dest.UserName, src => src.userName)
             .Map(dest => dest.Email, src => src.Email)
@@ -19,6 +20,7 @@ public class MapsterConfiguration : IRegister
 
 
 
+        
         config.NewConfig<JobPost, JobCard>()
             .Map(dest => dest.Id, src => src.Id.ToString())
             .Map(dest => dest.JobTitle, src => src.Title)
@@ -32,6 +34,8 @@ public class MapsterConfiguration : IRegister
 
 
 
+        
+        
         config.NewConfig<JobPost, JobDetailed>()
             //Mapping (id , title , offer count , Expert Level , Project length , budget)
             .Map(dest => dest.Id, src => src.Id)
@@ -64,6 +68,8 @@ public class MapsterConfiguration : IRegister
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
 
+        
+        
         config.NewConfig<AddJobRequest, JobPost>()
             .Map(dest => dest.CustomerId, src => src.UserId)
             .Map(dest => dest.Title, src => src.Title)
@@ -86,6 +92,7 @@ public class MapsterConfiguration : IRegister
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
+
 
 
         config.NewConfig<AddJopOfferRequest, JobOffer>()
@@ -112,6 +119,9 @@ public class MapsterConfiguration : IRegister
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
+
+
+
 
 
         config.NewConfig<Service,AddServiceRequest>()
@@ -166,6 +176,7 @@ public class MapsterConfiguration : IRegister
 
 
 
+        
         config.NewConfig<JobOffer, OfferForServiceResponse>()
             .Map(dest => dest.ProviderOfferInfo.ProviderId, src => src.ProviderProfileId)
             .Map(dest => dest.ProviderOfferInfo.OfferId, src => src.Id)
@@ -178,7 +189,10 @@ public class MapsterConfiguration : IRegister
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
 
+        
         config.NewConfig<JobOffer, OfferDetailedForServiceResponse>()
+
+            //Provider Info
             .Map(dest => dest.ProviderOfferInfo.Id, src => src.ProviderProfile.UserId)
             .Map(dest => dest.ProviderOfferInfo.Name, src => src.ProviderProfile.User.UserName)
             .Map(dest => dest.ProviderOfferInfo.JobTitle, src => src.ProviderProfile.JobTitle)
@@ -188,24 +202,26 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
             .Map(dest => dest.ProviderOfferInfo.ProviderProfile, src => src.ProviderProfile.User.ProfilePicture)
 
+            //OfferServiceDetailed
             .Map(dest => dest.OfferServiceDetailed.Id, src => src.Id)
             .Map(dest => dest.OfferServiceDetailed.Amount, src => src.NetAmount)
             .Map(dest => dest.OfferServiceDetailed.DeliversInDays, src => src.DeliveryTimeInDays)
             .Map(dest => dest.OfferServiceDetailed.Description, src => src.Description)
-
+            
+            //JobSummary
             .Map(dest => dest.JobSummary.Id, src => src.JobPost.Id)
             .Map(dest => dest.JobSummary.BudgetMin, src => src.JobPost.BudgetMin)
             .Map(dest => dest.JobSummary.BudgetMax, src => src.JobPost.BudgetMax)
             .Map(dest => dest.JobSummary.DeliversInDays, src => (src.JobPost.Deadline - DateTime.UtcNow).Days)
+            .Map(dest => dest.JobSummary.Deadline, src => src.JobPost.Deadline )
             .Map(dest => dest.JobSummary.ExperienceLevel, src => src.JobPost.ExperienceLevel)
             .Map(dest => dest.JobSummary.Skills, src => src.JobPost.SkillRequirements.Select(s => s.Skill.Name).Distinct())
             .Map(dest => dest.JobSummary.Description, src => src.JobPost.Description)
             .Map(dest => dest.JobSummary.MileStones, src => src.JobPost.MileStones)
+
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
-
-
 
 
     }

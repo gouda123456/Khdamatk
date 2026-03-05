@@ -38,6 +38,7 @@ public record JobSummary(
     decimal BudgetMin,
     decimal BudgetMax,
     int DeliversInDays,
+    DateTime Deadline,
     ExperienceLevel ExperienceLevel,
     List<string> Skills,
     string Description,
