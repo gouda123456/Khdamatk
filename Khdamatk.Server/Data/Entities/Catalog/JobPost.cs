@@ -14,6 +14,7 @@ public class JobPost
     public string Description { get; set; } = string.Empty;
     public decimal BudgetMin { get; set; }
     public decimal BudgetMax { get; set; }
+    
 
     public JobPostStatus Status { get; set; } = JobPostStatus.Open;
     

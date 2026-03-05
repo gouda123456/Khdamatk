@@ -6,6 +6,7 @@
     <File Path="Documentations/Entities.docx" />
     <File Path="EntitiesInDetailed.txt" />
     <File Path="EntitiesNames.txt" />
+    <File Path="FakeData.sql" />
   </Folder>
   <Project Path="Khdamatk.Server/Khdamatk.Server.csproj" />
 </Solution>

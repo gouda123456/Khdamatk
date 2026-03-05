@@ -1,4 +1,5 @@
-﻿using Khdamatk.Server.Contracts.Home;
+﻿using System.Data;
+using Khdamatk.Server.Contracts.Home;
 using Khdamatk.Server.Contracts.Jobs;
 using Khdamatk.Server.Contracts.Service;
 
@@ -31,7 +32,7 @@ public class MapsterConfiguration : IRegister
 
 
 
-        config.NewConfig<JobPost, jobDetailed>()
+        config.NewConfig<JobPost, JobDetailed>()
             //Mapping (id , title , offer count , Expert Level , Project length , budget)
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Title, src => src.Title)
@@ -166,16 +167,44 @@ public class MapsterConfiguration : IRegister
 
 
         config.NewConfig<JobOffer, OfferForServiceResponse>()
-            .Map(dest => dest.ProviderId, src => src.ProviderProfileId)
-            .Map(dest => dest.OfferId, src => src.Id)
-            .Map(dest => dest.ProviderName, src => src.ProviderProfile.User.UserName)
-            .Map(dest => dest.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
-            .Map(dest => dest.ProviderRate, src => src.ProviderProfile.AverageRating)
+            .Map(dest => dest.ProviderOfferInfo.ProviderId, src => src.ProviderProfileId)
+            .Map(dest => dest.ProviderOfferInfo.OfferId, src => src.Id)
+            .Map(dest => dest.ProviderOfferInfo.ProviderName, src => src.ProviderProfile.User.UserName)
+            .Map(dest => dest.ProviderOfferInfo.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
+            .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
             .Map(dest => dest.OfferPrice, src => src.NetAmount)
             .Map(dest => dest.Description, src => src.Description)
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
+
+        config.NewConfig<JobOffer, OfferDetailedForServiceResponse>()
+            .Map(dest => dest.ProviderOfferInfo.Id, src => src.ProviderProfile.UserId)
+            .Map(dest => dest.ProviderOfferInfo.Name, src => src.ProviderProfile.User.UserName)
+            .Map(dest => dest.ProviderOfferInfo.JobTitle, src => src.ProviderProfile.JobTitle)
+            .Map(dest => dest.ProviderOfferInfo.Address, src => (src.ProviderProfile.User != null && src.ProviderProfile.User!.IsVerified) ? $"{src.ProviderProfile.User!.VerificationData!.Country},{src.ProviderProfile.User.VerificationData.City}" : "Not Have A Address he is Not verified")
+            .Map(dest => dest.ProviderOfferInfo.ExperienceInYears, src => src.ProviderProfile.ExperienceYears)
+            .Map(dest => dest.ProviderOfferInfo.IsVerified, src => src.ProviderProfile.User!.IsVerified)
+            .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
+            .Map(dest => dest.ProviderOfferInfo.ProviderProfile, src => src.ProviderProfile.User.ProfilePicture)
+
+            .Map(dest => dest.OfferServiceDetailed.Id, src => src.Id)
+            .Map(dest => dest.OfferServiceDetailed.Amount, src => src.NetAmount)
+            .Map(dest => dest.OfferServiceDetailed.DeliversInDays, src => src.DeliveryTimeInDays)
+            .Map(dest => dest.OfferServiceDetailed.Description, src => src.Description)
+
+            .Map(dest => dest.JobSummary.Id, src => src.JobPost.Id)
+            .Map(dest => dest.JobSummary.BudgetMin, src => src.JobPost.BudgetMin)
+            .Map(dest => dest.JobSummary.BudgetMax, src => src.JobPost.BudgetMax)
+            .Map(dest => dest.JobSummary.DeliversInDays, src => (src.JobPost.Deadline - DateTime.UtcNow).Days)
+            .Map(dest => dest.JobSummary.ExperienceLevel, src => src.JobPost.ExperienceLevel)
+            .Map(dest => dest.JobSummary.Skills, src => src.JobPost.SkillRequirements.Select(s => s.Skill.Name).Distinct())
+            .Map(dest => dest.JobSummary.Description, src => src.JobPost.Description)
+            .Map(dest => dest.JobSummary.MileStones, src => src.JobPost.MileStones)
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
+
 
 
 
