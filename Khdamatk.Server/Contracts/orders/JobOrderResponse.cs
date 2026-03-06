@@ -5,10 +5,11 @@ namespace Khdamatk.Server.Contracts.orders;
 public record JobOrderResponse(
     int OrderId,
     OrderType OrderType,
+    decimal OfferAmount,
     UserOrderModel Customer,
     UserOrderModel Provider,
     JobSummary JobSummary,
-    OrderChat Chat,
+    List<OrderChat> Chat,
     DeliverableFiles DeliverableFiles,
     JobMileStone MileStones
     );

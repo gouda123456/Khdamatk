@@ -43,11 +43,13 @@ public class ServiceOrder : BaseEntity
     public virtual Service Service { get; set; } = null!;
 
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+    public virtual Conversation Conversation { get; set; } = null!;
+
 
     // ✅ إضافة الروابط العكسية للكيانات التابعة لهذا الطلب
     public virtual Review? Review { get; set; } // علاقة 1-1 (تقييم واحد للطلب الواحد)
     public virtual PaymentTransaction? PaymentTransaction { get; set; } // علاقة 1-1
-    public virtual ICollection<Message> Messages { get; set; } = []; // الرسائل الخاصة بهذا الطلب
+    
 }
 
 

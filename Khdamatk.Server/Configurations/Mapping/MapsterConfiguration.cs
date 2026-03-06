@@ -1,6 +1,8 @@
 ﻿using System.Data;
+using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.Home;
 using Khdamatk.Server.Contracts.Jobs;
+using Khdamatk.Server.Contracts.orders;
 using Khdamatk.Server.Contracts.Service;
 
 namespace Khdamatk.Server.Configurations.Mapping;
@@ -218,6 +220,48 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.JobSummary.Skills, src => src.JobPost.SkillRequirements.Select(s => s.Skill.Name).Distinct())
             .Map(dest => dest.JobSummary.Description, src => src.JobPost.Description)
             .Map(dest => dest.JobSummary.MileStones, src => src.JobPost.MileStones)
+
+            .TwoWays()
+            .IgnoreNonMapped(true)
+            .IgnoreNullValues(true);
+
+
+        config.NewConfig<JobOrder, JobOrderResponse>()
+            .Map(dest => dest.OrderId, src => src.Id)
+            .Map(dest => dest.OrderType, src => OrderType.Job)
+
+            //customer
+            .Map(dest => dest.Customer.Id, src => src.CustomerId)
+            .Map(dest => dest.Customer.Name, src => src.Customer.UserName)
+            .Map(dest => dest.Customer.Email, src => src.Customer.Email)
+            //Profile Picture 
+
+            //Provider
+            .Map(dest => dest.Provider.Id, src => src.ProviderProfileId)
+            .Map(dest => dest.Provider.Name, src => src.ProviderProfile.User.UserName)
+            .Map(dest => dest.Provider.Email, src => src.ProviderProfile.User.Email)
+            //Profile Picture 
+
+            //JobSummary
+            .Map(dest => dest.JobSummary.Id, src => src.JobPost.Id)
+            .Map(dest => dest.JobSummary.BudgetMin, src => src.JobPost.BudgetMin)
+            .Map(dest => dest.JobSummary.BudgetMax, src => src.JobPost.BudgetMax)
+            .Map(dest => dest.JobSummary.DeliversInDays, src => (src.JobPost.Deadline - DateTime.UtcNow).Days)
+            .Map(dest => dest.JobSummary.Deadline, src => src.JobPost.Deadline)
+            .Map(dest => dest.JobSummary.ExperienceLevel, src => src.JobPost.ExperienceLevel)
+            .Map(dest => dest.JobSummary.Skills, src => src.JobPost.SkillRequirements.Select(s => s.Skill.Name).Distinct())
+            .Map(dest => dest.JobSummary.Description, src => src.JobPost.Description)
+            .Map(dest => dest.JobSummary.MileStones, src => src.JobPost.MileStones)
+
+            //Chat
+            .Map(dest => dest.Chat, src => src.Conversation.Messages.Select(m => new OrderChat
+                (
+                    m.Id,
+                    m.SenderId,
+                    m.Content,
+                    m.Createdat
+                )))
+
 
             .TwoWays()
             .IgnoreNonMapped(true)
