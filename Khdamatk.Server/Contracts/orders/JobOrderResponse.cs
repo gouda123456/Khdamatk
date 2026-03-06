@@ -5,7 +5,7 @@ namespace Khdamatk.Server.Contracts.orders;
 public record JobOrderResponse(
     int OrderId,
     OrderType OrderType,
-    decimal OfferAmount,
+    decimal FinalPrice,
     UserOrderModel Customer,
     UserOrderModel Provider,
     JobSummary JobSummary,
