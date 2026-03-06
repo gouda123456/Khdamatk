@@ -24,8 +24,14 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
         // كل طلب يجب أن يكون له معاملة دفع واحدة على الأكثر (والمعاملة تنتمي لطلب واحد)
         builder.HasOne(t => t.ServiceOrder)
                .WithOne(o => o.PaymentTransaction) // افترضنا أن ServiceOrder يحتوي على خاصية PaymentTransaction
-               .HasForeignKey<PaymentTransaction>(t => t.OrderId) // المفتاح الخارجي في هذا الكيان
+               .HasForeignKey<PaymentTransaction>(t => t.ServiceOrderId) // المفتاح الخارجي في هذا الكيان
                .IsRequired()
+               .OnDelete(DeleteBehavior.Restrict); // منع حذف الطلب إذا كانت هناك معاملة مرتبطة به
+
+        builder.HasOne(t => t.JobOrder)
+               .WithOne(j => j.PaymentTransaction) // افترضنا أن JobOrder يحتوي على خاصية PaymentTransaction
+               .HasForeignKey<PaymentTransaction>(t => t.JobOrderId) // المفتاح الخارجي في هذا الكيان
+               .IsRequired(false) // المعاملة قد لا تكون مرتبطة بـ JobOrder
                .OnDelete(DeleteBehavior.Restrict); // منع حذف الطلب إذا كانت هناك معاملة مرتبطة به
 
         // 4. العلاقة مع CreditCard (TokenizedCard)
@@ -33,5 +39,7 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
                .WithMany() // إذا كان CreditCard لا يحتوي على قائمة معاملات
                .HasForeignKey(t => t.TokenizedCreditCardId)
                .OnDelete(DeleteBehavior.Restrict);
+
+        
     }
 }

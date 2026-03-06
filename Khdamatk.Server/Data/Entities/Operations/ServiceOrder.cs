@@ -1,7 +1,7 @@
-﻿namespace Khdamatk.Server.Data.Entities.Operations;
+namespace Khdamatk.Server.Data.Entities.Operations;
 
 // يفترض أنه يرث من BaseEntity
-public class ServiceOrder : BaseEntity
+public class ServiceOrder : OrderBase
 {
     // Id و CreatedAt و IsActive موروثة من BaseEntity
 
@@ -19,23 +19,16 @@ public class ServiceOrder : BaseEntity
     [ForeignKey(nameof(ServiceProviderProfile))]
     public string ServiceProviderId { get; set; } = null!;
 
-    // === تفاصيل الطلب ===
-    [Required]
-    [Column(TypeName = "decimal(18,2)")]
-    [Range(1, 100_000_000)]
-    public decimal Amount { get; set; } // المبلغ الكلي المتفق عليه (قد يتضمن ضرائب ورسوم)
+    
 
-    [Required]
-    public OrderStatus Status { get; set; } = OrderStatus.PendingPayment; // ✅ إضافة الحالة
+    
 
     public DateTime? CompletionDate { get; set; } // تاريخ الإنجاز الفعلي
 
     [StringLength(1000)] // ملاحظات أو متطلبات إضافية
     public string? AdditionalDetails { get; set; }
 
-
-    public int invoiceId { get; set; }
-    public string invoiceKey { get; set; }
+    
 
 
     // === Navigation Properties ===

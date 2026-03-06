@@ -1,6 +1,6 @@
-﻿namespace Khdamatk.Server.Data.Entities.Operations;
+namespace Khdamatk.Server.Data.Entities.Operations;
 
-public class JobOrder : BaseEntity
+public class JobOrder : OrderBase
 {
     // الربط مع الوظيفة والعرض
     public int JobPostId { get; set; }
@@ -10,10 +10,9 @@ public class JobOrder : BaseEntity
     public string CustomerId { get; set; } = null!;
     public string ProviderProfileId { get; set; } = null!;
 
-    // البيانات المالية والزمنية
-    public decimal FinalPrice { get; set; }
+
     public DateTime ExpectedDeliveryDate { get; set; }
-    public OrderStatus Status { get; set; } = OrderStatus.Active;
+    
 
 
     public int InvoiceId { get; set; }

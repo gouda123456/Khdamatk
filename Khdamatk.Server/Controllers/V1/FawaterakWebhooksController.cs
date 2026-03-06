@@ -1,4 +1,4 @@
-﻿using Khdamatk.Server.Contracts.WebHook;
+using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +13,14 @@ namespace Khdamatk.Server.Controllers.V1;
 [Route("api/fawaterak/webhooks")]
 [Consumes("application/json")]
 [Produces("application/json")]
-public class FawaterakWebhooksController(IFawaterakPaymentHelper payments,IOrderService orderService) : ControllerBase
+public class FawaterakWebhooksController(
+    IFawaterakPaymentHelper payments,
+    IOrderService orderService,
+    IEmailHelper emailHelper) : ControllerBase
 {
     private readonly IFawaterakPaymentHelper payments = payments;
     private readonly IOrderService orderService = orderService;
+    private readonly IEmailHelper emailHelper = emailHelper;
 
 
     /// <summary>
@@ -29,12 +33,12 @@ public class FawaterakWebhooksController(IFawaterakPaymentHelper payments,IOrder
     [HttpPost("paid_json")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public ActionResult<string> WebhookPaid([FromBody] WebHookModel model)
+    public async Task<IActionResult> WebhookPaid([FromBody] WebHookModel model)
     {
         var valid = payments.VerifyWebhook(model);
         if (!valid) return Unauthorized();
 
-        // Handle the payment logic here
+        await orderService.HandlePaymentSuccessAsync(model.InvoiceId, model.InvoiceKey);
 
         return Ok("got it!");
     }
@@ -48,15 +52,15 @@ public class FawaterakWebhooksController(IFawaterakPaymentHelper payments,IOrder
     /// <returns>Acknowledgment of cancellation</returns>
     /// <response code="200">Cancellation webhook processed successfully</response>
     /// <response code="401">Invalid webhook signature</response>
-    [HttpPost("cancel")]
+    [HttpPost("cancel_json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult WebhookCancel([FromBody] CancelTransactionModel model)
+    public async Task<IActionResult> WebhookCancel([FromBody] CancelTransactionModel model)
     {
         var valid = payments.VerifyCancelTransaction(model);
         if (!valid) return Unauthorized();
 
-        // Handle the cancellation logic here
+        await orderService.HandlePaymentCancelledAsync(model.ReferenceId);
 
         return Ok();
     }
@@ -65,21 +69,21 @@ public class FawaterakWebhooksController(IFawaterakPaymentHelper payments,IOrder
     /// <summary>
     /// Handle failed payment notification from Fawaterak
     /// </summary>
-    /// <param name="model">Failed payment webhook data with reference ID and verification hash</param>
+    /// <param name="model">Failed payment webhook data with invoice details and verification hash</param>
     /// <returns>Acknowledgment of failure</returns>
     /// <response code="200">Failure webhook processed successfully</response>
     /// <response code="401">Invalid webhook signature</response>
-    [HttpPost("failed")]
+    [HttpPost("failed_json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult WebhookFaild([FromBody] CancelTransactionModel model)
+    public async Task<IActionResult> WebhookFaild([FromBody] FailedWebhookModel model)
     {
-        var valid = payments.VerifyCancelTransaction(model);
+        var valid = payments.VerifyFailedWebhook(model);
         if (!valid) return Unauthorized();
 
-        // Handle the failed logic here
+        await orderService.HandlePaymentFailedAsync(model.InvoiceId, model.InvoiceKey, model.ErrorMessage);
 
-        return Ok();
+        return Ok("failed webhook received");
     }
 
 
