@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260304214335_AddMileStoneEntity")]
-    partial class AddMileStoneEntity
+    [Migration("20260306113427_AddDeliveredJobFileAndMileStonrsEntities")]
+    partial class AddDeliveredJobFileAndMileStonrsEntities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -104,6 +104,38 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("ServiceProviderProfileId");
 
                     b.ToTable("Certificates");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.DeliveredJobFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MediaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MileStoneId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Statues")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("MediaId");
+
+                    b.HasIndex("MileStoneId");
+
+                    b.ToTable("DeliveredJobFile");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
@@ -307,6 +339,9 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<int?>("JobPostId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("StepNumber")
                         .HasColumnType("int");
@@ -1569,6 +1604,33 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("ServiceProviderProfile");
                 });
 
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.DeliveredJobFile", b =>
+                {
+                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "Job")
+                        .WithMany("DeliveredFiles")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "Media")
+                        .WithMany()
+                        .HasForeignKey("MediaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.MileStone", "MileStone")
+                        .WithMany()
+                        .HasForeignKey("MileStoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("Media");
+
+                    b.Navigation("MileStone");
+                });
+
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
                 {
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "Conversation")
@@ -2086,6 +2148,8 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobPost", b =>
                 {
+                    b.Navigation("DeliveredFiles");
+
                     b.Navigation("Media");
 
                     b.Navigation("MileStones");

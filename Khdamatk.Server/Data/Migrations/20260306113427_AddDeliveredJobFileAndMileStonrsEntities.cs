@@ -6,14 +6,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Khdamatk.Server.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMileStoneEntity : Migration
+    public partial class AddDeliveredJobFileAndMileStonrsEntities : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_serviceOrders_Services_ServiceID",
-                table: "serviceOrders");
+            
 
             migrationBuilder.DropColumn(
                 name: "DeliverTimeInDays",
@@ -44,12 +42,7 @@ namespace Khdamatk.Server.Data.Migrations
                 oldClrType: typeof(int),
                 oldType: "int");
 
-            migrationBuilder.AddColumn<int>(
-                name: "ServiceID",
-                table: "serviceOrders",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            
 
             migrationBuilder.CreateTable(
                 name: "MileStones",
@@ -61,6 +54,7 @@ namespace Khdamatk.Server.Data.Migrations
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     StepNumber = table.Column<int>(type: "int", nullable: false),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     JobPostId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -74,10 +68,56 @@ namespace Khdamatk.Server.Data.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "DeliveredJobFile",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobId = table.Column<int>(type: "int", nullable: false),
+                    MileStoneId = table.Column<int>(type: "int", nullable: false),
+                    MediaId = table.Column<int>(type: "int", nullable: false),
+                    Statues = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeliveredJobFile", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DeliveredJobFile_JobPosts_JobId",
+                        column: x => x.JobId,
+                        principalTable: "JobPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DeliveredJobFile_Medias_MediaId",
+                        column: x => x.MediaId,
+                        principalTable: "Medias",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DeliveredJobFile_MileStones_MileStoneId",
+                        column: x => x.MileStoneId,
+                        principalTable: "MileStones",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            
+
             migrationBuilder.CreateIndex(
-                name: "IX_serviceOrders_ServiceID",
-                table: "serviceOrders",
-                column: "ServiceID");
+                name: "IX_DeliveredJobFile_JobId",
+                table: "DeliveredJobFile",
+                column: "JobId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveredJobFile_MediaId",
+                table: "DeliveredJobFile",
+                column: "MediaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveredJobFile_MileStoneId",
+                table: "DeliveredJobFile",
+                column: "MileStoneId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MileStones_JobPostId",
@@ -89,32 +129,18 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "MileStones",
                 column: "Title");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_serviceOrders_Services_ServiceID",
-                table: "serviceOrders",
-                column: "ServiceID",
-                principalTable: "Services",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+            
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_serviceOrders_Services_ServiceId",
-                table: "serviceOrders",
-                column: "ServiceId",
-                principalTable: "Services",
-                principalColumn: "Id");
+            
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_serviceOrders_Services_ServiceID",
-                table: "serviceOrders");
+            
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_serviceOrders_Services_ServiceId",
-                table: "serviceOrders");
+            migrationBuilder.DropTable(
+                name: "DeliveredJobFile");
 
             migrationBuilder.DropTable(
                 name: "MileStones");
@@ -136,10 +162,7 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "serviceOrders",
                 newName: "ServiceID");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_serviceOrders_ServiceId",
-                table: "serviceOrders",
-                newName: "IX_serviceOrders_ServiceID");
+            
 
             migrationBuilder.AddColumn<TimeSpan>(
                 name: "DeliverTimeInDays",
@@ -158,13 +181,7 @@ namespace Khdamatk.Server.Data.Migrations
                 oldType: "int",
                 oldNullable: true);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_serviceOrders_Services_ServiceID",
-                table: "serviceOrders",
-                column: "ServiceID",
-                principalTable: "Services",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+            
         }
     }
 }
