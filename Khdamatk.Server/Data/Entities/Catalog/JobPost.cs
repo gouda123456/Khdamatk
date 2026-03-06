@@ -35,6 +35,7 @@ public class JobPost
     public virtual ICollection<MileStone> MileStones { get; set; } = [];
     public virtual ICollection<JobOffer>? Offers { get; set; } = [];
     public virtual ICollection<Media>? Media { get; set; } =[];
+    public virtual ICollection<DeliveredJobFile> DeliveredFiles { get; set; } = [];
     public virtual ICollection<JobSkillRequirement> SkillRequirements { get; set; } = [];
 }
  

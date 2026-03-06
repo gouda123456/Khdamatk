@@ -12,7 +12,6 @@ public class ServiceOrder : BaseEntity
     public string UserID { get; set; } = null!; // العميل (من قام بالطلب)
 
     [Required]
-    [ForeignKey(nameof(Service))]
     public int ServiceID { get; set; } // الخدمة المطلوبة
 
     // ✅ هذا الرابط صحيح ويضمن السرعة في الاستعلام عن صاحب العمل

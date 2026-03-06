@@ -16,8 +16,8 @@ public class JobOrder : BaseEntity
     public OrderStatus Status { get; set; } = OrderStatus.Active;
 
 
-    public int invoiceId { get; set; }
-    public string invoiceKey { get; set; }
+    public int InvoiceId { get; set; }
+    public string InvoiceKey { get; set; }
 
 
     // العلاقات (Navigation Properties)

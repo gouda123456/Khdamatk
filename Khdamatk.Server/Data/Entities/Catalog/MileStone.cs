@@ -13,4 +13,7 @@ public class MileStone
     public int StepNumber { get; set; } = 1;
     [Required]
     public bool IsCompleted { get; set; } = false;
+
+    [Required]
+    public decimal Price { get; set; }
 }
