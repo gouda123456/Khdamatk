@@ -43,3 +43,4 @@ public record JobMileStone(
     bool IsCompleted,
     decimal Price
     );
+

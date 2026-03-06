@@ -31,5 +31,5 @@ public class JobOrder : BaseEntity
     public virtual ICollection<JobDeliverable> Deliverables { get; set; } = [];
     public virtual Review? Review { get; set; } // تقييم هذا العقد
     public virtual List<PaymentTransaction>? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
-    
+    public virtual List<JobOffer> Offers { get; set; } = [];
 }
