@@ -23,7 +23,7 @@ public class User : IdentityUser<string>
 
     public virtual VerificationData? VerificationData { get; set; }
 
-    public bool IsVerified => VerificationData?.Status == VerificationStatus.Approved;
+    public bool IsVerified => VerificationData !=null && VerificationData?.Status == VerificationStatus.Approved;
 
     [ForeignKey(nameof(ProfilePicture))]
     public int? ProfilePictureId { get; set; }

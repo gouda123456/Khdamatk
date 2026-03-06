@@ -16,8 +16,8 @@ public class JobOrder : BaseEntity
     public OrderStatus Status { get; set; } = OrderStatus.Active;
 
 
-    public int invoiceId { get; set; }
-    public string invoiceKey { get; set; }
+    public int InvoiceId { get; set; }
+    public string InvoiceKey { get; set; }
 
 
     // العلاقات (Navigation Properties)
@@ -25,9 +25,11 @@ public class JobOrder : BaseEntity
     public virtual JobOffer AcceptedOffer { get; set; } = null!;
     public virtual User Customer { get; set; } = null!;
     public virtual ServiceProviderProfile ProviderProfile { get; set; } = null!;
+    public virtual Conversation Conversation { get; set; } = null!;
 
     // الملحقات والتقييم والمالية
     public virtual ICollection<JobDeliverable> Deliverables { get; set; } = [];
     public virtual Review? Review { get; set; } // تقييم هذا العقد
-    public virtual PaymentTransaction? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
+    public virtual List<PaymentTransaction>? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
+    public virtual List<JobOffer> Offers { get; set; } = [];
 }

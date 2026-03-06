@@ -7,11 +7,12 @@ public class Service : BaseEntity
     // 1. الخصائص الأساسية للخدمة
     [Required]
     [StringLength(80, MinimumLength = 2)]
-    public string Name { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
 
     [Required]
     [StringLength(1000, MinimumLength = 10)]
-    public string Description { get; set; } = string.Empty;
+    public string ShortDescription { get; set; } = string.Empty;
+    public string DetailedDescription { get; set; } = string.Empty;
 
     // 2. خصائص التسعير والمواصفات الأساسية (بدلاً من ServicePackage)
     [Required]
@@ -25,6 +26,7 @@ public class Service : BaseEntity
     [Range(0,5)]
     public double AverageRating { get; set; } = 0;
     public int TotalReviews { get; set; } = 0;
+    public int RevisionCount { get; set; } = 0;
 
 
     [ForeignKey(nameof(Category))]
@@ -37,7 +39,9 @@ public class Service : BaseEntity
     [ForeignKey(nameof(MainImage))]
     public int? MainMediaId { get; set; }
 
+    
 
+    public virtual List<string> Concepts { get; set; } = [];
 
     public virtual Media? MainImage { get; set; }
     
@@ -45,7 +49,7 @@ public class Service : BaseEntity
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
     public virtual ICollection<ServiceMedia> MediaGalleryLinks { get; set; } = [];
 
-
+    public virtual ICollection<ServiceOrder> Orders { get; set; } = [];
 
     //TODO: public virtual ICollection<ServicePackage> Packages { get; set; } FOR LATER IMPLEMENTATION
 }

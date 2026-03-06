@@ -79,6 +79,7 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     public DbSet<JobOffer> jobOffers { get; set; }
     public DbSet<Skill> Skills { get; set; }
     public DbSet<JobSkillRequirement> JobSkillRequirements { get; set; }
+    public DbSet<MileStone> MileStones { get; set; }
 
     #endregion
 

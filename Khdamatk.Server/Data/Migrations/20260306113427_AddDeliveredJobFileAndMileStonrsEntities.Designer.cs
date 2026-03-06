@@ -4,6 +4,7 @@ using Khdamatk.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20260306113427_AddDeliveredJobFileAndMileStonrsEntities")]
+    partial class AddDeliveredJobFileAndMileStonrsEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1066,9 +1069,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("ServiceOrderId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ServiceOrderId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1087,10 +1087,6 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceOrderId")
                         .IsUnique();
-
-                    b.HasIndex("ServiceOrderId1")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId1] IS NOT NULL");
 
                     b.ToTable("Conversations");
                 });
@@ -1222,6 +1218,9 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ServiceOrderId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -1233,6 +1232,8 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("ConversationId");
 
                     b.HasIndex("SenderId");
+
+                    b.HasIndex("ServiceOrderId");
 
                     b.ToTable("Messages");
                 });
@@ -1922,10 +1923,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
-                        .WithOne("Conversation")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId1");
-
                     b.Navigation("Client");
 
                     b.Navigation("Provider");
@@ -1996,6 +1993,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ServiceOrderId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Conversation");
 
@@ -2209,8 +2211,7 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
                 {
-                    b.Navigation("Conversation")
-                        .IsRequired();
+                    b.Navigation("Messages");
 
                     b.Navigation("PaymentTransaction");
 
