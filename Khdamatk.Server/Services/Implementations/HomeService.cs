@@ -33,7 +33,7 @@ public class HomeService(Database db) : IHomeService
             .ToList()?? new List<string>() {"there are no skill" }))
             .Take(10)
             .AsNoTracking()
-            .ToListAsync(cancellationToken);
+            .ToListAsync();
 
         var ClientReviewCard = await db.Reviews.Include(r => r.Reviewer)
             .Select(r => new ClientReviewCard(
