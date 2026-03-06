@@ -23,6 +23,8 @@ public class ServiceOrder : OrderBase
 
     
 
+    
+
     public DateTime? CompletionDate { get; set; } // تاريخ الإنجاز الفعلي
 
     [StringLength(1000)] // ملاحظات أو متطلبات إضافية
@@ -40,8 +42,8 @@ public class ServiceOrder : OrderBase
 
 
     // ✅ إضافة الروابط العكسية للكيانات التابعة لهذا الطلب
-    public virtual Review? Review { get; set; } // علاقة 1-1 (تقييم واحد للطلب الواحد)
-    public virtual PaymentTransaction? PaymentTransaction { get; set; } // علاقة 1-1
+    
+    
     
 }
 
