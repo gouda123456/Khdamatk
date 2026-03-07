@@ -68,15 +68,15 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
 
     #region Catalog DbSets
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Certificate> Certificates { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceMedia> ServiceMedia { get; set; }
     public DbSet<Media> Medias { get; set; }
-    public DbSet<Certificate> Certificates { get; set; }
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
     public DbSet<PortfolioMedia> PortfolioMedia { get; set; }
     public DbSet<ProviderSkill> ProviderSkills { get; set; }
     public DbSet<JobPost> JobPosts { get; set; }
-    public DbSet<JobOffer> jobOffers { get; set; }
+    public DbSet<JobOffer> JobOffers { get; set; }
     public DbSet<Skill> Skills { get; set; }
     public DbSet<JobSkillRequirement> JobSkillRequirements { get; set; }
     public DbSet<MileStone> MileStones { get; set; }
@@ -104,7 +104,9 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     #endregion
 
     #region operations DbSets
-    public DbSet<ServiceOrder> serviceOrders { get; set; }
+    public DbSet<JobDeliverable> JobDeliverables { get; set; }
+    public DbSet<JobOrder> JobOrders { get; set; }
+    public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<UserFavorites> UserFavorites { get; set; }
     #endregion
 

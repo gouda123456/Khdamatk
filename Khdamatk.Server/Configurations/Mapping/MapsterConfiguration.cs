@@ -229,7 +229,7 @@ public class MapsterConfiguration : IRegister
         config.NewConfig<JobOrder, JobOrderResponse>()
             .Map(dest => dest.OrderId, src => src.Id)
             .Map(dest => dest.OrderType, src => OrderType.Job)
-            .Map(dest => dest.FinalPrice, src => src.FinalPrice)
+            .Map(dest => dest.FinalPrice, src => src.Amount)
 
             //customer
             .Map(dest => dest.Customer.Id, src => src.CustomerId)

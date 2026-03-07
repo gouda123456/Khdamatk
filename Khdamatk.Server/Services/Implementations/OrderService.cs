@@ -19,7 +19,7 @@ public class OrderService : IOrderService
 
     public async Task<EInvoiceResponseModel.EInvoiceResponseDataModel?> StartServiceOrderPaymentAsync(int orderId)
     {
-        var order = await db.serviceOrders
+        var order = await db.ServiceOrders
             .Include(o => o.User)
             .Include(o => o.Service)
             .Include(o => o.ServiceProviderProfile)
@@ -48,7 +48,7 @@ public class OrderService : IOrderService
             {
                 new CartItemModel
                 {
-                    Name = order.Service.Name,
+                    Name = order.Service.Title,
                     Quantity = 1,
                     Price = order.Amount
                 }
@@ -308,7 +308,7 @@ public class OrderService : IOrderService
 
     private async Task<(ServiceOrder? serviceOrder, JobOrder? jobOrder)> FindOrderByInvoiceAsync(long invoiceId, string invoiceKey)
     {
-        var serviceOrder = await db.serviceOrders
+        var serviceOrder = await db.ServiceOrders
             .Include(o => o.User)
             .Include(o => o.PaymentTransaction)
             .FirstOrDefaultAsync(o => o.InvoiceId == invoiceId && o.InvoiceKey == invoiceKey);
@@ -327,7 +327,7 @@ public class OrderService : IOrderService
 
     public async Task CompleteServiceOrderAsync(int orderId)
     {
-        var order = await db.serviceOrders
+        var order = await db.ServiceOrders
             .Include(o => o.User)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
@@ -357,7 +357,7 @@ public class OrderService : IOrderService
 
     public async Task OpenDisputeAsync(OrderDisputeRequest request, string currentUserId)
     {
-        var order = await db.serviceOrders
+        var order = await db.ServiceOrders
             .Include(o => o.User)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)

@@ -7,7 +7,7 @@ public interface IJobOrderService
     
     //TODO: Add Advanced Search to offer 
     Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken);
-    Task<resultBase> AcceptOfferJob(int jobId, int offerId, CancellationToken cancellationToken);
+    Task<resultBase> AcceptOfferJob(int jobId, int offerId, string CustomerId, CancellationToken cancellationToken);
     Task<resultBase> RejectOfferJob(int jobId, int offerId, CancellationToken cancellationToken);
     Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken);
     Task<resultBase> ChangeSelectionOfferJob(int jobId, int oldOfferId, int newOfferId, CancellationToken cancellationToken);
@@ -17,6 +17,7 @@ public interface IJobOrderService
     Task<resultBase> PaymentSuccessJobOrder(int orderId, CancellationToken cancellationToken);
     Task<resultBase> PaymentFailureJobOrder(int orderId, CancellationToken cancellationToken);
     Task<resultBase> CompleteJobOrder(int orderId, CancellationToken cancellationToken);
+    Task<resultBase> RevisionJobOrder(int orderId, CancellationToken cancellationToken);
 
     
 }

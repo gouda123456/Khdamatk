@@ -15,8 +15,7 @@ public class JobOrder : OrderBase
     
 
 
-    public int InvoiceId { get; set; }
-    public string InvoiceKey { get; set; }
+    
 
 
     // العلاقات (Navigation Properties)
@@ -28,7 +27,36 @@ public class JobOrder : OrderBase
 
     // الملحقات والتقييم والمالية
     public virtual ICollection<JobDeliverable> Deliverables { get; set; } = [];
-    public virtual Review? Review { get; set; } // تقييم هذا العقد
-    public virtual List<PaymentTransaction>? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
+    
+    
     public virtual List<JobOffer> Offers { get; set; } = [];
+
+
+    public JobOrder BuildOrder(JobPost job ,  JobOffer offer)
+    {
+        var order = new JobOrder()
+        {
+
+            AcceptedOfferId = offer.Id,
+            JobPostId = job.Id,
+            CustomerId = job.CustomerId,
+            ProviderProfileId = offer.ProviderProfileId,
+            ExpectedDeliveryDate = offer.Deadline,
+
+            Status = OrderStatus.Pending,
+            Amount = offer.ProposedPrice,
+
+            Conversation = new Conversation
+            {
+                Category = ConversationCategory.Standard,
+                ClientId = job.CustomerId,
+                ContextType = ConversationContextType.JobOffer,
+                ProviderId = offer.ProviderProfileId,
+                Title = job.Title,
+
+            }
+        };
+
+        return order;
+    }
 }
