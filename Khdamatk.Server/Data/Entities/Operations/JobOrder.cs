@@ -1,6 +1,6 @@
-﻿namespace Khdamatk.Server.Data.Entities.Operations;
+namespace Khdamatk.Server.Data.Entities.Operations;
 
-public class JobOrder : BaseEntity
+public class JobOrder : OrderBase
 {
     // الربط مع الوظيفة والعرض
     public int JobPostId { get; set; }
@@ -10,14 +10,12 @@ public class JobOrder : BaseEntity
     public string CustomerId { get; set; } = null!;
     public string ProviderProfileId { get; set; } = null!;
 
-    // البيانات المالية والزمنية
-    public decimal FinalPrice { get; set; }
+
     public DateTime ExpectedDeliveryDate { get; set; }
-    public OrderStatus Status { get; set; } = OrderStatus.Active;
+    
 
 
-    public int InvoiceId { get; set; }
-    public string InvoiceKey { get; set; }
+    
 
 
     // العلاقات (Navigation Properties)
@@ -29,7 +27,36 @@ public class JobOrder : BaseEntity
 
     // الملحقات والتقييم والمالية
     public virtual ICollection<JobDeliverable> Deliverables { get; set; } = [];
-    public virtual Review? Review { get; set; } // تقييم هذا العقد
-    public virtual List<PaymentTransaction>? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
+    
+    
     public virtual List<JobOffer> Offers { get; set; } = [];
+
+
+    public JobOrder BuildOrder(JobPost job ,  JobOffer offer)
+    {
+        var order = new JobOrder()
+        {
+
+            AcceptedOfferId = offer.Id,
+            JobPostId = job.Id,
+            CustomerId = job.CustomerId,
+            ProviderProfileId = offer.ProviderProfileId,
+            ExpectedDeliveryDate = offer.Deadline,
+
+            Status = OrderStatus.Pending,
+            Amount = offer.ProposedPrice,
+
+            Conversation = new Conversation
+            {
+                Category = ConversationCategory.Standard,
+                ClientId = job.CustomerId,
+                ContextType = ConversationContextType.JobOffer,
+                ProviderId = offer.ProviderProfileId,
+                Title = job.Title,
+
+            }
+        };
+
+        return order;
+    }
 }
