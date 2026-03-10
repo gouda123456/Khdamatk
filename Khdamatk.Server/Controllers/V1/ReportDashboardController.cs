@@ -8,40 +8,46 @@ namespace Khdamatk.Server.Controllers.V1;
 [ApiController]
 public class ReportDashboardController(IReportDashboardService _reportService) : ControllerBase
 {
-    ///  GET summary cards: Total, Open, and Resolved reports. 
+    // 1. ملخص الكروت (Total, Open, Resolved)
     [HttpGet("summary")]
     public async Task<IActionResult> GetReportSummary(CancellationToken ct)
         => (await _reportService.GetReportSummary(ct)).Respond();
 
-    ///  GET All Reports with filtering. 
+    // 2. جدول البلاغات (مع الفلترة والـ Pagination)
     [HttpGet("list")]
     public async Task<IActionResult> GetReports(
         [FromQuery] string? search,
         [FromQuery] string? status,
         [FromQuery] string? type,
-        CancellationToken ct)
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 5
+        ) // الـ ct في الآخر، كدة الأرور اختفى
     {
-        var result = await _reportService.GetReportsList(search, status, type, ct);
+        var result = await _reportService.GetReportsList(search, status, type, page, pageSize, ct);
         return result.Respond();
     }
 
-    ///  GET Detailed Report View: Chat, Summary, and Attachments. 
+    // 3. صفحة التحقيق (الدردشة والمرفقات)
     [HttpGet("{id}/details")]
     public async Task<IActionResult> GetDetails(string id, CancellationToken ct)
         => (await _reportService.GetReportDetails(id, ct)).Respond();
 
-    /// Execute immediate actions like "Verify Report" or "Block User". 
+    [HttpPost("{id}/send-message")]
+    public async Task<IActionResult> SendMessage(string id, [FromBody] string message, CancellationToken ct)
+        => (await _reportService.SendReportMessage(id, message, ct)).Respond();
+
+    // 4. الأكشنز السريعة (Verify, Block)
     [HttpPost("action")]
-    public async Task<IActionResult> TakeAction([FromBody] ReportActionRequest req)
+    public async Task<IActionResult> ExecuteAction([FromBody] ReportActionRequest req)
         => (await _reportService.ExecuteReportAction(req)).Respond();
 
-    ///  GET Final Decision Summary including compensation amount ($2,450.00). 
-    [HttpGet("{id}/final-decision")]
-    public async Task<IActionResult> GetFinalDecision(string id, CancellationToken ct)
+    // 5. صفحة القرار النهائي والتعويضات
+    [HttpGet("{id}/final-summary")]
+    public async Task<IActionResult> GetFinalSummary(string id, CancellationToken ct)
         => (await _reportService.GetFinalDecisionSummary(id, ct)).Respond();
 
-    ///  POST Confirm or Reject the financial decision. 
-    [HttpPost("confirm-decision")]
-    public async Task<IActionResult> ConfirmDecision([FromBody] SubmitDecisionRequest req)
-        => (await _reportService.ConfirmFinalDecision(req)).Respond();
+    [HttpPost("submit-decision")]
+    public async Task<IActionResult> SubmitDecision([FromBody] SubmitDecisionRequest request)
+        => (await _reportService.ConfirmFinalDecision(request)).Respond();
 }

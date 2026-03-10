@@ -8,7 +8,8 @@ public interface IReportDashboardService : IService
     Task<resultBase> GetReportSummary(CancellationToken ct);
 
     /// Lists all reports with filtering by status and type. 
-    Task<resultBase> GetReportsList(string? search, string? status, string? type, CancellationToken ct);
+
+    Task<resultBase> GetReportsList(string? search, string? status, string? type, int page, int pageSize, CancellationToken ct);
 
     /// Fetches chat history and full details for a specific report. 
     Task<resultBase> GetReportDetails(string reportId, CancellationToken ct);
@@ -21,4 +22,5 @@ public interface IReportDashboardService : IService
 
     /// Confirms the final administrative decision (Approve/Reject Claim).
     Task<resultBase> ConfirmFinalDecision(SubmitDecisionRequest request);
+    Task<resultBase> SendReportMessage(string reportId, string message, CancellationToken ct);
 }
