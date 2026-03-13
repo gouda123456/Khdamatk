@@ -15,7 +15,7 @@ public class JobOrder : OrderBase
     
 
 
-    public int InvoiceId { get; set; }
+    public long InvoiceId { get; set; }
     public string InvoiceKey { get; set; }
 
 

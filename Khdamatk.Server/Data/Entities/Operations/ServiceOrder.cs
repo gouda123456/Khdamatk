@@ -8,8 +8,8 @@ public class ServiceOrder : OrderBase
     // === Foreign Keys ===
 
     [Required]
-    [ForeignKey(nameof(User))]
-    public string UserID { get; set; } = null!; // العميل (من قام بالطلب)
+    [ForeignKey(nameof(Customer))]
+    public string CustomerId { get; set; } = null!; // العميل (من قام بالطلب)
 
     [Required]
     public int ServiceID { get; set; } // الخدمة المطلوبة
@@ -32,7 +32,7 @@ public class ServiceOrder : OrderBase
 
 
     // === Navigation Properties ===
-    public virtual User User { get; set; } = null!;
+    public virtual User Customer { get; set; } = null!;
     public virtual Service Service { get; set; } = null!;
 
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;

@@ -29,8 +29,8 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
                .OnDelete(DeleteBehavior.Restrict); // منع حذف الطلب إذا كانت هناك معاملة مرتبطة به
 
         builder.HasOne(t => t.JobOrder)
-               .WithOne(j => j.PaymentTransaction) // افترضنا أن JobOrder يحتوي على خاصية PaymentTransaction
-               .HasForeignKey<PaymentTransaction>(t => t.JobOrderId) // المفتاح الخارجي في هذا الكيان
+               .WithMany(j => j.PaymentTransaction) // افترضنا أن JobOrder يحتوي على خاصية PaymentTransaction
+               .HasForeignKey(t => t.JobOrderId) // المفتاح الخارجي في هذا الكيان
                .IsRequired(false) // المعاملة قد لا تكون مرتبطة بـ JobOrder
                .OnDelete(DeleteBehavior.Restrict); // منع حذف الطلب إذا كانت هناك معاملة مرتبطة به
 

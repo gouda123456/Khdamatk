@@ -1,6 +1,8 @@
 using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.Orders;
+using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
+using Stripe;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -17,96 +19,82 @@ public class OrderService : IOrderService
         this.fawaterakPaymentHelper = fawaterakPaymentHelper;
     }
 
-    public async Task<EInvoiceResponseModel.EInvoiceResponseDataModel?> StartServiceOrderPaymentAsync(int orderId)
+    public async Task<resultBase> StartServiceOrderPaymentAsync(EInvoiceRequestModel order,string? AdditionalDetails,List<Media> Attachments,int serviceId,string userId)
     {
-        var order = await db.serviceOrders
-            .Include(o => o.User)
-            .Include(o => o.Service)
-            .Include(o => o.ServiceProviderProfile)
-                .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(o => o.Id == orderId);
 
-        if (order is null || order.User is null || order.Service is null || order.ServiceProviderProfile is null)
-            return null;
+        if(order.CartItems.Count == 0 || order.CartItems.Count > 1)
+            return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
-        if (order.Status != OrderStatus.PendingPayment)
-            return null;
+        
 
-        var request = new EInvoiceRequestModel
+        var service = db.Services
+            .Include(s => s.ServiceProviderProfile).ThenInclude(sp => sp.User)
+            .FirstOrDefault(
+            s => s.Id == serviceId);
+
+        if (service == null)
+            return Failure(StatusCodes.Status409Conflict, "Invalid service", "the service you asked for is either not found or the data in order of it is wrong");
+
+        if(!order.CartItems.Any(
+                i =>
+                i.Name == service.Title &&
+                i.Price == service.Price &&
+                i.Quantity == 1
+                ))
+            return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
+
+        if (order.PayLoad == null)
+            return Failure(StatusCodes.Status409Conflict, "Invalid PayLoad", "the order you asked for dosent have payload you must add payload.");
+
+        if (order.PayLoad.Provider == null && service.ServiceProviderProfile != null)
+            order.PayLoad.Provider = new ProviderModel()
+            {
+                Id = service.ServiceProviderProfileId,
+                Username = service.ServiceProviderProfile.User!.UserName!,
+                Email = service.ServiceProviderProfile.User!.Email!
+            };
+        else if(order.PayLoad.Provider == null || service.ServiceProviderProfile == null || order.PayLoad.Provider.Id != service.ServiceProviderProfileId)
+            return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order tou asked for dosent register to service provider (freelancer) this order cant be ordered");
+
+        if (order.Customer == null || order.Customer.CustomerId != userId)
+            return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
+
+
+
+        EInvoiceResponseModel.EInvoiceResponseDataModel? result = await fawaterakPaymentHelper.CreateEInvoiceAsync(order);
+
+        if (result == null)
+            return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title, FailureMessages.ServiceUnavailable.Message, new Error("payment is not available", "the payment gateway doesnt available now try later"));
+
+        ServiceOrder? serviceOrder = new ()
         {
-            Currency = "EGP",
-            DueDate = DateTime.UtcNow.AddDays(7),
-            SendEmail = true,
-            Customer = new CustomerModel
-            {
-                FirstName = order.User.UserName ?? string.Empty,
-                LastName = string.Empty,
-                CustomerId = order.User.Id,
-                Email = order.User.Email ?? string.Empty
-            },
-            CartItems = new List<CartItemModel>
-            {
-                new CartItemModel
-                {
-                    Name = order.Service.Name,
-                    Quantity = 1,
-                    Price = order.Amount
-                }
-            },
-            PayLoad = new InvoicePayload
-            {
-                OrderId = order.Id,
-                OrderType = OrderType.Service,
-                Provider = new ProviderModel
-                {
-                    Id = order.ServiceProviderProfile.UserId,
-                    Username = order.ServiceProviderProfile.User.UserName ?? string.Empty,
-                    Email = order.ServiceProviderProfile.User.Email ?? string.Empty
-                }
-            },
-            Status = OrderStatus.PendingPayment
+            Amount = order.CartTotal,
+            CompletionDate = DateTime.UtcNow.AddDays(service.DeliveryTimeInDays),
+            AdditionalDetails = AdditionalDetails ?? "doesnt have addition info",
+            Conversation = new Conversation(),
+            InvoiceId = result.InvoiceId,
+            InvoiceKey = result.InvoiceKey,
+            ServiceID = service.Id,
+            ServiceProviderId = order.PayLoad.Provider!.Id,
+            Status = OrderStatus.PendingPayment,
+            CustomerId = order.Customer.CustomerId!,
+            MediaAttachments = Attachments ?? []
         };
 
-        var response = await fawaterakPaymentHelper.CreateEInvoiceAsync(request);
-        if (response is null)
-            return null;
 
-        // إنشاء أو تحديث معاملة الدفع المرتبطة بالطلب
-        var transaction = order.PaymentTransaction;
-        if (transaction is null)
-        {
-            transaction = new PaymentTransaction
-            {
-                ServiceOrder = order,
-                ServiceOrderId = order.Id,
-            };
-            db.PaymentTransactions.Add(transaction);
-            order.PaymentTransaction = transaction;
-        }
-
-        transaction.Amount = order.Amount;
-        transaction.PlatformFee = Math.Round(order.Amount * 0.10m, 2);
-        transaction.NetPayout = transaction.Amount - transaction.PlatformFee;
-        transaction.Currency = CurrencyCode.EGP;
-        transaction.Status = TransactionStatus.Pending;
-        transaction.GatewayUsed = PaymentGateway.Fawry;
-
-        if (long.TryParse(response.InvoiceId, out var invoiceId))
-        {
-            order.InvoiceId = invoiceId;
-            order.InvoiceKey = response.InvoiceKey;
-        }
+        db.ServiceOrders.Add(serviceOrder);
 
         await db.SaveChangesAsync();
 
-        return response;
+        return Success(StatusCodes.Status202Accepted, SuccessMessages.General.Title, SuccessMessages.General.Message, result);
+
     }
 
     public async Task<EInvoiceResponseModel.EInvoiceResponseDataModel?> StartJobOrderPaymentAsync(int jobOrderId)
     {
-        var jobOrderSet = db.Set<JobOrder>();
+        
 
-        var order = await jobOrderSet
+        var order = await db.jobOrders
             .Include(o => o.Customer)
             .Include(o => o.ProviderProfile)
                 .ThenInclude(p => p.User)
@@ -154,24 +142,21 @@ public class OrderService : IOrderService
             Status = OrderStatus.PendingPayment
         };
 
-        var response = await fawaterakPaymentHelper.CreateEInvoiceAsync(request);
+        EInvoiceResponseModel.EInvoiceResponseDataModel? response = await fawaterakPaymentHelper.CreateEInvoiceAsync(request);
         if (response is null)
             return null;
 
-        if (long.TryParse(response.InvoiceId, out var invoiceId))
-        {
-            order.InvoiceId = invoiceId;
-            order.InvoiceKey = response.InvoiceKey;
-        }
+        order.InvoiceId = response.InvoiceId;
+        order.InvoiceKey = response.InvoiceKey;
 
         await db.SaveChangesAsync();
 
         return response;
     }
 
-    public async Task HandlePaymentSuccessAsync(long invoiceId, string invoiceKey)
+    public async Task HandlePaymentSuccessAsync(WebHookModel webHookModel)
     {
-        var (serviceOrder, jobOrder) = await FindOrderByInvoiceAsync(invoiceId, invoiceKey);
+        var (serviceOrder, jobOrder) = await FindOrderByInvoiceAsync(webHookModel.InvoiceId, webHookModel.InvoiceKey);
         if (serviceOrder is null && jobOrder is null)
             return;
 
@@ -187,16 +172,24 @@ public class OrderService : IOrderService
                 serviceOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
             }
 
-            customerEmail = serviceOrder.User?.Email;
+            customerEmail = serviceOrder.Customer?.Email;
             orderDescription = $"خدمة رقم {serviceOrder.Id}";
         }
         else
         {
             jobOrder!.Status = OrderStatus.Active;
-            if (jobOrder.PaymentTransaction is not null)
+            if (jobOrder.PaymentTransaction!= null && jobOrder.PaymentTransaction.Any(pt => pt.Status != TransactionStatus.Completed))
             {
-                jobOrder.PaymentTransaction.Status = TransactionStatus.Completed;
-                jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
+                jobOrder.PaymentTransaction.Add(new PaymentTransaction()
+                {
+                    Amount = jobOrder.Amount,
+                    GatewayUsed = ,
+                    Status = TransactionStatus.Completed,
+                    Currency = CurrencyCode.EGP,
+                    
+                })
+                    //Status = TransactionStatus.Completed;
+                //jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
             }
 
             customerEmail = jobOrder.Customer?.Email;
@@ -208,7 +201,7 @@ public class OrderService : IOrderService
         if (!string.IsNullOrWhiteSpace(customerEmail))
         {
             var subject = "تم الدفع بنجاح";
-            var body = $"تم إتمام عملية الدفع بنجاح لـ {orderDescription} (فاتورة رقم {invoiceId}). شكرًا لاستخدامك خدماتك.";
+            var body = $"تم إتمام عملية الدفع بنجاح لـ {orderDescription} (فاتورة رقم {webHookModel.InvoiceId}). شكرًا لاستخدامك خدماتك.";
             await emailHelper.SendEmailAsync(customerEmail, subject, body);
         }
     }
@@ -231,7 +224,7 @@ public class OrderService : IOrderService
                 serviceOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
             }
 
-            customerEmail = serviceOrder.User?.Email;
+            customerEmail = serviceOrder.Customer?.Email;
             orderDescription = $"خدمة رقم {serviceOrder.Id}";
         }
         else
@@ -264,7 +257,7 @@ public class OrderService : IOrderService
             return;
 
         var payment = await db.PaymentTransactions
-       .Include(p => p.ServiceOrder).ThenInclude(o => o!.User)
+       .Include(p => p.ServiceOrder).ThenInclude(o => o!.Customer)
        .Include(p => p.JobOrder).ThenInclude(o => o!.Customer)
        .FirstOrDefaultAsync(p => p.GatewayReferenceId == referenceId);
 
@@ -279,7 +272,7 @@ public class OrderService : IOrderService
         // ✅ الصح
         if (payment.ServiceOrder is not null)
         {   
-            customerEmail = payment.ServiceOrder.User?.Email!;
+            customerEmail = payment.ServiceOrder.Customer?.Email!;
             orderId = $"خدمة رقم {payment.ServiceOrder.Id}";
 
         }
@@ -308,15 +301,15 @@ public class OrderService : IOrderService
 
     private async Task<(ServiceOrder? serviceOrder, JobOrder? jobOrder)> FindOrderByInvoiceAsync(long invoiceId, string invoiceKey)
     {
-        var serviceOrder = await db.serviceOrders
-            .Include(o => o.User)
+        var serviceOrder = await db.ServiceOrders
+            .Include(o => o.Customer)
             .Include(o => o.PaymentTransaction)
             .FirstOrDefaultAsync(o => o.InvoiceId == invoiceId && o.InvoiceKey == invoiceKey);
 
         if (serviceOrder is not null)
             return (serviceOrder, null);
 
-        var jobOrders = db.Set<JobOrder>();
+        var jobOrders = db.Set<Job;
         var jobOrder = await jobOrders
             .Include(o => o.Customer)
             .Include(o => o.PaymentTransaction)
@@ -327,8 +320,8 @@ public class OrderService : IOrderService
 
     public async Task CompleteServiceOrderAsync(int orderId)
     {
-        var order = await db.serviceOrders
-            .Include(o => o.User)
+        var order = await db.ServiceOrders
+            .Include(o => o.Customer)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(o => o.Id == orderId);
@@ -342,7 +335,7 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Completed;
         await db.SaveChangesAsync();
 
-        var customerEmail = order.User?.Email;
+        var customerEmail = order.Customer?.Email;
         var providerEmail = order.ServiceProviderProfile?.User?.Email;
 
         var subject = "تم إكمال الطلب";
@@ -357,17 +350,17 @@ public class OrderService : IOrderService
 
     public async Task OpenDisputeAsync(OrderDisputeRequest request, string currentUserId)
     {
-        var order = await db.serviceOrders
-            .Include(o => o.User)
+        var order = await db.ServiceOrders
+            .Include(o => o.Customer)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(o => o.Id == request.ServiceOrderId);
 
-        if (order is null || order.User is null || order.ServiceProviderProfile?.User is null)
+        if (order is null || order.Customer is null || order.ServiceProviderProfile?.User is null)
             return;
 
         // تحديد الرافع والمدعى عليه بناءً على IsRaiserCustomer
-        var customer = order.User;
+        var customer = order.Customer;
         var provider = order.ServiceProviderProfile.User;
 
         var raiser = request.IsRaiserCustomer ? customer : provider;

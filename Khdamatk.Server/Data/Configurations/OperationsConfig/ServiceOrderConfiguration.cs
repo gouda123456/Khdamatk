@@ -11,9 +11,9 @@ public class ServiceOrderConfiguration : IEntityTypeConfiguration<ServiceOrder>
         builder.Property(uf => uf.Createdat)
                 .HasDefaultValueSql("GETUTCDATE()");
 
-        builder.HasOne(uf => uf.User)
+        builder.HasOne(uf => uf.Customer)
                 .WithMany() // إذا لم يكن هناك قائمة Favorites في كيان User
-                .HasForeignKey(uf => uf.UserID)
+                .HasForeignKey(uf => uf.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict); // نفضل Restrict أو NoAction لتجنب الحذف المتتالي
 
         builder.HasOne(uf => uf.Service)
