@@ -16,21 +16,27 @@ public class Review : BaseEntity
 
     // === Foreign Keys ===
 
-    [Required]
-    [ForeignKey(nameof(ServiceOrder))]
-    public int OrderId { get; set; }
+    
 
     [Required]
     [ForeignKey(nameof(User))]
     // تم تغيير الاسم لزيادة الوضوح
-    public string ReviewerId { get; set; }
+    public string ReviewerId { get; set; } = null!;
 
     [Required]
     [ForeignKey(nameof(ServiceProvider))]
     public string ServiceProviderId { get; set; }
 
     // === Navigation Properties ===
-    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+
+    [ForeignKey(nameof(ServiceOrder))]
+    public int? ServiceOrderId { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+
+    [ForeignKey(nameof(JobOrder))]
+    public int? JobOrderId { get; set; }
+    public virtual JobOrder? JobOrder { get; set; } = null!;
+
     // يفضل أن يكون نوع User هنا هو الـ User Entity الخاص بنطاق الهوية
     public virtual User Reviewer { get; set; } = null!;
     //مقدم الخدمة

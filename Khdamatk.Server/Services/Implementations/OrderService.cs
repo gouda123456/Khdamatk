@@ -19,13 +19,13 @@ public class OrderService : IOrderService
         this.fawaterakPaymentHelper = fawaterakPaymentHelper;
     }
 
-    public async Task<resultBase> StartServiceOrderPaymentAsync(EInvoiceRequestModel order,string? AdditionalDetails,List<Media> Attachments,int serviceId,string userId)
+    public async Task<resultBase> StartServiceOrderPaymentAsync(EInvoiceRequestModel order, string? AdditionalDetails, List<Media> Attachments, int serviceId, string userId)
     {
 
-        if(order.CartItems.Count == 0 || order.CartItems.Count > 1)
+        if (order.CartItems.Count == 0 || order.CartItems.Count > 1)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
-        
+
 
         var service = db.Services
             .Include(s => s.ServiceProviderProfile).ThenInclude(sp => sp.User)
@@ -35,7 +35,7 @@ public class OrderService : IOrderService
         if (service == null)
             return Failure(StatusCodes.Status409Conflict, "Invalid service", "the service you asked for is either not found or the data in order of it is wrong");
 
-        if(!order.CartItems.Any(
+        if (!order.CartItems.Any(
                 i =>
                 i.Name == service.Title &&
                 i.Price == service.Price &&
@@ -53,7 +53,7 @@ public class OrderService : IOrderService
                 Username = service.ServiceProviderProfile.User!.UserName!,
                 Email = service.ServiceProviderProfile.User!.Email!
             };
-        else if(order.PayLoad.Provider == null || service.ServiceProviderProfile == null || order.PayLoad.Provider.Id != service.ServiceProviderProfileId)
+        else if (order.PayLoad.Provider == null || service.ServiceProviderProfile == null || order.PayLoad.Provider.Id != service.ServiceProviderProfileId)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order tou asked for dosent register to service provider (freelancer) this order cant be ordered");
 
         if (order.Customer == null || order.Customer.CustomerId != userId)
@@ -66,7 +66,7 @@ public class OrderService : IOrderService
         if (result == null)
             return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title, FailureMessages.ServiceUnavailable.Message, new Error("payment is not available", "the payment gateway doesnt available now try later"));
 
-        ServiceOrder? serviceOrder = new ()
+        ServiceOrder serviceOrder = new()
         {
             Amount = order.CartTotal,
             CompletionDate = DateTime.UtcNow.AddDays(service.DeliveryTimeInDays),
@@ -92,16 +92,16 @@ public class OrderService : IOrderService
 
     public async Task<EInvoiceResponseModel.EInvoiceResponseDataModel?> StartJobOrderPaymentAsync(int jobOrderId)
     {
-        
 
-        var order = await db.jobOrders
+
+        var order = await db.JobOrders
             .Include(o => o.Customer)
-            .Include(o => o.ProviderProfile)
+            .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
             .Include(o => o.JobPost)
             .FirstOrDefaultAsync(o => o.Id == jobOrderId);
 
-        if (order is null || order.Customer is null || order.ProviderProfile is null || order.JobPost is null)
+        if (order is null || order.Customer is null || order.ServiceProviderProfile is null || order.JobPost is null)
             return null;
 
         if (order.Status != OrderStatus.PendingPayment)
@@ -134,9 +134,9 @@ public class OrderService : IOrderService
                 OrderType = OrderType.Job,
                 Provider = new ProviderModel
                 {
-                    Id = order.ProviderProfile.UserId,
-                    Username = order.ProviderProfile.User.UserName ?? string.Empty,
-                    Email = order.ProviderProfile.User.Email ?? string.Empty
+                    Id = order.ServiceProviderProfile.UserId,
+                    Username = order.ServiceProviderProfile.User.UserName ?? string.Empty,
+                    Email = order.ServiceProviderProfile.User.Email ?? string.Empty
                 }
             },
             Status = OrderStatus.PendingPayment
@@ -178,17 +178,16 @@ public class OrderService : IOrderService
         else
         {
             jobOrder!.Status = OrderStatus.Active;
-            if (jobOrder.PaymentTransaction!= null && jobOrder.PaymentTransaction.Any(pt => pt.Status != TransactionStatus.Completed))
+            if (jobOrder.PaymentTransaction != null && jobOrder.PaymentTransaction.Status != TransactionStatus.Completed)
             {
-                jobOrder.PaymentTransaction.Add(new PaymentTransaction()
-                {
-                    Amount = jobOrder.Amount,
-                    GatewayUsed = ,
-                    Status = TransactionStatus.Completed,
-                    Currency = CurrencyCode.EGP,
-                    
-                })
-                    //Status = TransactionStatus.Completed;
+
+                jobOrder.PaymentTransaction.Amount = jobOrder.Amount;
+                jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Card;
+                jobOrder.PaymentTransaction.Status = TransactionStatus.Completed;
+                jobOrder.PaymentTransaction.Currency = CurrencyCode.EGP;
+
+
+                //Status = TransactionStatus.Completed;
                 //jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
             }
 
@@ -208,95 +207,12 @@ public class OrderService : IOrderService
 
     public async Task HandlePaymentFailedAsync(long invoiceId, string invoiceKey, string? errorMessage)
     {
-        var (serviceOrder, jobOrder) = await FindOrderByInvoiceAsync(invoiceId, invoiceKey);
-        if (serviceOrder is null && jobOrder is null)
-            return;
-
-        string? customerEmail = null;
-        string orderDescription;
-
-        if (serviceOrder is not null)
-        {
-            serviceOrder.Status = OrderStatus.CancelledByClient;
-            if (serviceOrder.PaymentTransaction is not null)
-            {
-                serviceOrder.PaymentTransaction.Status = TransactionStatus.Failed;
-                serviceOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
-            }
-
-            customerEmail = serviceOrder.Customer?.Email;
-            orderDescription = $"خدمة رقم {serviceOrder.Id}";
-        }
-        else
-        {
-            jobOrder!.Status = OrderStatus.CancelledByClient;
-            if (jobOrder.PaymentTransaction is not null)
-            {
-                jobOrder.PaymentTransaction.Status = TransactionStatus.Failed;
-                jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
-            }
-
-            customerEmail = jobOrder.Customer?.Email;
-            orderDescription = $"طلب عمل رقم {jobOrder.Id}";
-        }
-
-        await db.SaveChangesAsync();
-
-        if (!string.IsNullOrWhiteSpace(customerEmail))
-        {
-            var subject = "فشل عملية الدفع";
-            var reason = string.IsNullOrWhiteSpace(errorMessage) ? "سبب غير محدد من بوابة الدفع." : errorMessage;
-            var body = $"محاولة الدفع لـ {orderDescription} (فاتورة رقم {invoiceId}) فشلت.\n\nالسبب: {reason}";
-            await emailHelper.SendEmailAsync(customerEmail, subject, body);
-        }
+        throw new NotImplementedException();
     }
 
     public async Task HandlePaymentCancelledAsync(string referenceId)
     {
-        if (string.IsNullOrWhiteSpace(referenceId))
-            return;
-
-        var payment = await db.PaymentTransactions
-       .Include(p => p.ServiceOrder).ThenInclude(o => o!.Customer)
-       .Include(p => p.JobOrder).ThenInclude(o => o!.Customer)
-       .FirstOrDefaultAsync(p => p.GatewayReferenceId == referenceId);
-
-        if (payment is null)
-            return;
-
-        payment.Status = TransactionStatus.Failed;
-        string customerEmail,orderId;
-
-       
-
-        // ✅ الصح
-        if (payment.ServiceOrder is not null)
-        {   
-            customerEmail = payment.ServiceOrder.Customer?.Email!;
-            orderId = $"خدمة رقم {payment.ServiceOrder.Id}";
-
-        }
-        else if (payment.JobOrder is not null)
-        {
-            customerEmail = payment.JobOrder.Customer?.Email!;
-            orderId = $"طلب عمل رقم {payment.JobOrder.Id}";
-
-        }
-        else
-        {
-            // لا يوجد طلب مرتبط، لا يمكن إرسال إشعار
-            return;
-        }
-
-        await db.SaveChangesAsync();
-
-        if (!string.IsNullOrWhiteSpace(customerEmail))
-        {
-            //TODO: Fix the email content to be more informative and user-friendly
-            var subject = "تم إلغاء عملية الدفع";
-            var body = $"تم إلغاء عملية الدفع المرتبطة بالطلب رقم {orderId}. إذا لم تقم بهذا الإلغاء، يرجى التواصل مع الدعم.";
-            await emailHelper.SendEmailAsync(customerEmail, subject, body);
-        }
+        throw new NotImplementedException();
     }
 
     private async Task<(ServiceOrder? serviceOrder, JobOrder? jobOrder)> FindOrderByInvoiceAsync(long invoiceId, string invoiceKey)
@@ -309,8 +225,8 @@ public class OrderService : IOrderService
         if (serviceOrder is not null)
             return (serviceOrder, null);
 
-        var jobOrders = db.Set<Job;
-        var jobOrder = await jobOrders
+
+        var jobOrder = await db.JobOrders
             .Include(o => o.Customer)
             .Include(o => o.PaymentTransaction)
             .FirstOrDefaultAsync(o => o.InvoiceId == invoiceId && o.InvoiceKey == invoiceKey);
@@ -369,7 +285,7 @@ public class OrderService : IOrderService
         // تحديث حالة الطلب إلى Disputed
         order.Status = OrderStatus.Disputed;
 
-        var dispute = new Dispute
+        var dispute = new Data.Entities.Interaction.Dispute
         {
             ServiceOrderId = order.Id,
             RaiserId = raiser.Id,

@@ -69,3 +69,22 @@ global using Microsoft.AspNetCore.Authorization;
 
 global using Khdamatk.Server.Contracts.Jobs;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * 
+ * TODO: review configuration to (Service/Job)Order 
+ * TODO: review conversation
+ * 
+ */

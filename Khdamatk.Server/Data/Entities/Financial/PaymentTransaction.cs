@@ -9,10 +9,13 @@ public class PaymentTransaction
     // ✅ Nullable - مش كل transaction مرتبطة بـ ServiceOrder
     [ForeignKey(nameof(ServiceOrder))]
     public int? ServiceOrderId { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
 
-    // ✅ أضف ربط JobOrder
     [ForeignKey(nameof(JobOrder))]
     public int? JobOrderId { get; set; }
+    public virtual JobOrder? JobOrder { get; set; } = null!;
+
+
 
     // === المبالغ المالية ===
 
@@ -28,8 +31,9 @@ public class PaymentTransaction
     [Column(TypeName = "decimal(18, 2)")]
     public decimal NetPayout { get; set; } // المبلغ الصافي للمزود بعد خصم الرسوم
 
+    [MaxLength(512)]
+    public string? FailureReason { get; set; }
 
-    
 
 
     // === تفاصيل الدفع والحالة ===
@@ -44,8 +48,6 @@ public class PaymentTransaction
 
     [Required]
     public PaymentGateway GatewayUsed { get; set; } = PaymentGateway.Card;
-
-    
 
     
 
@@ -69,8 +71,8 @@ public class PaymentTransaction
 
 
     // === Navigation Properties ===
-    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
-    public virtual JobOrder? JobOrder { get; set; }
+    
+    
     public virtual CreditCard? TokenizedCard { get; set; }
 
 }
@@ -79,7 +81,7 @@ public class PaymentTransaction
 public enum TransactionStatus
 {
     Pending,        // 0 - في انتظار بدء المعاملة/الدفع
-    Waited,         // 1 - في انتظار التأكيد من بوابة الدفع الخارجية (مثل Webhook من Fawry/PayMob)
+    AwaitingConfirmation, // 1 - في انتظار التأكيد من بوابة الدفع الخارجية (مثل Webhook من Fawry/PayMob)
     Completed,      // 2 - تم الدفع بنجاح
     Failed,         // 3 - فشلت المعاملة
     RefundInitiated,// 4 - تم بدء عملية الاسترداد
@@ -93,7 +95,7 @@ public enum PaymentGateway
     InstaPay = 3,
     LocalBankTransfer = 4,
     Card =5,
-    // ...
+    
 }
 
 public enum CurrencyCode

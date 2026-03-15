@@ -99,12 +99,12 @@ public class MapsterConfiguration : IRegister
 
         config.NewConfig<AddJopOfferRequest, JobOffer>()
             .Map(dest => dest.ProviderProfileId, src => src.ProviderServiceId)
-            .Map(dest => dest.NetAmount, src => src.OfferAmount)
+            .Map(dest => dest.Amount, src => src.OfferAmount)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SimilarWorkExamplesURL, src => src.SimilarWorkExamplesURL)
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
-            .Map(dest => dest.Deadline, src => src.Deadline)
+            
             .Map(dest => dest.Attachments, src => src.Attachment != null
                 ? new List<Media>
                 {
@@ -185,7 +185,7 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ProviderOfferInfo.ProviderName, src => src.ProviderProfile.User.UserName)
             .Map(dest => dest.ProviderOfferInfo.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
             .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
-            .Map(dest => dest.OfferPrice, src => src.NetAmount)
+            .Map(dest => dest.OfferPrice, src => src.Amount)
             .Map(dest => dest.Description, src => src.Description)
             .TwoWays()
             .IgnoreNonMapped(true)
@@ -206,7 +206,7 @@ public class MapsterConfiguration : IRegister
 
             //OfferServiceDetailed
             .Map(dest => dest.OfferServiceDetailed.Id, src => src.Id)
-            .Map(dest => dest.OfferServiceDetailed.Amount, src => src.NetAmount)
+            .Map(dest => dest.OfferServiceDetailed.Amount, src => src.Amount)
             .Map(dest => dest.OfferServiceDetailed.DeliversInDays, src => src.DeliveryTimeInDays)
             .Map(dest => dest.OfferServiceDetailed.Description, src => src.Description)
             
@@ -238,9 +238,9 @@ public class MapsterConfiguration : IRegister
             //Profile Picture 
 
             //Provider
-            .Map(dest => dest.Provider.Id, src => src.ProviderProfileId)
-            .Map(dest => dest.Provider.Name, src => src.ProviderProfile.User.UserName)
-            .Map(dest => dest.Provider.Email, src => src.ProviderProfile.User.Email)
+            .Map(dest => dest.Provider.Id, src => src.ServiceProviderId)
+            .Map(dest => dest.Provider.Name, src => src.ServiceProviderProfile.User.UserName)
+            .Map(dest => dest.Provider.Email, src => src.ServiceProviderProfile.User.Email)
             //Profile Picture 
 
             //JobSummary

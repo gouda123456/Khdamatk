@@ -4,10 +4,13 @@
 public class Dispute : BaseEntity
 {
     // ربط كيان النزاع بطلب الخدمة (ServiceOrder)
-    [Required]
     [ForeignKey(nameof(ServiceOrder))]
-    public int ServiceOrderId { get; set; }
-    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    public int? ServiceOrderId { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+
+    [ForeignKey(nameof(JobOrder))]
+    public int? JobOrderId { get; set; }
+    public virtual JobOrder? JobOrder { get; set; } = null!;
 
     //Raiser of the dispute (could be client or provider)
     [Required]

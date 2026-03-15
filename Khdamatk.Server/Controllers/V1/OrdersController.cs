@@ -15,9 +15,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// Start payment for a service order and return the Fawaterak payment URL.
     /// </summary>
     [HttpPost("{orderId:int}/pay-service")]
-    public async Task<IActionResult> StartServiceOrderPayment(int orderId)
+    public async Task<IActionResult> StartServiceOrderPayment(EInvoiceRequestModel order, string? AdditionalDetails, List<Media> Attachments, int serviceId )
     {
-        var response = await orderService.StartServiceOrderPaymentAsync(orderId);
+        var response = await orderService.StartServiceOrderPaymentAsync(order,AdditionalDetails,Attachments,serviceId,User?.GetUserId());
         if (response is null)
             return BadRequest("Unable to start payment for this order.");
 

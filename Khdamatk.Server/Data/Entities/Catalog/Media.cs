@@ -1,6 +1,6 @@
 ﻿namespace Khdamatk.Server.Data.Entities.Catalog;
 
-public record Media
+public class Media
 {
     [Key]
     public int Id { get; init; }
@@ -12,7 +12,7 @@ public record Media
     public string FileExtension { get; set; } = string.Empty;
     public long Size { get; init; }
 
-    public string FullPath => $"{ConstFilePathes.ImagesPath}{Id}";
+    public string FullPath { get; init; }
 
-    
+
 }

@@ -38,7 +38,7 @@ public class FawaterakWebhooksController(
         var valid = payments.VerifyWebhook(model);
         if (!valid) return Unauthorized();
 
-        await orderService.HandlePaymentSuccessAsync(model.InvoiceId, model.InvoiceKey);
+        await orderService.HandlePaymentSuccessAsync(model);
 
         return Ok("got it!");
     }
