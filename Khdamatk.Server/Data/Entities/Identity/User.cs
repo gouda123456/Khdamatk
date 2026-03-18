@@ -70,6 +70,4 @@ public class User : IdentityUser<string>
 
     public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
 
-    [NotMapped]
-    public virtual bool IsVerified => VerificationData?.Status == VerificationStatus.Approved;
 }

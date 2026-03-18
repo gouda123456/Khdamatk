@@ -400,8 +400,6 @@ public class OrderService : IOrderService
         if (!string.IsNullOrWhiteSpace(customer.Email))
             await emailHelper.SendEmailAsync(customer.Email, subject, bodyForCustomer);
 
-}
-        if (!string.IsNullOrWhiteSpace(provider.Email))
-            await emailHelper.SendEmailAsync(provider.Email, subject, bodyForProvider);
+
     }
 }
