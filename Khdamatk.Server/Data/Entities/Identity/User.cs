@@ -40,6 +40,7 @@ public class User : IdentityUser<string>
 
     [Required]
     public virtual string Status { get; set; } = "Active"; // Active, Blocked, Pending
+    public bool IsVerified => VerificationData !=null && VerificationData?.Status == VerificationStatus.Approved;
 
     public virtual DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

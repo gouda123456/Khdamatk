@@ -1,4 +1,4 @@
-﻿using Khdamatk.Server.Contracts.Fawaterak;
+using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.WebHook;
 using static Khdamatk.Server.Contracts.Fawaterak.EInvoiceResponseModel;
 
@@ -12,6 +12,7 @@ public interface IFawaterakPaymentHelper
     // WebHook Verification
     bool VerifyWebhook(WebHookModel webHook);
     bool VerifyCancelTransaction(CancelTransactionModel cancelTransaction);
+    bool VerifyFailedWebhook(FailedWebhookModel failedWebhook);
     bool VerifyApiKeyTransaction(string apiKey);
 
     // HashKey
