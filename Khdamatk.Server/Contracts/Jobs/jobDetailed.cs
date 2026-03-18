@@ -1,7 +1,7 @@
 ﻿namespace Khdamatk.Server.Contracts.Jobs;
 
 //TODO: Separate Contract content to multiple records for better maintainability and readability 
-public record jobDetailed(
+public record JobDetailed(
     int Id,
     string Title,
     int OffersCount,

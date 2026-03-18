@@ -16,4 +16,11 @@ public class JobsController(IJobService jobService) : ControllerBase
         return result.Respond();
 
     }
+
+    [HttpGet("{Id}")]
+    public async Task<IActionResult> GetJob(int Id)
+    {
+        var result = await jobService.GetJobAsync(Id);
+        return result.Respond();
+    }
 }

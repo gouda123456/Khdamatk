@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Khdamatk.Server.Contracts.WebHook;
@@ -109,28 +109,54 @@ public class CancelTransactionModel
 }
 
 /// <summary>
-/// Failed webhook model (form-encoded)
+/// Failed webhook response details object
 /// </summary>
-public class FaliledWebHook
+public class FailedWebhookResponse
 {
-    /// <summary>
-    /// Invoice ID from failed transaction
-    /// </summary>
-    [FromForm(Name = "invoice_id")]
-    [Required]
-    public long InvoiceId { get; set; }
+    [JsonPropertyName("gatewayCode")]
+    public string? GatewayCode { get; set; }
 
-    /// <summary>
-    /// Invoice key from failed transaction
-    /// </summary>
-    [FromForm(Name = "invoice_key")]
+    [JsonPropertyName("gatewayRecommendation")]
+    public string? GatewayRecommendation { get; set; }
+}
+
+/// <summary>
+/// Failed webhook model (JSON body)
+/// Matches the example failed webhook payload from Fawaterak.
+/// </summary>
+public class FailedWebhookModel
+{
+    [JsonPropertyName("invoice_key")]
     [Required]
     public string InvoiceKey { get; set; }
 
-    /// <summary>
-    /// Error message describing the failure
-    /// </summary>
-    [FromForm(Name = "errorMessage")]
+    [JsonPropertyName("invoice_id")]
     [Required]
-    public string ErrorMessage { get; set; }
+    public long InvoiceId { get; set; }
+
+    [JsonPropertyName("payment_method")]
+    [Required]
+    public string PaymentMethod { get; set; }
+
+    // Hash key sent by Fawaterak to verify the payload (if provided)
+    [JsonPropertyName("hashKey")]
+    public string? HashKey { get; set; }
+
+    [JsonPropertyName("pay_load")]
+    public object? Payload { get; set; }
+
+    [JsonPropertyName("amount")]
+    public decimal Amount { get; set; }
+
+    [JsonPropertyName("paidCurrency")]
+    public string? PaidCurrency { get; set; }
+
+    [JsonPropertyName("errorMessage")]
+    public string? ErrorMessage { get; set; }
+
+    [JsonPropertyName("response")]
+    public FailedWebhookResponse? Response { get; set; }
+
+    [JsonPropertyName("referenceNumber")]
+    public string? ReferenceNumber { get; set; }
 }

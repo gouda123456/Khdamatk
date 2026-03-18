@@ -48,6 +48,8 @@ public class ServiceProviderProfile
     [Range(1, 10000)]
     public double HourlyRate { get; set; } = 1;
 
+    public int AverageResponseTime { get; set; } = 0; // بالساعة
+
     // --- العلاقات ---
     public virtual ICollection<ProviderSkill> Skills { get; set; } = [];
     public virtual ICollection<Service> Services { get; set; } = [];

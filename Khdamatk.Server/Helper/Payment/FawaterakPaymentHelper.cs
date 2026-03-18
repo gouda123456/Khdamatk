@@ -1,4 +1,4 @@
-﻿using System.Buffers.Text;
+using System.Buffers.Text;
 using System.Text.Json;
 using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.WebHook;
@@ -96,6 +96,19 @@ public class FawaterakPaymentHelper : IFawaterakPaymentHelper
         return generatedHashKey == cancelTransaction.HashKey;
     }
 
+    public bool VerifyFailedWebhook(FailedWebhookModel failedWebhook)
+    {
+        if (string.IsNullOrWhiteSpace(failedWebhook.HashKey))
+            return false;
+
+        var generatedHashKey = GenerateHashKeyForFailedWebhook(
+            failedWebhook.InvoiceId,
+            failedWebhook.InvoiceKey,
+            failedWebhook.PaymentMethod);
+
+        return string.Equals(generatedHashKey, failedWebhook.HashKey, StringComparison.OrdinalIgnoreCase);
+    }
+
     public bool VerifyApiKeyTransaction(string apiKey)
     {
         return apiKey == ApiKey;
@@ -125,6 +138,16 @@ public class FawaterakPaymentHelper : IFawaterakPaymentHelper
     {
         var queryParam = $"referenceId={referenceId}&PaymentMethod={paymentMethod}";
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(ApiKey));
+        var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(queryParam));
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+    }
+
+    // Failed webhook uses the vendor key (ProviderKey) per Fawaterak docs:
+    // "InvoiceId=response.invoice_id&InvoiceKey=response.invoice_key&PaymentMethod=response.payment_method"
+    private string GenerateHashKeyForFailedWebhook(long invoiceId, string invoiceKey, string paymentMethod)
+    {
+        var queryParam = $"InvoiceId={invoiceId}&InvoiceKey={invoiceKey}&PaymentMethod={paymentMethod}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(ProviderKey));
         var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(queryParam));
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }

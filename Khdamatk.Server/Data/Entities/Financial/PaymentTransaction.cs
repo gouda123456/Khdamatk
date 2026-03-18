@@ -6,9 +6,13 @@ public class PaymentTransaction
     [Key]
     public int Id { get; set; }
 
-    [Required]
+    // ✅ Nullable - مش كل transaction مرتبطة بـ ServiceOrder
     [ForeignKey(nameof(ServiceOrder))]
-    public int OrderId { get; set; }
+    public int? ServiceOrderId { get; set; }
+
+    // ✅ أضف ربط JobOrder
+    [ForeignKey(nameof(JobOrder))]
+    public int? JobOrderId { get; set; }
 
     // === المبالغ المالية ===
 
@@ -31,7 +35,7 @@ public class PaymentTransaction
     // === تفاصيل الدفع والحالة ===
 
     [Required]
-    public CurrencyCode Currency { get; set; } = CurrencyCode.USD;
+    public CurrencyCode Currency { get; set; } = CurrencyCode.EGP;
 
     [Required]
     public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
@@ -39,7 +43,7 @@ public class PaymentTransaction
     public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
 
     [Required]
-    public PaymentGateway GatewayUsed { get; set; } = PaymentGateway.Stripe;
+    public PaymentGateway GatewayUsed { get; set; } = PaymentGateway.Card;
 
     
 
@@ -65,7 +69,8 @@ public class PaymentTransaction
 
 
     // === Navigation Properties ===
-    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+    public virtual JobOrder? JobOrder { get; set; }
     public virtual CreditCard? TokenizedCard { get; set; }
 
 }
@@ -87,6 +92,7 @@ public enum PaymentGateway
     Fawry = 2,
     InstaPay = 3,
     LocalBankTransfer = 4,
+    Card =5,
     // ...
 }
 

@@ -12,9 +12,7 @@ public class Conversation : BaseEntity
 
     public virtual ICollection<Message> Messages { get; set; } = [];
 
-    // Foreign Key to ServiceOrder
-    public int ServiceOrderId { get; set; }
-    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    
 
     // Foreign Key to User (Sender)
     [ForeignKey(nameof(Client))]
