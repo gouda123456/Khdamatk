@@ -30,6 +30,8 @@ public record ChatMessageDto(string SenderName, string Message, string Time, boo
 public record AttachmentDto(string FileName, string FileUrl, string FileType);
 
 
+
+
 /// Final administrative resolution and financial compensation details. 
 public record FinalDecisionResponse(
     string ReportId,
@@ -42,7 +44,7 @@ public record FinalDecisionResponse(
     decimal CompensationAmount,
     string Currency = "USD"
 );
-
+public record SendMessageRequest(string Message); 
 ///  Request to execute an immediate action on a report. 
 public record ReportActionRequest(string ReportId, string ActionType, string TargetUserId);
 

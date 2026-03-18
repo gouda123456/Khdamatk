@@ -78,13 +78,16 @@ public class AuthService(
         {
             if (lasttoken.IsUsed)
             {
-                user.RefreshTokens.ForEach(r =>
+                foreach (var r in user.RefreshTokens)
                 {
                     r.IsDeleted = true;
                     r.RevokedAt = DateTime.UtcNow;
                 }
-                );
+
                 await db.SaveChangesAsync(cancellationToken);
+
+
+
                 return Failure(StatusCodes.Status404NotFound, UserErrors.RefreshTokenDoesNotExists); //To deceive the hacker 
             }
             else

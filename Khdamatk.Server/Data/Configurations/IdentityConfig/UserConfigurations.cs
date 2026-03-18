@@ -4,7 +4,7 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasData(DefaultUsersData.Admin, DefaultUsersData.Member);
+        //builder.HasData(DefaultUsersData.Admin, DefaultUsersData.Member);
 
         builder.HasOne(u => u.ProfilePicture)
             .WithOne()
