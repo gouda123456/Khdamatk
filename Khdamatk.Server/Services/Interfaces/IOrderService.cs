@@ -7,7 +7,7 @@ namespace Khdamatk.Server.Services.Interfaces;
 
 public interface IOrderService : IService
 {
-    Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request,string userId);
+    Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, int orderId , string userId);
     public Task<EInvoiceResponseModel.EInvoiceResponseDataModel?> StartJobOrderPaymentAsync(int jobOrderId);
 
 

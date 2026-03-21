@@ -20,7 +20,7 @@ public class OrderService : IOrderService
         this.fawaterakPaymentHelper = fawaterakPaymentHelper;
     }
 
-    public async Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, string userId)
+    public async Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, int orderId, string userId)
     {
          if (userId == null)
             return Failure(StatusCodes.Status401Unauthorized, FailureMessages.Unauthorized.Title, FailureMessages.Unauthorized.Message);
@@ -36,17 +36,17 @@ public class OrderService : IOrderService
         if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
-        var request = new EInvoiceRequestModel
+        var envoice = new EInvoiceRequestModel
         {
             Currency = "EGP",
             DueDate = DateTime.UtcNow.AddDays(7),
             SendEmail = true,
             Customer = new CustomerModel
             {
-                FirstName = order.User.UserName ?? string.Empty,
+                FirstName = order.Customer.UserName ?? string.Empty,
                 LastName = string.Empty,
-                CustomerId = order.User.Id,
-                Email = order.User.Email ?? string.Empty
+                CustomerId = order.Customer.Id,
+                Email = order.Customer.Email ?? string.Empty
             },
             CartItems = new List<CartItemModel>
             {
