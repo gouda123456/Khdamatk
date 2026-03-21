@@ -4,6 +4,7 @@ using Khdamatk.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20260309192643_PendingChangesFix")]
+    partial class PendingChangesFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,7 +45,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Certificate", b =>
@@ -100,39 +103,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Certificates", (string)null);
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.DeliveredJobFile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MediaId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MileStoneId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Statues")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobId");
-
-                    b.HasIndex("MediaId");
-
-                    b.HasIndex("MileStoneId");
-
-                    b.ToTable("DeliveredJobFile", (string)null);
+                    b.ToTable("Certificates");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
@@ -143,31 +114,24 @@ namespace Khdamatk.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int?>("ConversationId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CoverLetter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DeliveryTimeInDays")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ExperienceLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsAccepted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
                     b.Property<int>("JobPostId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ProposedPrice")
                         .HasColumnType("decimal(18,2)");
@@ -176,27 +140,19 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("SimilarWorkExamplesURL")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TimeCommitment")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
-                    b.HasIndex("JobOrderId");
-
                     b.HasIndex("JobPostId");
 
                     b.HasIndex("ProviderProfileId");
 
-                    b.ToTable("JobOffers", (string)null);
+                    b.ToTable("jobOffers");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobPost", b =>
@@ -256,7 +212,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("JobPosts", (string)null);
+                    b.ToTable("JobPosts");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobSkillRequirement", b =>
@@ -298,23 +254,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FullPath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("JobDeliverableId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("JobOfferId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("JobPostId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ServiceOrderId")
                         .HasColumnType("int");
 
                     b.Property<long>("Size")
@@ -326,56 +266,9 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JobDeliverableId");
-
-                    b.HasIndex("JobOfferId");
-
-                    b.HasIndex("JobOrderId");
-
                     b.HasIndex("JobPostId");
 
-                    b.HasIndex("ServiceOrderId");
-
-                    b.ToTable("Medias", (string)null);
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.MileStone", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("JobPostId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("StepNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobPostId");
-
-                    b.HasIndex("Title");
-
-                    b.ToTable("MileStones", (string)null);
+                    b.ToTable("Medias");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioItem", b =>
@@ -448,7 +341,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("PortfolioItems", (string)null);
+                    b.ToTable("PortfolioItems");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioMedia", b =>
@@ -463,7 +356,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("PortfolioMedia", (string)null);
+                    b.ToTable("PortfolioMedia");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ProviderSkill", b =>
@@ -501,10 +394,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.PrimitiveCollection<string>("Concepts")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -515,9 +404,10 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("DeliveryTimeInDays")
                         .HasColumnType("int");
 
-                    b.Property<string>("DetailedDescription")
+                    b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -525,25 +415,17 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int?>("MainMediaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int>("RevisionCount")
-                        .HasColumnType("int");
 
                     b.Property<string>("ServiceProviderProfileId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ShortDescription")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
 
                     b.Property<int>("TotalReviews")
                         .HasColumnType("int");
@@ -564,7 +446,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Services", (string)null);
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ServiceMedia", b =>
@@ -579,7 +461,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("ServiceMedia", (string)null);
+                    b.ToTable("ServiceMedia");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Skill", b =>
@@ -596,7 +478,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills", (string)null);
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.CreditCard", b =>
@@ -630,7 +512,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CreditCards", (string)null);
+                    b.ToTable("CreditCards");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", b =>
@@ -651,10 +533,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
                     b.Property<string>("GatewayReferenceId")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -663,17 +541,14 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("NetPayout")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("PlatformFee")
                         .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("ServiceOrderId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -689,9 +564,12 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("CreditCardId");
 
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
                     b.HasIndex("TokenizedCreditCardId");
 
-                    b.ToTable("PaymentTransactions", (string)null);
+                    b.ToTable("PaymentTransactions");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Job", b =>
@@ -707,8 +585,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -716,8 +593,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -775,7 +651,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Report", b =>
@@ -798,8 +674,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FreelancerName")
                         .IsRequired()
@@ -873,8 +748,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
@@ -937,9 +811,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<double>("AverageRating")
                         .HasColumnType("float");
 
-                    b.Property<int>("AverageResponseTime")
-                        .HasColumnType("int");
-
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -998,7 +869,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("IsAvailable");
 
-                    b.ToTable("ServiceProviderProfiles", (string)null);
+                    b.ToTable("ServiceProviderProfiles");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
@@ -1029,8 +900,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsTrustedByAdmin")
                         .HasColumnType("bit");
@@ -1099,6 +969,52 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("ServiceProviderProfileUserId");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "b74ddd14-6340-4840-95c2-db12554843e5",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "abd61835-2981-4f28-9a87-3992de5a2460",
+                            CreatedAt = new DateTime(2026, 3, 9, 19, 26, 39, 957, DateTimeKind.Utc).AddTicks(1623),
+                            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "admin@admin.com",
+                            EmailConfirmed = true,
+                            FullName = "",
+                            IsTrustedByAdmin = false,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@ADMIN.COM",
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDTQ2MJwg8G7sNyX4vUuSzK8tnhxhzDsZpWvc8jt01mVjPURiVuM4G80qBh84/zwgA==",
+                            PhoneNumberConfirmed = false,
+                            Role = "User",
+                            SecurityStamp = "AQAAAAEAACcQAAAAEPG6fy3Z6k0rG+1bF5uV1r+H1l5H3g==",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UserName = "Admin"
+                        },
+                        new
+                        {
+                            Id = "b74ddd14-6340-4840-95c2-db12554843eslkna5",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "c84d599b-2289-47a5-81ed-061fbf16ce50",
+                            CreatedAt = new DateTime(2026, 3, 9, 19, 26, 39, 958, DateTimeKind.Utc).AddTicks(7301),
+                            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "user@user.com",
+                            EmailConfirmed = true,
+                            FullName = "",
+                            IsTrustedByAdmin = false,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "USER@USER.COM",
+                            NormalizedUserName = "User",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOu4XNo4PNSoxFgFM7DdE+/Fc3QVNdoUJ+LGU0bT0tlSTvDC0PRb9ofBLridqu7fkQ==",
+                            PhoneNumberConfirmed = false,
+                            Role = "User",
+                            SecurityStamp = "AQAAAAEAACcQAAAAEPG6fy3Z6k0rG+1bF5uV1r+H1l5H3g==nn",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UserName = "User"
+                        });
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationData", b =>
@@ -1124,7 +1040,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("VerificationData", (string)null);
+                    b.ToTable("VerificationData");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationsCodes", b =>
@@ -1169,7 +1085,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("VerificationsCodes", (string)null);
+                    b.ToTable("VerificationsCodes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
@@ -1184,6 +1100,10 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("ContextType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1197,18 +1117,8 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("JobOrderId1")
-                        .HasColumnType("int");
 
                     b.Property<string>("ProviderId")
                         .IsRequired()
@@ -1217,10 +1127,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("RelatedEntityId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ServiceOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ServiceOrderId1")
+                    b.Property<int>("ServiceOrderId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -1235,27 +1142,14 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("JobOrderId")
-                        .IsUnique()
-                        .HasFilter("[JobOrderId] IS NOT NULL");
-
-                    b.HasIndex("JobOrderId1")
-                        .IsUnique()
-                        .HasFilter("[JobOrderId1] IS NOT NULL");
+                    b.HasIndex("ClientId");
 
                     b.HasIndex("ProviderId");
 
                     b.HasIndex("ServiceOrderId")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId] IS NOT NULL");
+                        .IsUnique();
 
-                    b.HasIndex("ServiceOrderId1")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId1] IS NOT NULL");
-
-                    b.ToTable("Conversations", (string)null);
+                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Dispute", b =>
@@ -1291,9 +1185,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("OpenedDate")
                         .HasColumnType("datetime2");
 
@@ -1310,7 +1201,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<DateTime?>("ResolutionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ServiceOrderId")
+                    b.Property<int>("ServiceOrderId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -1338,8 +1229,6 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("AdminReviewerId");
 
-                    b.HasIndex("JobOrderId");
-
                     b.HasIndex("RaiserConversationId")
                         .IsUnique();
 
@@ -1352,7 +1241,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Disputes", (string)null);
+                    b.ToTable("Disputes");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Message", b =>
@@ -1390,6 +1279,9 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ServiceOrderId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -1402,7 +1294,9 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.HasIndex("ServiceOrderId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Review", b =>
@@ -1428,10 +1322,7 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("JobOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("JobOrderId1")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<double>("Rating")
@@ -1440,12 +1331,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<string>("ReviewerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("ServiceOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ServiceOrderId1")
-                        .HasColumnType("int");
 
                     b.Property<string>("ServiceProviderId")
                         .IsRequired()
@@ -1464,139 +1349,14 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JobOrderId")
-                        .IsUnique()
-                        .HasFilter("[JobOrderId] IS NOT NULL");
-
-                    b.HasIndex("JobOrderId1")
-                        .IsUnique()
-                        .HasFilter("[JobOrderId1] IS NOT NULL");
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.HasIndex("ReviewerId");
 
-                    b.HasIndex("ServiceOrderId")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId] IS NOT NULL");
-
-                    b.HasIndex("ServiceOrderId1")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId1] IS NOT NULL");
-
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("Reviews", (string)null);
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDelete")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("JobOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobOrderId");
-
-                    b.ToTable("JobDeliverable", (string)null);
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AcceptedOfferId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ExpectedDeliveryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long>("InvoiceId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("InvoiceKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDelete")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("JobPostId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PaymentTransactionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ServiceProviderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AcceptedOfferId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("JobPostId");
-
-                    b.HasIndex("PaymentTransactionId")
-                        .IsUnique();
-
-                    b.HasIndex("ServiceProviderId");
-
-                    b.ToTable("JobOrders", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
@@ -1626,22 +1386,8 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<long>("InvoiceId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("InvoiceKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
-
-                    b.Property<int>("PaymentTransactionId")
-                        .HasColumnType("int");
 
                     b.Property<int>("ServiceID")
                         .HasColumnType("int");
@@ -1660,18 +1406,26 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<DateTime?>("Updatedat")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("invoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("invoiceKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("PaymentTransactionId")
-                        .IsUnique();
 
                     b.HasIndex("ServiceID");
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("ServiceOrders", (string)null);
+                    b.HasIndex("UserID");
+
+                    b.ToTable("serviceOrders");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.UserFavorites", b =>
@@ -1697,7 +1451,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFavorites", (string)null);
+                    b.ToTable("UserFavorites");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1906,43 +1660,11 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("ServiceProviderProfile");
                 });
 
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.DeliveredJobFile", b =>
-                {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "Job")
-                        .WithMany("DeliveredFiles")
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Media", "Media")
-                        .WithMany()
-                        .HasForeignKey("MediaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.MileStone", "MileStone")
-                        .WithMany()
-                        .HasForeignKey("MileStoneId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Job");
-
-                    b.Navigation("Media");
-
-                    b.Navigation("MileStone");
-                });
-
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
                 {
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "Conversation")
                         .WithMany()
                         .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", null)
-                        .WithMany("Offers")
-                        .HasForeignKey("JobOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "JobPost")
@@ -2004,36 +1726,8 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Media", b =>
                 {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", null)
-                        .WithMany("Attachments")
-                        .HasForeignKey("JobDeliverableId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobOffer", null)
-                        .WithMany("Attachments")
-                        .HasForeignKey("JobOfferId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", null)
-                        .WithMany("MediaAttachments")
-                        .HasForeignKey("JobOrderId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", null)
-                        .WithMany("Media")
-                        .HasForeignKey("JobPostId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
-                        .WithMany("MediaAttachments")
-                        .HasForeignKey("ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Restrict);
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.MileStone", b =>
-                {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", null)
-                        .WithMany("MileStones")
+                        .WithMany("Images")
                         .HasForeignKey("JobPostId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
@@ -2149,10 +1843,18 @@ namespace Khdamatk.Server.Data.Migrations
                         .WithMany("Transactions")
                         .HasForeignKey("CreditCardId");
 
+                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
+                        .WithOne("PaymentTransaction")
+                        .HasForeignKey("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", "OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Khdamatk.Server.Data.Entities.Financial.CreditCard", "TokenizedCard")
                         .WithMany()
                         .HasForeignKey("TokenizedCreditCardId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ServiceOrder");
 
                     b.Navigation("TokenizedCard");
                 });
@@ -2246,20 +1948,11 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
                 {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Customer")
+                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Client")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", "JobOrder")
-                        .WithOne()
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "JobOrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", null)
-                        .WithOne("Conversation")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "JobOrderId1");
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Provider")
                         .WithMany()
@@ -2270,15 +1963,10 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne()
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
-                        .WithOne("Conversation")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId1");
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("JobOrder");
+                    b.Navigation("Client");
 
                     b.Navigation("Provider");
 
@@ -2290,11 +1978,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "AdminReviewer")
                         .WithMany()
                         .HasForeignKey("AdminReviewerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", "JobOrder")
-                        .WithMany()
-                        .HasForeignKey("JobOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "RaiserConversation")
@@ -2312,7 +1995,8 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithMany()
                         .HasForeignKey("ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "TargetConversation")
                         .WithOne()
@@ -2327,8 +2011,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("AdminReviewer");
-
-                    b.Navigation("JobOrder");
 
                     b.Navigation("Raiser");
 
@@ -2355,6 +2037,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ServiceOrderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Conversation");
 
                     b.Navigation("Sender");
@@ -2362,14 +2049,11 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Review", b =>
                 {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", "JobOrder")
-                        .WithOne()
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "JobOrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", null)
+                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
                         .WithOne("Review")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "JobOrderId1");
+                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Reviewer")
                         .WithMany()
@@ -2377,22 +2061,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
-                        .WithOne()
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "ServiceOrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
-                        .WithOne("Review")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "ServiceOrderId1");
-
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProvider")
                         .WithMany("Reviews")
                         .HasForeignKey("ServiceProviderId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.Navigation("JobOrder");
 
                     b.Navigation("Reviewer");
 
@@ -2401,76 +2074,10 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("ServiceProvider");
                 });
 
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
-                {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.JobOrder", "JobOrder")
-                        .WithMany("Deliverables")
-                        .HasForeignKey("JobOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("JobOrder");
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
-                {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobOffer", "AcceptedOffer")
-                        .WithMany()
-                        .HasForeignKey("AcceptedOfferId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Catalog.JobPost", "JobPost")
-                        .WithMany()
-                        .HasForeignKey("JobPostId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", "PaymentTransaction")
-                        .WithOne("JobOrder")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Operations.JobOrder", "PaymentTransactionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProviderProfile")
-                        .WithMany()
-                        .HasForeignKey("ServiceProviderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AcceptedOffer");
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("JobPost");
-
-                    b.Navigation("PaymentTransaction");
-
-                    b.Navigation("ServiceProviderProfile");
-                });
-
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
                 {
-                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", "PaymentTransaction")
-                        .WithOne("ServiceOrder")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "PaymentTransactionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Service", "Service")
-                        .WithMany("Orders")
+                        .WithMany()
                         .HasForeignKey("ServiceID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2481,13 +2088,17 @@ namespace Khdamatk.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Customer");
-
-                    b.Navigation("PaymentTransaction");
+                    b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Service");
 
                     b.Navigation("ServiceProviderProfile");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.UserFavorites", b =>
@@ -2569,18 +2180,9 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("Services");
                 });
 
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
-                {
-                    b.Navigation("Attachments");
-                });
-
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobPost", b =>
                 {
-                    b.Navigation("DeliveredFiles");
-
-                    b.Navigation("Media");
-
-                    b.Navigation("MileStones");
+                    b.Navigation("Images");
 
                     b.Navigation("Offers");
 
@@ -2595,8 +2197,6 @@ namespace Khdamatk.Server.Data.Migrations
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Service", b =>
                 {
                     b.Navigation("MediaGalleryLinks");
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.CreditCard", b =>
@@ -2604,11 +2204,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", b =>
-                {
-                    b.Navigation("JobOrder");
-
-                    b.Navigation("ServiceOrder");
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Report", b =>
                 {
                     b.Navigation("Attachments");
@@ -2651,31 +2246,11 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("Messages");
                 });
 
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
-                {
-                    b.Navigation("Attachments");
-                });
-
-            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
-                {
-                    b.Navigation("Conversation")
-                        .IsRequired();
-
-                    b.Navigation("Deliverables");
-
-                    b.Navigation("MediaAttachments");
-
-                    b.Navigation("Offers");
-
-                    b.Navigation("Review");
-                });
-
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
                 {
-                    b.Navigation("Conversation")
-                        .IsRequired();
+                    b.Navigation("Messages");
 
-                    b.Navigation("MediaAttachments");
+                    b.Navigation("PaymentTransaction");
 
                     b.Navigation("Review");
                 });

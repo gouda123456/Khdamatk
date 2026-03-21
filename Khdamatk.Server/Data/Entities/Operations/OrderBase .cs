@@ -3,9 +3,9 @@
 public abstract class OrderBase : BaseEntity
 {
     public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
-    public long InvoiceId { get; set; }
-    public string InvoiceKey { get; set; } = null!;
-
+    public long? InvoiceId { get; set; }
+    public string? InvoiceKey { get; set; } = null!;
+    // === تفاصيل الطلب ===
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     [Range(1, 100_000_000)]

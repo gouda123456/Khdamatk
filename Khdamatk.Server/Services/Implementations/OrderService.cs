@@ -22,13 +22,54 @@ public class OrderService : IOrderService
 
     public async Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, string userId)
     {
-        if (userId == null)
+         if (userId == null)
             return Failure(StatusCodes.Status401Unauthorized, FailureMessages.Unauthorized.Title, FailureMessages.Unauthorized.Message);
+            
+            var order = await db.ServiceOrders
+            .Include(o => o.User)
+            .Include(o => o.Service)
+            .Include(o => o.ServiceProviderProfile)
+                .ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
 
 
         if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
+        var request = new EInvoiceRequestModel
+        {
+            Currency = "EGP",
+            DueDate = DateTime.UtcNow.AddDays(7),
+            SendEmail = true,
+            Customer = new CustomerModel
+            {
+                FirstName = order.User.UserName ?? string.Empty,
+                LastName = string.Empty,
+                CustomerId = order.User.Id,
+                Email = order.User.Email ?? string.Empty
+            },
+            CartItems = new List<CartItemModel>
+            {
+                new CartItemModel
+                {
+                    Name = order.Service.Title,
+                    Quantity = 1,
+                    Price = order.Amount
+                }
+            },
+            PayLoad = new InvoicePayload
+            {
+                OrderId = order.Id,
+                OrderType = OrderType.Service,
+                Provider = new ProviderModel
+                {
+                    Id = order.ServiceProviderProfile.UserId,
+                    Username = order.ServiceProviderProfile.User.UserName ?? string.Empty,
+                    Email = order.ServiceProviderProfile.User.Email ?? string.Empty
+                }
+            },
+            Status = OrderStatus.PendingPayment
+        };
 
 
         var service = db.Services
@@ -312,6 +353,7 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrWhiteSpace(customer.Email))
             await emailHelper.SendEmailAsync(customer.Email, subject, bodyForCustomer);
+
 
         if (!string.IsNullOrWhiteSpace(provider.Email))
             await emailHelper.SendEmailAsync(provider.Email, subject, bodyForProvider);

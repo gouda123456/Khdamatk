@@ -9,6 +9,8 @@ public class ServiceOrder : OrderBase
 
     
 
+    
+
     public DateTime? CompletionDate { get; set; } // تاريخ الإنجاز الفعلي
 
     [StringLength(1000)] // ملاحظات أو متطلبات إضافية

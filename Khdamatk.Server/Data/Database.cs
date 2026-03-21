@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Khdamatk.Server.Data.Entities.Identity; 
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Composition;
 
 namespace Khdamatk.Server.Data;
 
@@ -63,15 +64,19 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
         return base.SaveChangesAsync(cancellationToken);
     }
 
-
-
+    #region dashboard
+    public DbSet<ReportAttachment> ReportAttachments { get; set; }
+    public DbSet<ReportMessage> ReportMessages { get; set; }
+    public DbSet<Report> Reports { get; set; } // السطر ده هيصلح الـ Error
+    public DbSet<Job> Jobs { get; set; } // السطر ده هو اللي هيشيل الـ Error CS1061
+    #endregion
 
     #region Catalog DbSets
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Certificate> Certificates { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceMedia> ServiceMedia { get; set; }
     public DbSet<Media> Medias { get; set; }
-    public DbSet<Certificate> Certificates { get; set; }
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
     public DbSet<PortfolioMedia> PortfolioMedia { get; set; }
     public DbSet<ProviderSkill> ProviderSkills { get; set; }
@@ -106,6 +111,8 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     #region operations DbSets
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<JobOrder> JobOrders { get; set; }
+    public DbSet<JobDeliverable> JobDeliverables { get; set; }
+    
     public DbSet<UserFavorites> UserFavorites { get; set; }
     #endregion
 

@@ -16,7 +16,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         var servicesSidebar = await db.Categories
             .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
             .AsNoTracking()
-            .ToListAsync(cancellationToken);
+            .ToListAsync();
 
         // 2. Build the base query with related entities (User, Skills, Services)
         var query = db.ServiceProviderProfiles
@@ -54,7 +54,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
                 (double)u.HourlyRate,
                 u.Skills.Select(s => s.Skill.Name).ToList()
             ))
-            .ToListAsync(cancellationToken);
+            .ToListAsync();
 
         // 5. Mock Data Fallback: Returns dummy data if database is empty to prevent UI breaking during development
         if (providers.Count < 1)

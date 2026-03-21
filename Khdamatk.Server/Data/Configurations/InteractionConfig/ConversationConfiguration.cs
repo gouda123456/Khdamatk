@@ -20,11 +20,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
                .HasForeignKey(c => c.ProviderId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        // 4. العلاقة مع ServiceOrder
-        builder.HasOne(c => c.ServiceOrder)
-               .WithOne() // علاقة 1-1 (منطقية)
-               .HasForeignKey<Conversation>(c => c.ServiceOrderId)
-               .OnDelete(DeleteBehavior.Cascade); // حذف المحادثة عند حذف الطلب
+        
 
         builder.HasOne(c => c.JobOrder)
                .WithOne() // علاقة 1-1 (منطقية)
