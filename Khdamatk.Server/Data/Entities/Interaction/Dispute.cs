@@ -58,7 +58,7 @@ public class Dispute : BaseEntity
     // المبلغ المتنازع عليه (مهم جداً للقرار المالي)
     [Required]
     [Column(TypeName = "decimal(18, 2)")] // تحديد الدقة المالية
-    public decimal AmountUnderDispute { get; set; }
+    public decimal? AmountUnderDispute { get; set; }
 
     public string? ReasonDetails { get; set; } // تفاصيل السبب عند الرفع
 

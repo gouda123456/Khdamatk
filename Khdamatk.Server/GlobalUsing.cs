@@ -84,7 +84,7 @@ global using Khdamatk.Server.Contracts.Jobs;
 
 /*
  * 
- * TODO: review configuration to (Service/Job)Order 
- * TODO: review conversation
+ * TODO: Add Hangfire to Notifications and close the orders that past 7 days and dosent receive response
+ * TODO: Conversation Service (Send messages , Read messages => {.isRead = true}) (request = conversationId)
  * 
  */

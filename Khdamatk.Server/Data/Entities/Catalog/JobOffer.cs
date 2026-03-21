@@ -34,6 +34,10 @@ public class JobOffer
     public int? ConversationId { get; set; }
     public virtual Conversation? Conversation { get; set; }
 
+    [ForeignKey(nameof(Order))]
+    public int OrderId { get; set; }
+    public virtual JobOrder? Order { get; set; }
+
     public virtual ICollection<Media> Attachments { get; set; } = new List<Media>();
 }
 

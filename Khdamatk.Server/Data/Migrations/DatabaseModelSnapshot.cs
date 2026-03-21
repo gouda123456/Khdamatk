@@ -42,7 +42,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Certificate", b =>
@@ -100,7 +100,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Certificates");
+                    b.ToTable("Certificates", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.DeliveredJobFile", b =>
@@ -132,7 +132,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MileStoneId");
 
-                    b.ToTable("DeliveredJobFile");
+                    b.ToTable("DeliveredJobFile", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobOffer", b =>
@@ -196,7 +196,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ProviderProfileId");
 
-                    b.ToTable("JobOffers");
+                    b.ToTable("JobOffers", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobPost", b =>
@@ -256,7 +256,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("JobPosts");
+                    b.ToTable("JobPosts", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.JobSkillRequirement", b =>
@@ -336,7 +336,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceOrderId");
 
-                    b.ToTable("Medias");
+                    b.ToTable("Medias", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.MileStone", b =>
@@ -375,7 +375,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("MileStones");
+                    b.ToTable("MileStones", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioItem", b =>
@@ -448,7 +448,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("PortfolioItems");
+                    b.ToTable("PortfolioItems", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.PortfolioMedia", b =>
@@ -463,7 +463,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("PortfolioMedia");
+                    b.ToTable("PortfolioMedia", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ProviderSkill", b =>
@@ -564,7 +564,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderProfileId");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.ServiceMedia", b =>
@@ -579,7 +579,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("MediaId");
 
-                    b.ToTable("ServiceMedia");
+                    b.ToTable("ServiceMedia", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Catalog.Skill", b =>
@@ -596,7 +596,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills");
+                    b.ToTable("Skills", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.CreditCard", b =>
@@ -630,7 +630,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CreditCards");
+                    b.ToTable("CreditCards", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", b =>
@@ -691,7 +691,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("TokenizedCreditCardId");
 
-                    b.ToTable("PaymentTransactions");
+                    b.ToTable("PaymentTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.RefreshTokens", b =>
@@ -739,7 +739,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Role", b =>
@@ -854,7 +854,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("IsAvailable");
 
-                    b.ToTable("ServiceProviderProfiles");
+                    b.ToTable("ServiceProviderProfiles", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
@@ -1001,7 +1001,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("VerificationData");
+                    b.ToTable("VerificationData", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.VerificationsCodes", b =>
@@ -1046,7 +1046,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("VerificationsCodes");
+                    b.ToTable("VerificationsCodes", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
@@ -1132,7 +1132,7 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsUnique()
                         .HasFilter("[ServiceOrderId1] IS NOT NULL");
 
-                    b.ToTable("Conversations");
+                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Dispute", b =>
@@ -1229,7 +1229,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Disputes");
+                    b.ToTable("Disputes", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Message", b =>
@@ -1279,7 +1279,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Review", b =>
@@ -1361,7 +1361,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
@@ -1399,7 +1399,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("JobOrderId");
 
-                    b.ToTable("JobDeliverable");
+                    b.ToTable("JobDeliverable", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
@@ -1473,7 +1473,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("JobOrders");
+                    b.ToTable("JobOrders", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
@@ -1548,7 +1548,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("ServiceProviderId");
 
-                    b.ToTable("ServiceOrders");
+                    b.ToTable("ServiceOrders", (string)null);
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.UserFavorites", b =>
@@ -1574,7 +1574,7 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFavorites");
+                    b.ToTable("UserFavorites", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

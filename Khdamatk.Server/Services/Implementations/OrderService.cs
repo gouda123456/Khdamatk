@@ -1,4 +1,5 @@
 using Khdamatk.Server.Contracts.Fawaterak;
+using Khdamatk.Server.Contracts.orders;
 using Khdamatk.Server.Contracts.Orders;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
@@ -19,10 +20,13 @@ public class OrderService : IOrderService
         this.fawaterakPaymentHelper = fawaterakPaymentHelper;
     }
 
-    public async Task<resultBase> StartServiceOrderPaymentAsync(EInvoiceRequestModel order, string? AdditionalDetails, List<Media> Attachments, int serviceId, string userId)
+    public async Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, string userId)
     {
+        if (userId == null)
+            return Failure(StatusCodes.Status401Unauthorized, FailureMessages.Unauthorized.Title, FailureMessages.Unauthorized.Message);
 
-        if (order.CartItems.Count == 0 || order.CartItems.Count > 1)
+
+        if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
 
@@ -30,12 +34,12 @@ public class OrderService : IOrderService
         var service = db.Services
             .Include(s => s.ServiceProviderProfile).ThenInclude(sp => sp.User)
             .FirstOrDefault(
-            s => s.Id == serviceId);
+            s => s.Id == request.ServiceId);
 
         if (service == null)
             return Failure(StatusCodes.Status409Conflict, "Invalid service", "the service you asked for is either not found or the data in order of it is wrong");
 
-        if (!order.CartItems.Any(
+        if (!request.Order.CartItems.Any(
                 i =>
                 i.Name == service.Title &&
                 i.Price == service.Price &&
@@ -43,45 +47,45 @@ public class OrderService : IOrderService
                 ))
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
-        if (order.PayLoad == null)
+        if (request.Order.PayLoad == null)
             return Failure(StatusCodes.Status409Conflict, "Invalid PayLoad", "the order you asked for dosent have payload you must add payload.");
 
-        if (order.PayLoad.Provider == null && service.ServiceProviderProfile != null)
-            order.PayLoad.Provider = new ProviderModel()
+        if (request.Order.PayLoad.Provider == null && service.ServiceProviderProfile != null)
+            request.Order.PayLoad.Provider = new ProviderModel()
             {
                 Id = service.ServiceProviderProfileId,
                 Username = service.ServiceProviderProfile.User!.UserName!,
                 Email = service.ServiceProviderProfile.User!.Email!
             };
-        else if (order.PayLoad.Provider == null || service.ServiceProviderProfile == null || order.PayLoad.Provider.Id != service.ServiceProviderProfileId)
+        else if (request.Order.PayLoad.Provider == null || service.ServiceProviderProfile == null || request.Order.PayLoad.Provider.Id != service.ServiceProviderProfileId)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order tou asked for dosent register to service provider (freelancer) this order cant be ordered");
 
-        if (order.Customer == null || order.Customer.CustomerId != userId)
+        if (request.Order.Customer == null || request.Order.Customer.CustomerId != userId)
             return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
 
 
 
-        EInvoiceResponseModel.EInvoiceResponseDataModel? result = await fawaterakPaymentHelper.CreateEInvoiceAsync(order);
+        EInvoiceResponseModel.EInvoiceResponseDataModel? result = await fawaterakPaymentHelper.CreateEInvoiceAsync(request.Order);
 
         if (result == null)
             return Failure(StatusCodes.Status503ServiceUnavailable, FailureMessages.ServiceUnavailable.Title, FailureMessages.ServiceUnavailable.Message, new Error("payment is not available", "the payment gateway doesnt available now try later"));
 
         ServiceOrder serviceOrder = new()
         {
-            Amount = order.CartTotal,
+            Amount = request.Order.CartTotal,
             CompletionDate = DateTime.UtcNow.AddDays(service.DeliveryTimeInDays),
-            AdditionalDetails = AdditionalDetails ?? "doesnt have addition info",
+            AdditionalDetails = request.AdditionalDetails ?? "doesnt have addition info",
             Conversation = new Conversation(),
             InvoiceId = result.InvoiceId,
             InvoiceKey = result.InvoiceKey,
             ServiceID = service.Id,
-            ServiceProviderId = order.PayLoad.Provider!.Id,
+            ServiceProviderId = request.Order.PayLoad.Provider!.Id,
             Status = OrderStatus.PendingPayment,
-            CustomerId = order.Customer.CustomerId!,
-            MediaAttachments = Attachments ?? []
+            CustomerId = request.Order.Customer.CustomerId!,
+            //TODO: MediaAttachments = request.Attachments ?? []
         };
 
-
+        //TODO: Send email to free lancer
         db.ServiceOrders.Add(serviceOrder);
 
         await db.SaveChangesAsync();
@@ -98,10 +102,10 @@ public class OrderService : IOrderService
             .Include(o => o.Customer)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
-            .Include(o => o.JobPost)
+            .Include(o => o.Job)
             .FirstOrDefaultAsync(o => o.Id == jobOrderId);
 
-        if (order is null || order.Customer is null || order.ServiceProviderProfile is null || order.JobPost is null)
+        if (order is null || order.Customer is null || order.ServiceProviderProfile is null || order.Job is null)
             return null;
 
         if (order.Status != OrderStatus.PendingPayment)
@@ -123,7 +127,7 @@ public class OrderService : IOrderService
             {
                 new CartItemModel
                 {
-                    Name = order.JobPost.Title,
+                    Name = order.Job.Title,
                     Quantity = 1,
                     Price = order.Amount
                 }

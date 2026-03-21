@@ -3,7 +3,9 @@ namespace Khdamatk.Server.Data.Entities.Operations;
 public class JobOrder : OrderBase
 {
     // الربط مع الوظيفة والعرض
+    [ForeignKey(nameof(Job))]
     public int JobPostId { get; set; }
+    [ForeignKey(nameof(AcceptedOffer))]
     public int AcceptedOfferId { get; set; }
 
     
@@ -12,7 +14,7 @@ public class JobOrder : OrderBase
     public DateTime ExpectedDeliveryDate { get; set; }
     
     // العلاقات (Navigation Properties)
-    public virtual JobPost JobPost { get; set; } = null!;
+    public virtual JobPost Job { get; set; } = null!;
     public virtual JobOffer AcceptedOffer { get; set; } = null!;
 
     [Required]
@@ -36,9 +38,9 @@ public class JobOrder : OrderBase
     public virtual Conversation Conversation { get; set; } = null!;
 
     // الملحقات والتقييم والمالية
-    public virtual ICollection<JobDeliverable> Deliverables { get; set; } = [];
+    public virtual ICollection<JobDeliverable>? Deliverables { get; set; } = [];
 
-    public virtual ICollection<Media> MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
+    public virtual ICollection<Media>? MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
 
-    public virtual List<JobOffer> Offers { get; set; } = [];
+    
 }
