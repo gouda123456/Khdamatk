@@ -6,7 +6,7 @@ public record AddJopOfferRequest(
     string Description,
     string? SimilarWorkExamplesURL,
     DateTime Deadline,
-    IFormFile? Attachment,
+    List<IFormFile>? Attachment,
     TimeCommit? TimeCommitment = TimeCommit.PartTime, //TODO: Add TimeCommitment to job Entity
     ExperienceLevel? ExperienceLevel = ExperienceLevel.Entry
     );

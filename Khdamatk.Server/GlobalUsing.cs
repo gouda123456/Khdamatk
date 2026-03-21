@@ -69,6 +69,8 @@ global using Microsoft.AspNetCore.Authorization;
 
 global using Khdamatk.Server.Contracts.Jobs;
 
+global using Khdamatk.Server.Contracts.Fawaterak;
+global using Khdamatk.Server.Contracts.orders;
 
 
 

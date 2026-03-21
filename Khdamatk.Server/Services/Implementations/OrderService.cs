@@ -26,7 +26,7 @@ public class OrderService : IOrderService
             return Failure(StatusCodes.Status401Unauthorized, FailureMessages.Unauthorized.Title, FailureMessages.Unauthorized.Message);
             
             var order = await db.ServiceOrders
-            .Include(o => o.User)
+            .Include(o => o.Customer)
             .Include(o => o.Service)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)

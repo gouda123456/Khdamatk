@@ -1,42 +1,68 @@
-﻿using Khdamatk.Server.Contracts.orders;
+﻿
+
+using Khdamatk.Server.Helper.Payment;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class JobOrderService(Database db) : IJobOrderService
+//Refactor: Magic strings
+//Refactor: Implement the TODOs
+public class JobOrderService(Database db,FawaterakPaymentHelper fawaterak) : IJobOrderService
 {
     private readonly Database db = db;
+    private readonly FawaterakPaymentHelper fawaterak = fawaterak;
 
     //Add Job and offer
     public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * Validate request -Done
-         * Deal with files ***
-         * Mapping Request -Done
-         * Add to DB -Done
-         * Save changes -Done
-         * send email to some of freelancers (take 20 freelancer random) {use hang fire} ***
+         * Validate request      --Done
+         * Deal with files       --***
+         * Mapping Request       --Done
+         * Add to DB         --Done
+         * Save changes      --Done
+         * send email to some of freelancers (take 20 freelancer random) {use hang fire}         --***
          */
+
 
         var job = request.Adapt<JobPost>();
+        //TODO: Deal with files
         await db.JobPosts.AddAsync(job, cancellationToken);
+
+        //TODO: send email to random 20 customer
+
         await db.SaveChangesAsync(cancellationToken);
 
-        throw new NotImplementedException();
+        return Success(StatusCodes.Status201Created);
     }
 
-    public Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken)
+    public async Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check job Id
-         * Validate request
-         * Deal with Files ***
-         * Mapping request
-         * add offer ti job and check the free lancer id so free lancer cant add 2 offers
-         * send email to customer
+         * check job Id Done    --Done
+         * Validate request     --Done
+         * Deal with Files       --***
+         * add offer ti job and check the free lancer id so free lancer cant add 2 offers   --Done
+         * Mapping request      --Done
+         * send email to customer       --****
          */
 
-        throw new NotImplementedException();
+        if (await db.JobPosts.FindAsync(JobId) is not { } Job)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if(await db.JobOffers.AnyAsync(o => o.ProviderProfileId == request.ProviderServiceId))
+            return Failure(StatusCodes.Status409Conflict,FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,new Error("duplicated proposal","free lancer can provide only one proposal for each job"));
+
+        //TODO: IformFile Attachment => media 
+
+        var offer = request.Adapt<JobOffer>();
+        
+
+        Job.Offers!.Add(offer);
+        await db.SaveChangesAsync(cancellationToken);
+
+        //TODO: Send Email to Customer
+
+        return Success(StatusCodes.Status201Created);
     }
 
     public Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken)
@@ -318,5 +344,8 @@ public class JobOrderService(Database db) : IJobOrderService
         throw new NotImplementedException();
     }
 
-    
+    public Task<resultBase> RevisionJobOrder(int orderId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
