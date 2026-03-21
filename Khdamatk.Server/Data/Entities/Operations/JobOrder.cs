@@ -52,7 +52,7 @@ public class JobOrder : OrderBase
             JobPostId = job.Id,
             CustomerId = job.CustomerId,
             ServiceProviderId = offer.ProviderProfileId,
-            ExpectedDeliveryDate =DateTime.UtcNow.AddDays(offer.DeliveryTimeInDays),
+            ExpectedDeliveryDate = DateTime.UtcNow.AddDays( offer.DeliveryTimeInDays),
 
             Status = OrderStatus.Pending,
             Amount = offer.ProposedPrice,
@@ -67,7 +67,6 @@ public class JobOrder : OrderBase
 
             }
         };
-
         return order;
     }
     
