@@ -26,27 +26,27 @@ public class OrderService : IOrderService
             return Failure(StatusCodes.Status401Unauthorized, FailureMessages.Unauthorized.Title, FailureMessages.Unauthorized.Message);
             
             var order = await db.ServiceOrders
-            .Include(o => o.User)
+            .Include(o => o.Customer)
             .Include(o => o.Service)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(o => o.Id == orderId);
+            .FirstOrDefaultAsync(o => o.Id == 1);
 
 
         if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)
             return Failure(StatusCodes.Status409Conflict, "Invalid order", "the order you asked for is either not have service or have more than one");
 
-        var request = new EInvoiceRequestModel
+        var envoice = new EInvoiceRequestModel
         {
             Currency = "EGP",
             DueDate = DateTime.UtcNow.AddDays(7),
             SendEmail = true,
             Customer = new CustomerModel
             {
-                FirstName = order.User.UserName ?? string.Empty,
+                FirstName = order.Customer.UserName ?? string.Empty,
                 LastName = string.Empty,
-                CustomerId = order.User.Id,
-                Email = order.User.Email ?? string.Empty
+                CustomerId = order.Customer.Id,
+                Email = order.Customer.Email ?? string.Empty
             },
             CartItems = new List<CartItemModel>
             {
@@ -70,6 +70,8 @@ public class OrderService : IOrderService
             },
             Status = OrderStatus.PendingPayment
         };
+
+        
 
 
         var service = db.Services

@@ -1,10 +1,13 @@
-﻿using Khdamatk.Server.Contracts.orders;
+﻿using Khdamatk.Server.Contracts.Fawaterak;
+using Khdamatk.Server.Contracts.orders;
+using Khdamatk.Server.Helper.Payment;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class JobOrderService(Database db) : IJobOrderService
+public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak) : IJobOrderService
 {
     private readonly Database db = db;
+    private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
 
     //Add Job and offer
     public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken)
@@ -318,5 +321,8 @@ public class JobOrderService(Database db) : IJobOrderService
         throw new NotImplementedException();
     }
 
-    
+    public Task<resultBase> RevisionJobOrder(int orderId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
