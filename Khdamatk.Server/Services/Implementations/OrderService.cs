@@ -72,8 +72,6 @@ public class OrderService : IOrderService
         };
 
         
-
-
         var service = db.Services
             .Include(s => s.ServiceProviderProfile).ThenInclude(sp => sp.User)
             .FirstOrDefault(
