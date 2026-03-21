@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Khdamatk.Server.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,6 +39,28 @@ namespace Khdamatk.Server.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reports",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    JobId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FreelancerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AdminComment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompensationAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ReviewedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reports", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,6 +95,49 @@ namespace Khdamatk.Server.Data.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReportAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReportId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReportAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReportAttachments_Reports_ReportId",
+                        column: x => x.ReportId,
+                        principalTable: "Reports",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReportMessages",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SenderName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Text = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    ReportId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReportMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReportMessages_Reports_ReportId",
+                        column: x => x.ReportId,
+                        principalTable: "Reports",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -127,13 +192,17 @@ namespace Khdamatk.Server.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ProfilePictureId = table.Column<int>(type: "int", nullable: true),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsTrustedByAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    ProfilePictureId = table.Column<int>(type: "int", nullable: true),
                     ServiceProviderProfileUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -195,37 +264,24 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobPosts",
+                name: "Jobs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BudgetMin = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    BudgetMax = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    Budget = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExperienceLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProjectLength = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TimeCommitment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Deadline = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobPosts", x => x.Id);
+                    table.PrimaryKey("PK_Jobs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_JobPosts_AspNetUsers_CustomerId",
-                        column: x => x.CustomerId,
+                        name: "FK_Jobs_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_JobPosts_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -376,55 +432,6 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobSkillRequirements",
-                columns: table => new
-                {
-                    JobPostId = table.Column<int>(type: "int", nullable: false),
-                    SkillId = table.Column<int>(type: "int", nullable: false),
-                    RequiredLevel = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Beginner")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_JobSkillRequirements", x => new { x.JobPostId, x.SkillId });
-                    table.ForeignKey(
-                        name: "FK_JobSkillRequirements_JobPosts_JobPostId",
-                        column: x => x.JobPostId,
-                        principalTable: "JobPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_JobSkillRequirements_Skills_SkillId",
-                        column: x => x.SkillId,
-                        principalTable: "Skills",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MileStones",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    StepNumber = table.Column<int>(type: "int", nullable: false),
-                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    JobPostId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MileStones", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MileStones_JobPosts_JobPostId",
-                        column: x => x.JobPostId,
-                        principalTable: "JobPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PortfolioItems",
                 columns: table => new
                 {
@@ -527,7 +534,6 @@ namespace Khdamatk.Server.Data.Migrations
                     ContextType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     JobOrderId1 = table.Column<int>(type: "int", nullable: true),
-                    ServiceOrderId1 = table.Column<int>(type: "int", nullable: true),
                     Createdat = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -598,18 +604,6 @@ namespace Khdamatk.Server.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DeliveredJobFile", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DeliveredJobFile_JobPosts_JobId",
-                        column: x => x.JobId,
-                        principalTable: "JobPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_DeliveredJobFile_MileStones_MileStoneId",
-                        column: x => x.MileStoneId,
-                        principalTable: "MileStones",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -676,7 +670,7 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobDeliverable",
+                name: "JobDeliverables",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -691,7 +685,7 @@ namespace Khdamatk.Server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobDeliverable", x => x.Id);
+                    table.PrimaryKey("PK_JobDeliverables", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -712,7 +706,7 @@ namespace Khdamatk.Server.Data.Migrations
                     TimeCommitment = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProviderProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ConversationId = table.Column<int>(type: "int", nullable: true),
-                    JobOrderId = table.Column<int>(type: "int", nullable: true)
+                    OrderId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -721,12 +715,6 @@ namespace Khdamatk.Server.Data.Migrations
                         name: "FK_JobOffers_Conversations_ConversationId",
                         column: x => x.ConversationId,
                         principalTable: "Conversations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_JobOffers_JobPosts_JobPostId",
-                        column: x => x.JobPostId,
-                        principalTable: "JobPosts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -755,8 +743,8 @@ namespace Khdamatk.Server.Data.Migrations
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InvoiceId = table.Column<long>(type: "bigint", nullable: false),
-                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InvoiceId = table.Column<long>(type: "bigint", nullable: true),
+                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -775,12 +763,6 @@ namespace Khdamatk.Server.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_JobOrders_JobPosts_JobPostId",
-                        column: x => x.JobPostId,
-                        principalTable: "JobPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_JobOrders_PaymentTransactions_PaymentTransactionId",
                         column: x => x.PaymentTransactionId,
                         principalTable: "PaymentTransactions",
@@ -791,6 +773,98 @@ namespace Khdamatk.Server.Data.Migrations
                         column: x => x.ServiceProviderId,
                         principalTable: "ServiceProviderProfiles",
                         principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobPosts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BudgetMin = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BudgetMax = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExperienceLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProjectLength = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TimeCommitment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Deadline = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobPosts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobPosts_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_JobPosts_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_JobPosts_JobOrders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "JobOrders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobSkillRequirements",
+                columns: table => new
+                {
+                    JobPostId = table.Column<int>(type: "int", nullable: false),
+                    SkillId = table.Column<int>(type: "int", nullable: false),
+                    RequiredLevel = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Beginner")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSkillRequirements", x => new { x.JobPostId, x.SkillId });
+                    table.ForeignKey(
+                        name: "FK_JobSkillRequirements_JobPosts_JobPostId",
+                        column: x => x.JobPostId,
+                        principalTable: "JobPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_JobSkillRequirements_Skills_SkillId",
+                        column: x => x.SkillId,
+                        principalTable: "Skills",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MileStones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    StepNumber = table.Column<int>(type: "int", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    JobPostId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MileStones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MileStones_JobPosts_JobPostId",
+                        column: x => x.JobPostId,
+                        principalTable: "JobPosts",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -816,9 +890,9 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     table.PrimaryKey("PK_Medias", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Medias_JobDeliverable_JobDeliverableId",
+                        name: "FK_Medias_JobDeliverables_JobDeliverableId",
                         column: x => x.JobDeliverableId,
-                        principalTable: "JobDeliverable",
+                        principalTable: "JobDeliverables",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -954,8 +1028,8 @@ namespace Khdamatk.Server.Data.Migrations
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InvoiceId = table.Column<long>(type: "bigint", nullable: false),
-                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InvoiceId = table.Column<long>(type: "bigint", nullable: true),
+                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -1087,15 +1161,6 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "IsTrustedByAdmin", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "ProfilePictureId", "SecurityStamp", "ServiceProviderProfileUserId", "TwoFactorEnabled", "UserName" },
-                values: new object[,]
-                {
-                    { "b74ddd14-6340-4840-95c2-db12554843e5", 0, "abd61835-2981-4f28-9a87-3992de5a2460", new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@admin.com", true, false, false, null, "ADMIN@ADMIN.COM", "ADMIN", "AQAAAAIAAYagAAAAEDTQ2MJwg8G7sNyX4vUuSzK8tnhxhzDsZpWvc8jt01mVjPURiVuM4G80qBh84/zwgA==", null, false, null, "AQAAAAEAACcQAAAAEPG6fy3Z6k0rG+1bF5uV1r+H1l5H3g==", null, false, "Admin" },
-                    { "b74ddd14-6340-4840-95c2-db12554843eslkna5", 0, "c84d599b-2289-47a5-81ed-061fbf16ce50", new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "user@user.com", true, false, false, null, "USER@USER.COM", "User", "AQAAAAIAAYagAAAAEOu4XNo4PNSoxFgFM7DdE+/Fc3QVNdoUJ+LGU0bT0tlSTvDC0PRb9ofBLridqu7fkQ==", null, false, null, "AQAAAAEAACcQAAAAEPG6fy3Z6k0rG+1bF5uV1r+H1l5H3g==nn", null, false, "User" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "AspNetRoleClaims",
                 columns: new[] { "Id", "ClaimType", "ClaimValue", "RoleId" },
                 values: new object[,]
@@ -1109,16 +1174,6 @@ namespace Khdamatk.Server.Data.Migrations
                     { 7, "permissions", "WeatherForecast:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" },
                     { 8, "permissions", "Authentications:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" },
                     { 9, "permissions", "Users:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUserRoles",
-                columns: new[] { "RoleId", "UserId" },
-                values: new object[,]
-                {
-                    { "d74ddd14-6340-4840-95c2-db12554843e5", "b74ddd14-6340-4840-95c2-db12554843e5" },
-                    { "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66", "b74ddd14-6340-4840-95c2-db12554843e5" },
-                    { "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66", "b74ddd14-6340-4840-95c2-db12554843eslkna5" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -1216,13 +1271,6 @@ namespace Khdamatk.Server.Data.Migrations
                 filter: "[ServiceOrderId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Conversations_ServiceOrderId1",
-                table: "Conversations",
-                column: "ServiceOrderId1",
-                unique: true,
-                filter: "[ServiceOrderId1] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CreditCards_UserId",
                 table: "CreditCards",
                 column: "UserId");
@@ -1280,8 +1328,8 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "TargetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobDeliverable_JobOrderId",
-                table: "JobDeliverable",
+                name: "IX_JobDeliverables_JobOrderId",
+                table: "JobDeliverables",
                 column: "JobOrderId");
 
             migrationBuilder.CreateIndex(
@@ -1290,14 +1338,14 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "ConversationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobOffers_JobOrderId",
-                table: "JobOffers",
-                column: "JobOrderId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_JobOffers_JobPostId",
                 table: "JobOffers",
                 column: "JobPostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobOffers_OrderId",
+                table: "JobOffers",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobOffers_ProviderProfileId",
@@ -1339,6 +1387,16 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "IX_JobPosts_CustomerId",
                 table: "JobPosts",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobPosts_OrderId",
+                table: "JobPosts",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Jobs_UserId",
+                table: "Jobs",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobSkillRequirements_SkillId",
@@ -1425,6 +1483,16 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReportAttachments_ReportId",
+                table: "ReportAttachments",
+                column: "ReportId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReportMessages_ReportId",
+                table: "ReportMessages",
+                column: "ReportId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_JobOrderId",
@@ -1600,20 +1668,29 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "ServiceOrderId",
                 principalTable: "ServiceOrders",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Conversations_ServiceOrders_ServiceOrderId1",
-                table: "Conversations",
-                column: "ServiceOrderId1",
-                principalTable: "ServiceOrders",
-                principalColumn: "Id");
+                name: "FK_DeliveredJobFile_JobPosts_JobId",
+                table: "DeliveredJobFile",
+                column: "JobId",
+                principalTable: "JobPosts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_DeliveredJobFile_Medias_MediaId",
                 table: "DeliveredJobFile",
                 column: "MediaId",
                 principalTable: "Medias",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_DeliveredJobFile_MileStones_MileStoneId",
+                table: "DeliveredJobFile",
+                column: "MileStoneId",
+                principalTable: "MileStones",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
@@ -1634,18 +1711,34 @@ namespace Khdamatk.Server.Data.Migrations
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_JobDeliverable_JobOrders_JobOrderId",
-                table: "JobDeliverable",
+                name: "FK_JobDeliverables_JobOrders_JobOrderId",
+                table: "JobDeliverables",
                 column: "JobOrderId",
                 principalTable: "JobOrders",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_JobOffers_JobOrders_JobOrderId",
+                name: "FK_JobOffers_JobOrders_OrderId",
                 table: "JobOffers",
-                column: "JobOrderId",
+                column: "OrderId",
                 principalTable: "JobOrders",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_JobOffers_JobPosts_JobPostId",
+                table: "JobOffers",
+                column: "JobPostId",
+                principalTable: "JobPosts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_JobOrders_JobPosts_JobPostId",
+                table: "JobOrders",
+                column: "JobPostId",
+                principalTable: "JobPosts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
 
@@ -1718,8 +1811,12 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "Conversations");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_JobOffers_JobOrders_JobOrderId",
+                name: "FK_JobOffers_JobOrders_OrderId",
                 table: "JobOffers");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_JobPosts_JobOrders_OrderId",
+                table: "JobPosts");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -1746,6 +1843,9 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "Disputes");
 
             migrationBuilder.DropTable(
+                name: "Jobs");
+
+            migrationBuilder.DropTable(
                 name: "JobSkillRequirements");
 
             migrationBuilder.DropTable(
@@ -1759,6 +1859,12 @@ namespace Khdamatk.Server.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "ReportAttachments");
+
+            migrationBuilder.DropTable(
+                name: "ReportMessages");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -1788,13 +1894,16 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "Skills");
 
             migrationBuilder.DropTable(
+                name: "Reports");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Medias");
 
             migrationBuilder.DropTable(
-                name: "JobDeliverable");
+                name: "JobDeliverables");
 
             migrationBuilder.DropTable(
                 name: "ServiceProviderProfiles");

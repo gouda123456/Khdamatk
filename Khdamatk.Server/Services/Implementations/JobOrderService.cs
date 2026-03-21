@@ -1,15 +1,13 @@
-﻿
-
+﻿using Khdamatk.Server.Contracts.Fawaterak;
+using Khdamatk.Server.Contracts.orders;
 using Khdamatk.Server.Helper.Payment;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-//Refactor: Magic strings
-//Refactor: Implement the TODOs
-public class JobOrderService(Database db,FawaterakPaymentHelper fawaterak) : IJobOrderService
+public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak) : IJobOrderService
 {
     private readonly Database db = db;
-    private readonly FawaterakPaymentHelper fawaterak = fawaterak;
+    private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
 
     //Add Job and offer
     public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken)

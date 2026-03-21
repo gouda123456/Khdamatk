@@ -30,7 +30,7 @@ public class OrderService : IOrderService
             .Include(o => o.Service)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(o => o.Id == orderId);
+            .FirstOrDefaultAsync(o => o.Id == 1);
 
 
         if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)
@@ -71,7 +71,7 @@ public class OrderService : IOrderService
             Status = OrderStatus.PendingPayment
         };
 
-
+        
         var service = db.Services
             .Include(s => s.ServiceProviderProfile).ThenInclude(sp => sp.User)
             .FirstOrDefault(
