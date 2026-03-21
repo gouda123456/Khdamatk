@@ -69,3 +69,22 @@ global using Microsoft.AspNetCore.Authorization;
 
 global using Khdamatk.Server.Contracts.Jobs;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * 
+ * TODO: Add Hangfire to Notifications and close the orders that past 7 days and dosent receive response
+ * TODO: Conversation Service (Send messages , Read messages => {.isRead = true}) (request = conversationId)
+ * 
+ */

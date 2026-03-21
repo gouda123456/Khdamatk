@@ -11,7 +11,16 @@ public abstract class OrderBase : BaseEntity
     [Range(1, 100_000_000)]
     public decimal Amount { get; set; } // المبلغ الكلي المتفق عليه (قد يتضمن ضرائب ورسوم)
 
-    public virtual Review? Review { get; set; }
-    public virtual PaymentTransaction? PaymentTransaction { get; set; } // المعاملة المالية المرتبطة
-    public virtual ICollection<Media> MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
+
+    
+
+
+    
+    // === تفاصيل الطلب ===
+    
+    
+    
+    
+
+    
 }

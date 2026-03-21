@@ -4,10 +4,13 @@
 public class Dispute : BaseEntity
 {
     // ربط كيان النزاع بطلب الخدمة (ServiceOrder)
-    [Required]
     [ForeignKey(nameof(ServiceOrder))]
-    public int ServiceOrderId { get; set; }
-    public virtual ServiceOrder ServiceOrder { get; set; } = null!;
+    public int? ServiceOrderId { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+
+    [ForeignKey(nameof(JobOrder))]
+    public int? JobOrderId { get; set; }
+    public virtual JobOrder? JobOrder { get; set; } = null!;
 
     //Raiser of the dispute (could be client or provider)
     [Required]
@@ -55,7 +58,7 @@ public class Dispute : BaseEntity
     // المبلغ المتنازع عليه (مهم جداً للقرار المالي)
     [Required]
     [Column(TypeName = "decimal(18, 2)")] // تحديد الدقة المالية
-    public decimal AmountUnderDispute { get; set; }
+    public decimal? AmountUnderDispute { get; set; }
 
     public string? ReasonDetails { get; set; } // تفاصيل السبب عند الرفع
 

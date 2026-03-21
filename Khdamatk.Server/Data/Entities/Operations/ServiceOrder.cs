@@ -3,23 +3,9 @@ namespace Khdamatk.Server.Data.Entities.Operations;
 // يفترض أنه يرث من BaseEntity
 public class ServiceOrder : OrderBase
 {
-    // Id و CreatedAt و IsActive موروثة من BaseEntity
-
-    // === Foreign Keys ===
-
-    [Required]
-    [ForeignKey(nameof(User))]
-    public string UserID { get; set; } = null!; // العميل (من قام بالطلب)
-
+    
     [Required]
     public int ServiceID { get; set; } // الخدمة المطلوبة
-
-    // ✅ هذا الرابط صحيح ويضمن السرعة في الاستعلام عن صاحب العمل
-    [Required]
-    [ForeignKey(nameof(ServiceProviderProfile))]
-    public string ServiceProviderId { get; set; } = null!;
-
-    
 
     
 
@@ -30,21 +16,33 @@ public class ServiceOrder : OrderBase
     [StringLength(1000)] // ملاحظات أو متطلبات إضافية
     public string? AdditionalDetails { get; set; }
 
-    
-
 
     // === Navigation Properties ===
-    public virtual User User { get; set; } = null!;
+    
     public virtual Service Service { get; set; } = null!;
 
+
+
+    [Required]
+    [ForeignKey(nameof(Customer))]
+    public string CustomerId { get; set; } = null!; // العميل (من قام بالطلب)
+    public virtual User Customer { get; set; } = null!;
+
+    // ✅ هذا الرابط صحيح ويضمن السرعة في الاستعلام عن صاحب العمل
+    [Required]
+    [ForeignKey(nameof(ServiceProviderProfile))]
+    public string ServiceProviderId { get; set; } = null!;
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+
+    [ForeignKey(nameof(PaymentTransaction))]
+    public int PaymentTransactionId { get; set; }
+    public virtual PaymentTransaction PaymentTransaction { get; set; } = new();
+
+    public virtual Review? Review { get; set; }
     public virtual Conversation Conversation { get; set; } = null!;
 
+    public virtual ICollection<Media> MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
 
-    // ✅ إضافة الروابط العكسية للكيانات التابعة لهذا الطلب
-    
-    
-    
 }
 
 

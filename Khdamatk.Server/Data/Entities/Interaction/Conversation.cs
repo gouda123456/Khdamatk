@@ -12,12 +12,19 @@ public class Conversation : BaseEntity
 
     public virtual ICollection<Message> Messages { get; set; } = [];
 
-    
+    // Foreign Key to ServiceOrder
+    [ForeignKey(nameof(ServiceOrder))]
+    public int? ServiceOrderId { get; set; }
+    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+
+    [ForeignKey(nameof(JobOrder))]
+    public int? JobOrderId { get; set; }
+    public virtual JobOrder? JobOrder { get; set; } = null!;
 
     // Foreign Key to User (Sender)
-    [ForeignKey(nameof(Client))]
-    public string ClientId { get; set; } = null!;
-    public virtual User Client { get; set; } = null!;
+    [ForeignKey(nameof(Customer))]
+    public string CustomerId { get; set; } = null!;
+    public virtual User Customer { get; set; } = null!;
 
     //Conversation Category
     public ConversationCategory Category { get; set; } = ConversationCategory.Standard;

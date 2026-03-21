@@ -64,6 +64,7 @@ public class FawaterakPaymentHelper : IFawaterakPaymentHelper
         if(response.IsSuccessStatusCode)
         {
             var responseContent = await response.Content.ReadAsStringAsync();
+
             var eInvoiceResponse = JsonSerializer.Deserialize<EInvoiceResponseModel>(responseContent);
 
             return eInvoiceResponse?.Data;
@@ -84,7 +85,7 @@ public class FawaterakPaymentHelper : IFawaterakPaymentHelper
 
     #region WebHook Verification
     public bool VerifyWebhook(WebHookModel webHook)
-    {
+    { 
         var generatedHashKey =
             GenerateHashKeyForWebhookVerification(webHook.InvoiceId, webHook.InvoiceKey, webHook.PaymentMethod);
         return generatedHashKey == webHook.HashKey;

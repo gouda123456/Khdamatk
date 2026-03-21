@@ -12,11 +12,11 @@ public class JobOffer
     public JobOfferStatus Status { get; set; } = JobOfferStatus.Pending;
     public ExperienceLevel ExperienceLevel { get; set; } = ExperienceLevel.Entry;
 
-    // المبلغ الذي سيستلمه الفريلانسر فعلياً بعد خصم عمولة المنصة
-    public decimal NetAmount { get; set; }
-    public DateTime Deadline { get; set; }
+    
+    public decimal Amount { get; set; }
 
     // لتحديد هل هذا العرض هو "العرض الفائز" الذي تحول لطلب (Order)
+    
     public bool IsAccepted { get; set; } = false;
 
 
@@ -27,12 +27,16 @@ public class JobOffer
 
     // الربط مع ملف مقدم الخدمة (الفريلانسر)
     public string ProviderProfileId { get; set; }
-    public virtual ServiceProviderProfile ProviderProfile { get; set; } = null!;
+    public virtual ServiceProviderProfile ProviderProfile { get; set; }
 
     // --- الربط مع المحادثة حسب رؤيتك ---
     // العرض هو الذي يشير إلى المحادثة لبدء التفاوض
     public int? ConversationId { get; set; }
     public virtual Conversation? Conversation { get; set; }
+
+    [ForeignKey(nameof(Order))]
+    public int OrderId { get; set; }
+    public virtual JobOrder? Order { get; set; }
 
     public virtual ICollection<Media> Attachments { get; set; } = new List<Media>();
 }

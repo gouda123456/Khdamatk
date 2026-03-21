@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Khdamatk.Server.Contracts.Fawaterak;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Khdamatk.Server.Contracts.WebHook;
@@ -13,6 +14,7 @@ public class WebhookPayload
     /// </summary>
     [JsonPropertyName("OrderId")]
     public string? OrderId { get; set; }
+    
 }
 
 /// <summary>
@@ -65,7 +67,7 @@ public class WebHookModel
     /// Parsed payload data
     /// </summary>
     //[JsonPropertyName("pay_load")]
-    public WebhookPayload? Payload { get; set; }
+    public InvoicePayload? Payload { get; set; }
 }
 
 /// <summary>

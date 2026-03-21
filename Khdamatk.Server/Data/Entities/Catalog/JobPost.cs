@@ -10,6 +10,9 @@ public class JobPost
     [ForeignKey(nameof(Category))]
     public int CategoryId { get; set; }
 
+    [ForeignKey(nameof(Order))]
+    public int OrderId { get; set; }
+
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal BudgetMin { get; set; }
@@ -33,6 +36,7 @@ public class JobPost
 
     // العلاقة مع العروض (One-to-Many)
     public virtual ICollection<MileStone> MileStones { get; set; } = [];
+    public virtual JobOrder? Order {  get; set; }
     public virtual ICollection<JobOffer>? Offers { get; set; } = [];
     public virtual ICollection<Media>? Media { get; set; } =[];
     public virtual ICollection<DeliveredJobFile> DeliveredFiles { get; set; } = [];

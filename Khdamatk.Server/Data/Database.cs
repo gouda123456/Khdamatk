@@ -109,9 +109,10 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     #endregion
 
     #region operations DbSets
-    public DbSet<JobDeliverable> JobDeliverables { get; set; }
-    public DbSet<JobOrder> JobOrders { get; set; }
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
+    public DbSet<JobOrder> JobOrders { get; set; }
+    public DbSet<JobDeliverable> JobDeliverables { get; set; }
+    
     public DbSet<UserFavorites> UserFavorites { get; set; }
     #endregion
 

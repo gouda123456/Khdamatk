@@ -42,7 +42,7 @@ public class MapsterConfiguration : IRegister
             //Mapping (id , title , offer count , Expert Level , Project length , budget)
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Title, src => src.Title)
-            .Map(dest => dest.OffersCount, src => src.Offers != null ? src.Offers.Count() : 0)
+            .Map(dest => dest.OffersCount, src => (src.Offers != null ) ? src.Offers.Count() : 0)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
             .Map(dest => dest.ProjectLength, src => src.ProjectLength)
             .Map(dest => dest.BudgetMin, src => src.BudgetMin)
@@ -99,12 +99,12 @@ public class MapsterConfiguration : IRegister
 
         config.NewConfig<AddJopOfferRequest, JobOffer>()
             .Map(dest => dest.ProviderProfileId, src => src.ProviderServiceId)
-            .Map(dest => dest.NetAmount, src => src.OfferAmount)
+            .Map(dest => dest.Amount, src => src.OfferAmount)
             .Map(dest => dest.Description, src => src.Description)
             .Map(dest => dest.SimilarWorkExamplesURL, src => src.SimilarWorkExamplesURL)
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
-            .Map(dest => dest.Deadline, src => src.Deadline)
+            
             .Map(dest => dest.Attachments, src => src.Attachment != null
                 ? new List<Media>
                 {
@@ -185,7 +185,7 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ProviderOfferInfo.ProviderName, src => src.ProviderProfile.User.UserName)
             .Map(dest => dest.ProviderOfferInfo.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
             .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
-            .Map(dest => dest.OfferPrice, src => src.NetAmount)
+            .Map(dest => dest.OfferPrice, src => src.Amount)
             .Map(dest => dest.Description, src => src.Description)
             .TwoWays()
             .IgnoreNonMapped(true)
@@ -206,7 +206,7 @@ public class MapsterConfiguration : IRegister
 
             //OfferServiceDetailed
             .Map(dest => dest.OfferServiceDetailed.Id, src => src.Id)
-            .Map(dest => dest.OfferServiceDetailed.Amount, src => src.NetAmount)
+            .Map(dest => dest.OfferServiceDetailed.Amount, src => src.Amount)
             .Map(dest => dest.OfferServiceDetailed.DeliversInDays, src => src.DeliveryTimeInDays)
             .Map(dest => dest.OfferServiceDetailed.Description, src => src.Description)
             
@@ -238,21 +238,21 @@ public class MapsterConfiguration : IRegister
             //Profile Picture 
 
             //Provider
-            .Map(dest => dest.Provider.Id, src => src.ProviderProfileId)
-            .Map(dest => dest.Provider.Name, src => src.ProviderProfile.User.UserName)
-            .Map(dest => dest.Provider.Email, src => src.ProviderProfile.User.Email)
+            .Map(dest => dest.Provider.Id, src => src.ServiceProviderId)
+            .Map(dest => dest.Provider.Name, src => src.ServiceProviderProfile.User.UserName)
+            .Map(dest => dest.Provider.Email, src => src.ServiceProviderProfile.User.Email)
             //Profile Picture 
 
             //JobSummary
-            .Map(dest => dest.JobSummary.Id, src => src.JobPost.Id)
-            .Map(dest => dest.JobSummary.BudgetMin, src => src.JobPost.BudgetMin)
-            .Map(dest => dest.JobSummary.BudgetMax, src => src.JobPost.BudgetMax)
-            .Map(dest => dest.JobSummary.DeliversInDays, src => (src.JobPost.Deadline - DateTime.UtcNow).Days)
-            .Map(dest => dest.JobSummary.Deadline, src => src.JobPost.Deadline)
-            .Map(dest => dest.JobSummary.ExperienceLevel, src => src.JobPost.ExperienceLevel)
-            .Map(dest => dest.JobSummary.Skills, src => src.JobPost.SkillRequirements.Select(s => s.Skill.Name).Distinct())
-            .Map(dest => dest.JobSummary.Description, src => src.JobPost.Description)
-            .Map(dest => dest.JobSummary.MileStones, src => src.JobPost.MileStones)
+            .Map(dest => dest.JobSummary.Id, src => src.Job.Id)
+            .Map(dest => dest.JobSummary.BudgetMin, src => src.Job.BudgetMin)
+            .Map(dest => dest.JobSummary.BudgetMax, src => src.Job.BudgetMax)
+            .Map(dest => dest.JobSummary.DeliversInDays, src => (src.Job.Deadline - DateTime.UtcNow).Days)
+            .Map(dest => dest.JobSummary.Deadline, src => src.Job.Deadline)
+            .Map(dest => dest.JobSummary.ExperienceLevel, src => src.Job.ExperienceLevel)
+            .Map(dest => dest.JobSummary.Skills, src => src.Job.SkillRequirements.Select(s => s.Skill.Name).Distinct())
+            .Map(dest => dest.JobSummary.Description, src => src.Job.Description)
+            .Map(dest => dest.JobSummary.MileStones, src => src.Job.MileStones)
 
             //Chat
             .Map(dest => dest.Chat, src => src.Conversation.Messages.Select(m => new OrderChat

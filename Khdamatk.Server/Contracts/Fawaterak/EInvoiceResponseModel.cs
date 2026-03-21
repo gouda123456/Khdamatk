@@ -32,7 +32,7 @@ public class EInvoiceResponseModel
         /// Unique invoice ID from Fawaterak
         /// </summary>
         [JsonProperty("invoiceId")]
-        public string InvoiceId { get; set; }
+        public long InvoiceId { get; set; }
 
         /// <summary>
         /// Invoice key for verification

@@ -117,9 +117,9 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             (double)profile.HourlyRate,
             profile.Skills.Select(s => s.Skill.Name).ToList(),
             portfolio,
-            education, 
+            education,
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
-            experiences, 
+            experiences,
             null, // Replace with profile.User.ProfilePictureUrl if available
             null  // Replace with profile.User.CoverPictureUrl if available
         );
