@@ -2593,79 +2593,77 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Navigation("JobOrder");
 
                     b.Navigation("ServiceOrder");
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Report", b =>
-                        {
-                            b.Navigation("Attachments");
-
-                            b.Navigation("Messages");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", b =>
-                        {
-                            b.Navigation("Certificates");
-
-                            b.Navigation("JobOffers");
-
-                            b.Navigation("PortfolioItems");
-
-                            b.Navigation("Reviews");
-
-                            b.Navigation("Services");
-
-                            b.Navigation("Skills");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
-                        {
-                            b.Navigation("JobPosts");
-
-                            b.Navigation("Jobs");
-
-                            b.Navigation("RefreshTokens");
-
-                            b.Navigation("UserFavorites");
-
-                            b.Navigation("VerificationData");
-
-                            b.Navigation("VerificationsCodes");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
-                        {
-                            b.Navigation("Messages");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
-                        {
-                            b.Navigation("Attachments");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
-                        {
-                            b.Navigation("Conversation")
-                                .IsRequired();
-
-                            b.Navigation("Deliverables");
-
-                            b.Navigation("MediaAttachments");
-
-                            b.Navigation("Offers");
-
-                            b.Navigation("Review");
-                        });
-
-                    modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
-                        {
-                            b.Navigation("Conversation")
-                                .IsRequired();
-
-                            b.Navigation("MediaAttachments");
-
-                            b.Navigation("Review");
-                        });
-#pragma warning restore 612, 618
                 });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.Report", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", b =>
+                {
+                    b.Navigation("Certificates");
+
+                    b.Navigation("JobOffers");
+
+                    b.Navigation("PortfolioItems");
+
+                    b.Navigation("Reviews");
+
+                    b.Navigation("Services");
+
+                    b.Navigation("Skills");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.User", b =>
+                {
+                    b.Navigation("JobPosts");
+
+                    b.Navigation("Jobs");
+
+                    b.Navigation("RefreshTokens");
+
+                    b.Navigation("UserFavorites");
+
+                    b.Navigation("VerificationData");
+
+                    b.Navigation("VerificationsCodes");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Interaction.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobDeliverable", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.JobOrder", b =>
+                {
+                    b.Navigation("Conversation")
+                        .IsRequired();
+
+                    b.Navigation("Deliverables");
+
+                    b.Navigation("MediaAttachments");
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
+                {
+                    b.Navigation("Conversation")
+                        .IsRequired();
+
+                    b.Navigation("MediaAttachments");
+
+                    b.Navigation("Review");
+                });
+#pragma warning restore 612, 618
         }
-    
     }
 }

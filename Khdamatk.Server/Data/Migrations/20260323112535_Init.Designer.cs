@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260321185719_Init")]
+    [Migration("20260323112535_Init")]
     partial class Init
     {
         /// <inheritdoc />

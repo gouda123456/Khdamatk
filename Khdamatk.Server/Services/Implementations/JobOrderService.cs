@@ -127,7 +127,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     public Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check if job downt have any order
+         * check if job do not have any order
          * start order
          * order have 
          * {
