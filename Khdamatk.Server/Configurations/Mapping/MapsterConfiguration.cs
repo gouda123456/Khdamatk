@@ -181,12 +181,12 @@ public class MapsterConfiguration : IRegister
         
         config.NewConfig<JobOffer, OfferForServiceResponse>()
             .Map(dest => dest.ProviderOfferInfo.ProviderId, src => src.ProviderProfileId)
-            .Map(dest => dest.ProviderOfferInfo.OfferId, src => src.Id)
             .Map(dest => dest.ProviderOfferInfo.ProviderName, src => src.ProviderProfile.User.UserName)
             .Map(dest => dest.ProviderOfferInfo.ProviderJobTitle, src => src.ProviderProfile.JobTitle)
             .Map(dest => dest.ProviderOfferInfo.ProviderRate, src => src.ProviderProfile.AverageRating)
             .Map(dest => dest.OfferPrice, src => src.Amount)
             .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.DeliverAt, src => DateTime.UtcNow.AddDays(src.DeliveryTimeInDays))
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
@@ -207,7 +207,7 @@ public class MapsterConfiguration : IRegister
             //OfferServiceDetailed
             .Map(dest => dest.OfferServiceDetailed.Id, src => src.Id)
             .Map(dest => dest.OfferServiceDetailed.Amount, src => src.Amount)
-            .Map(dest => dest.OfferServiceDetailed.DeliversInDays, src => src.DeliveryTimeInDays)
+            .Map(dest => dest.OfferServiceDetailed.DeliversAt, src => DateTime.UtcNow.AddDays(src.DeliveryTimeInDays))
             .Map(dest => dest.OfferServiceDetailed.Description, src => src.Description)
             
             //JobSummary

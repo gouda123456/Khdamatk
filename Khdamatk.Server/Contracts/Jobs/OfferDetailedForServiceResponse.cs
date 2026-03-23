@@ -8,7 +8,7 @@ public record OfferDetailedForServiceResponse(
 
 public record ProviderOfferInfo(
     string ProviderId,
-    int OfferId,
+    
     string ProviderName,
     string ProviderJobTitle,
     double ProviderRate,
@@ -18,7 +18,7 @@ public record ProviderOfferInfo(
 public record OfferServiceDetailed(
     int Id,
     decimal Amount,
-    int DeliversInDays,
+    DateTime DeliversAt,
     string Description
     );
 public record ProviderOfferDetailedInfo(

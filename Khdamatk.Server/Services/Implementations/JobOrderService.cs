@@ -4,10 +4,12 @@ using Khdamatk.Server.Helper.Payment;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak) : IJobOrderService
+public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env) : IJobOrderService
 {
     private readonly Database db = db;
     private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
+    private readonly IWebHostEnvironment env = env;
+
 
     //Add Job and offer
     public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken)
@@ -63,28 +65,60 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak) : I
         return Success(StatusCodes.Status201Created);
     }
 
-    public Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken)
+    public async Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check job Id
-         * Get Jobs 
+         * check job Id     --Done
+         * Get Offers       --Done
          * convert Attachment from media to Byte[]
-         * Create Offers Job Summary 
+         * Create Offers Job Summary  
          */
 
-        throw new NotImplementedException();
+        if(await db.JobPosts.FirstOrDefaultAsync(j => j.Id == JobId) is not { } Job)
+            return Failure(StatusCodes.Status404NotFound,FailureMessages.NotFound.Title, FailureMessages.NotFound.Message);
+
+        var providerPic = await File.ReadAllBytesAsync(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"), cancellationToken);
+
+        if(Job.Offers.Count() > 0) //TODO: Send Email to freeLancers
+            return Failure(StatusCodes.Status404NotFound,FailureMessages.DataNotFound.Title,FailureMessages.DataNotFound.Message,new Error("there are no offers yet","there are no freelancer submit offer yet, please wait"));
+
+
+        var OfferSummary = Job.Offers.Select(o => new OneOfferSummaryResponse(
+            new OfferServiceDetailed(
+                o.Id,
+                o.Amount,
+        DateTime.UtcNow.AddDays(o.DeliveryTimeInDays),
+        o.Description
+                ),
+            new  ProviderOfferInfo(o.ProviderProfileId,
+            o.ProviderProfile.User.UserName!,
+            o.ProviderProfile.JobTitle,
+            o.ProviderProfile.AverageRating,
+            providerPic)));
+
+        
+
+        return Success(StatusCodes.Status200OK,SuccessMessages.General.Title, SuccessMessages.General.Message,OfferSummary);
     }
 
-    public Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken)
+
+    //Done
+    public async Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check job id
-         * check offer id
-         * check if offer connect to job
-         * get the Offer Details Response
+         * check job id     --Done
+         * check offer id       --Done
+         * check if offer connect to job        --Done
+         * get the Offer Details Response       --Done
          */
 
-        throw new NotImplementedException();
+        if(!db.JobPosts.Any(j => j.Id == jobId && j.Offers.Any(o => o.Id == offerId)))
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        var offerDetail = db.JobOffers.Find(offerId).Adapt<OfferDetailedForServiceResponse>();
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message, offerDetail);
+
     }
     
 
@@ -109,6 +143,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak) : I
          * send email to freelancer
          * return statues
          */
+
+
 
         throw new NotImplementedException();
     }

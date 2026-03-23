@@ -2,7 +2,9 @@
 
 public record OfferForServiceResponse(
     ProviderOfferInfo ProviderOfferInfo,
+    int OfferId,
     decimal OfferPrice,
-    string Description
+    string Description,
+    DateTime DeliverAt
     );
 
