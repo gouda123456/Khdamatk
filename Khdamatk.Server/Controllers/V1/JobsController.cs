@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Khdamatk.Server.Contracts.Home;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Khdamatk.Server.Controllers.V1;
@@ -23,4 +24,13 @@ public class JobsController(IJobService jobService) : ControllerBase
         var result = await jobService.GetJobAsync(Id);
         return result.Respond();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetJobs([FromQuery] JobsFilterRequest request)
+    {
+        var result = await jobService.GetJobsAsync(request);
+        return Ok(result);
+    }
 }
+
+
