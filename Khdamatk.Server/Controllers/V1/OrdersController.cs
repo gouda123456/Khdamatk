@@ -16,11 +16,11 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// Start payment for a service order and return the Fawaterak payment URL.
     /// </summary>
     [HttpPost("{orderId:int}/pay-service")]
-    public async Task<IActionResult> StartServiceOrderPayment(StartServiceOrderPaymentRequest request)
+    public async Task<IActionResult> StartServiceOrderPayment(StartServiceOrderPaymentRequest request, [FromRoute] int orderId)
     {
-        if(User?.GetUserId() == null) return Unauthorized();
-        
-        var result = await orderService.StartServiceOrderPaymentAsync(request, User.GetUserId()!);
+        if (User?.GetUserId() == null) return Unauthorized();
+
+        var result = await orderService.StartServiceOrderPaymentAsync(request, orderId, User.GetUserId()!);
         if (result is null)
             return BadRequest("Unable to start payment for this order.");
 
