@@ -3,7 +3,8 @@
 public class JobPost
 {
     public int Id { get; set; }
-
+    [Required]
+    public virtual string UserId { get; set; } = string.Empty;
     [ForeignKey(nameof(Customer))]
     public string CustomerId { get; set; } = string.Empty;
 

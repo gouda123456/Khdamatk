@@ -19,5 +19,12 @@ public class HomeController(IHomeService homeService,IServiceProviderService ser
         return result.Respond();
     }
 
+    [HttpGet("Discover")]
+    public async Task<IActionResult> GetDiscoverPage()
+    {
+        var result = await homeService.GetDiscoverPageAsync();
+        return Ok(result);
+    }
+
 
 }

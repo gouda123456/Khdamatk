@@ -67,7 +67,50 @@ public class HomeService(Database db) : IHomeService
     {
        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message); 
     }
-    
+
+    public async Task<DiscoverPage> GetDiscoverPageAsync()
+    {
+        // 🧑‍🔧 Service Providers
+        var serviceProviders = await db.ServiceProviderProfiles
+            .Select(sp => new DiscoverServiceProvider(
+                sp.UserId,
+                sp.User.UserName,
+                sp.User.ProfilePicture.FileName     //TODO: NEDED TO BE REFACTOR
+            ))
+            .ToListAsync();
+
+        // 💼 Jobs
+        var jobs = await db.JobPosts
+            .Include(j => j.SkillRequirements) // لو عندك relation
+            .OrderByDescending(j => j.CreatedAt)
+            .ToListAsync();
+
+        var jobCards = jobs.Select(j => new DiscoverJobPost(
+            j.Id,
+            j.Title,
+            GetTimeAgo(j.CreatedAt),
+            $"{j.BudgetMin} - {j.BudgetMax} EGP",
+            j.Description,
+            j.SkillRequirements.Select(s => s.Skill.Name).ToList()
+        )).ToList();
+
+        return new DiscoverPage(serviceProviders, jobCards);
+    }
+
+    // ⏱️ Time Ago Function
+    private string GetTimeAgo(DateTime date)
+    {
+        var span = DateTime.Now - date;
+
+        if (span.TotalMinutes < 60)
+            return $"{(int)span.TotalMinutes} mins ago";
+
+        if (span.TotalHours < 24)
+            return $"{(int)span.TotalHours} hours ago";
+
+        return $"{(int)span.TotalDays} days ago";
+    }
+
 }
 
 
