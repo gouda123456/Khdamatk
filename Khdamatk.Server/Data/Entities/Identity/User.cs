@@ -15,6 +15,8 @@ public class User : IdentityUser<string>
     [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters")]
     public virtual string FullName { get; set; } = string.Empty;
 
+    public decimal Amount { get; set; }
+
     // بنستخدم override هنا لأن Email موجود أصلاً في IdentityUser
     [Required(ErrorMessage = "Email address is required")]
     [EmailAddress(ErrorMessage = "Invalid email address format")]
@@ -34,6 +36,9 @@ public class User : IdentityUser<string>
             return age;
         }
     }
+
+
+
 
     [Required]
     public virtual string Role { get; set; } = "User"; // Freelancer, Client, Admin

@@ -53,7 +53,7 @@
 	<Folder Include="Configurations\Documentations\Swagger\" />
 	<Folder Include="Configurations\Logging\" />
 	<Folder Include="Configurations\Validations\" />
-	<Folder Include="wwwRoot\" />
+	<Folder Include="wwwRoot\Uploads\" />
   </ItemGroup>
 
 </Project>

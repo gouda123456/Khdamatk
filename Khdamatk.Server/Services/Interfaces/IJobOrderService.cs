@@ -1,4 +1,5 @@
 ﻿using Khdamatk.Server.Contracts.orders;
+using Khdamatk.Server.Contracts.WebHook;
 
 namespace Khdamatk.Server.Services.Interfaces;
 
@@ -22,12 +23,12 @@ public interface IJobOrderService
     
     Task<resultBase> RejectOfferJob(int jobId, int offerId, CancellationToken cancellationToken);
     Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken);
-    Task<resultBase> ChangeSelectionOfferJob(int jobId, int oldOfferId, int newOfferId, CancellationToken cancellationToken);
+    Task<resultBase> ChangeSelectionOfferJob(int jobId, int oldOfferId, int newOfferId,string userId, CancellationToken cancellationToken);
     Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken);
     
-    Task<resultBase> CancelJobOrder(int orderId, string userId, OrderStatus orderStatus, CancellationToken cancellationToken);
-    Task<resultBase> PaymentSuccessJobOrder(int orderId, CancellationToken cancellationToken);
-    Task<resultBase> PaymentFailureJobOrder(int orderId, CancellationToken cancellationToken);
+    Task<resultBase> CancelJobOrder(int orderId, string userId, CancellationToken cancellationToken);
+    Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken);
+    Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken);
     Task<resultBase> OrderSummary(int orderId,string userId);
     Task<resultBase> OrderDetails(int orderId, string userId);
     Task<resultBase> SubmitWorkAndMessage(int orderId, SubmitWorkAndMessageRequest request);

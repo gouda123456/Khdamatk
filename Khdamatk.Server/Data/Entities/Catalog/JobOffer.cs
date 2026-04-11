@@ -6,7 +6,7 @@ public class JobOffer
     public int Id { get; set; } 
 
     public string Description { get; set; } = string.Empty;
-    public decimal ProposedPrice { get; set; }
+    
     public int DeliveryTimeInDays { get; set; }
     public string? SimilarWorkExamplesURL { get; set; }
     public JobOfferStatus Status { get; set; } = JobOfferStatus.Pending;
