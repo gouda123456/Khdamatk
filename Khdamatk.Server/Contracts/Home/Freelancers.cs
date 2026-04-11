@@ -29,3 +29,8 @@ public record FreelancerRequest(
 
 );
 
+/*Discover
+     * {freelancer(Id ,name, pic )
+     * JobDiscover(Title, budget, ,list<string> Skills)
+     * }
+     */

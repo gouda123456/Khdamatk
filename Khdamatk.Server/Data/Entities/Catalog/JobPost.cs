@@ -11,7 +11,7 @@ public class JobPost
     public int CategoryId { get; set; }
 
     [ForeignKey(nameof(Order))]
-    public int OrderId { get; set; }
+    public int? OrderId { get; set; }
 
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

@@ -85,7 +85,7 @@ public class MapsterConfiguration : IRegister
                 ? src.Media.Select(List => new Media
                 {
                     FileName = List.FileName,
-                    StoredFileName = Path.GetRandomFileName(),
+                    
                     ContentType = List.ContentType,
                     FileExtension = List.FileExtension,
                     Size = List.Size
@@ -111,7 +111,7 @@ public class MapsterConfiguration : IRegister
                     new Media
                     {
                         FileName = m.FileName,
-                        StoredFileName = Path.GetRandomFileName(),
+                        
                         ContentType = m.ContentType,
                         FileExtension = Path.GetExtension(m.FileName),
                         Size = m.Length
@@ -139,7 +139,7 @@ public class MapsterConfiguration : IRegister
                 ?   new Media
                     {
                         FileName = src.MainImage.FileName ?? string.Empty,
-                        StoredFileName = Path.GetRandomFileName(),
+                        
                         ContentType = src.MainImage.ContentType ?? string.Empty,
                         FileExtension = Path.GetExtension(src.MainImage.FileName ?? string.Empty),
                         Size = src.MainImage.Size
@@ -158,13 +158,13 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ShortDescription, src => src.ShortDescription)
             .Map(dest => dest.DetailDescription, src => src.DetailedDescription)
             .Map(dest => dest.Price, src => src.Price)
-            .Map(dest => dest.MainImage, src => src.ServiceProviderProfile.User.ProfilePicture != null ? File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.StoredFileName) : null)
+            .Map(dest => dest.MainImage, src => src.ServiceProviderProfile.User.ProfilePicture != null ? File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath) : null)
             .Map(dest => dest.ServiceImages, src => new List<byte[]>())
             .Map(dest => dest.ProviderServiceInfo, src => new ProviderServiceInfo(
                 src.ServiceProviderProfileId.ToString(),
                 src.ServiceProviderProfile.User.UserName,
                 src.ServiceProviderProfile.JobTitle,
-                File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.StoredFileName),
+                File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath),
                 (int)src.ServiceProviderProfile.AverageRating,
                 (int)src.ServiceProviderProfile.AverageResponseTime,
                 (int)src.Orders.Where(s => s.Status == OrderStatus.Active).Count(),

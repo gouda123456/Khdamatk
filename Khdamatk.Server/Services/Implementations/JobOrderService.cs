@@ -1,14 +1,24 @@
-﻿using Khdamatk.Server.Contracts.Fawaterak;
+﻿using System.Text.Json;
+using Humanizer;
+using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.orders;
+using Khdamatk.Server.Contracts.WebHook;
+using Khdamatk.Server.Data.Migrations;
 using Khdamatk.Server.Helper.Payment;
+using Mapster.Utils;
+using Microsoft.DotNet.Scaffolding.Shared.Project;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using Stripe;
+using Stripe.Climate;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env) : IJobOrderService
+public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env,IOptions<ClientSetting> options) : IJobOrderService
 {
     private readonly Database db = db;
     private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
     private readonly IWebHostEnvironment env = env;
+    private readonly ClientSetting clientSetting = options.Value;
 
 
     //Add Job and offer
@@ -77,7 +87,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         if(await db.JobPosts.FirstOrDefaultAsync(j => j.Id == JobId) is not { } Job)
             return Failure(StatusCodes.Status404NotFound,FailureMessages.NotFound.Title, FailureMessages.NotFound.Message);
 
-        var providerPic = await File.ReadAllBytesAsync(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"), cancellationToken);
+        var providerPic = await System.IO.File.ReadAllBytesAsync(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"), cancellationToken);
 
         if(Job.Offers.Count() > 0) //TODO: Send Email to freeLancers
             return Failure(StatusCodes.Status404NotFound,FailureMessages.DataNotFound.Title,FailureMessages.DataNotFound.Message,new Error("there are no offers yet","there are no freelancer submit offer yet, please wait"));
@@ -124,70 +134,113 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     //initialize order by select, change offer and start payment
 
-    public Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken)
+    public async Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check if job do not have any order
-         * start order
-         * order have 
+         * check if job do not have any order       --Done
+         * start order      --Done
+         * order have       --Done
          * {
              * job and offer id,
              * expected time from offer.DeliveryTimeInDays,
              * customer and freelancer IDs,
              * create conversation,
              * job Deliverables,
-             * Media.Attachments 
+             * Media.Attachments            --Wtf???     
          * }
-         * Start payment 
+         * Start payment            --Done
          * send email to customer 
          * send email to freelancer
          * return statues
          */
 
+        if(await CheckJobAndOfferAsync(jobId, offerId,cancellationToken))
+            return Failure(StatusCodes.Status404NotFound,FailureMessages.NotFound.Title, FailureMessages.NotFound.Message,
+                new Error("job does not exist","there are no job linked to this Id"));
+
+        JobPost? job = await db.JobPosts.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken: cancellationToken);
+        JobOffer? offer = await db.JobOffers.FirstOrDefaultAsync(o => o.Id == jobId && o.JobPostId == jobId, cancellationToken:cancellationToken);
+
+        if(job!.OrderId != null)
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,
+                new Error("job is already linked to order", "there are order linked to this job please change offer or check on order details "));
+
+        
+
+        var order = JobOrder.BuildOrder(job, offer!);
 
 
-        throw new NotImplementedException();
+        await db.JobOrders.AddAsync(order, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+
+        order.Conversation.RelatedEntityId = order.Id;
+        order.Conversation.JobOrderId = order.Id;
+        await db.SaveChangesAsync(cancellationToken);
+
+
+        EInvoiceRequestModel eInvoice = new()
+        {
+            Currency = CurrencyCode.EGP.ToString(),
+            DueDate = order.ExpectedDeliveryDate,
+            SendEmail = true,
+            Status = order.Status,
+            RedirectionUrls = new RedirectionUrlsModel()
+            {
+                OnSuccess = clientSetting + "/DashBoard?State=OnSuccess",
+                OnFailure = clientSetting + "/DashBoard?State=OnFailure",
+                OnPending = clientSetting + "/DashBoard?State=OnPending",
+            },
+            PayLoad = new InvoicePayload()
+            {
+                OrderId = order.Id,
+                OrderType = OrderType.Job,
+                Provider = new ProviderModel()
+                {
+                    Id = order.ServiceProviderId,
+                    Email = order.ServiceProviderProfile.User.Email!,
+                    Username = order.ServiceProviderProfile.User.UserName!
+                }
+            },
+            Customer = new CustomerModel()
+            {
+                CustomerId = order.CustomerId,
+                FirstName = order.Customer.UserName!,
+                LastName = order.Customer.UserName!,
+                Email = order.Customer.Email,
+
+            },
+            CartItems = new()
+            {
+                new CartItemModel()
+                {
+                    Name = order.Job.Title,
+                    Price = order.AcceptedOffer.Amount,
+                    Quantity = 1
+                }
+            }
+        };
+
+
+        var result = await fawaterak.CreateEInvoiceAsync(eInvoice);
+        if (result != null)
+        {
+            order.InvoiceId = result.InvoiceId;
+            order.InvoiceKey = result.InvoiceKey;
+            await db.SaveChangesAsync(cancellationToken);
+
+            //TODO: send email to customer 
+            //TODO: send email to freelancer
+
+            return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+        }
+
+        //TODO: send email to customer (Failed)
+
+        return Failure(StatusCodes.Status503ServiceUnavailable, new Error("Payment Gateway Error", "The Payment Service Not Available"));
+
+
     }
 
-    public Task<resultBase> ChangeSelectionOfferJob(int OrderId, int oldOfferId, int newOfferId, CancellationToken cancellationToken)
-    {
-        /*TODOs:
-         * validate old offer == order.AcceptedOfferId
-         * check if new offer id is exist
-         * in order change offer id from old to new
-         * Update order have 
-         * {
-             * job and offer id,
-             * expected time from offer.DeliveryTimeInDays,
-             * customer and freelancer IDs,
-             * create conversation,
-             * job Deliverables,
-             * Media.Attachments,
-             * statues = payment (new offer net - old)
-             * (enhancement feature: add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )
-         * }
-         * Start payment 
-         * send email to customer 
-         * send email to freelancer
-         * send email to freelancer who old offer
-         * send email to freelancer who new offer
-         * return Statues
-         */
-        throw new NotImplementedException();
-    }
-
-    public Task<resultBase> RejectOfferJob(int OrderId, int offerId, CancellationToken cancellationToken)
-    {
-        /*TODOs:
-         * check if order.AcceptedOfferId == offerId
-         * change order.AcceptedOfferId
-         * send Payment
-         */
-        //Send email
-        throw new NotImplementedException();
-    }
-    
-    
     public async Task<resultBase> AcceptOfferJob(int jobId, int offerId, string CustomerId, CancellationToken cancellationToken)
     {
 
@@ -222,7 +275,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         Job.Status = JobPostStatus.Closed;
 
 
-        var order = new JobOrder().BuildOrder(Job, offer);
+        var order = JobOrder.BuildOrder(Job, offer);
 
 
         await db.JobOrders.AddAsync(order);
@@ -238,7 +291,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
                 new CartItemModel()
                 {
                     Name = Job.Title,
-                    Price=offer.ProposedPrice,
+                    Price=offer.Amount,
                     Quantity=1
                 }
                 ],
@@ -266,25 +319,175 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
                 Provider = new ProviderModel
                 {
                     Id = offer.ProviderProfileId,
-                    Username = offer.ProviderProfile.User.UserName?? "UserName",
+                    Username = offer.ProviderProfile.User.UserName ?? "UserName",
                     Email = offer.ProviderProfile.User.Email ?? "Email"
                 }
             }
         };
 
+
+
+
+        var result = await fawaterak.CreateEInvoiceAsync(eInvoiceRequestModel);
+
+        if(result != null)
+        {
+            order.InvoiceId = result.InvoiceId;
+            order.InvoiceKey = result.InvoiceKey;
+            await db.SaveChangesAsync(cancellationToken);
+        }
         
+         
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
 
-
-        var result =await fawaterak.CreateEInvoiceAsync(eInvoiceRequestModel);
-
-
-        return Success(StatusCodes.Status200OK,SuccessMessages.General.Title, SuccessMessages.General.Message);
-        
     }
+
+    public async Task<resultBase> ChangeSelectionOfferJob(int OrderId, int oldOfferId, int newOfferId, string userId, CancellationToken cancellationToken)
+    {
+        /*TODOs:
+         * validate old offer == order.AcceptedOfferId          --Done
+         * check if new offer id is exist               --Done
+         * in order change offer id from old to new         --Done
+         * Update order have 
+         * {
+             * job and offer id,            --Done
+             * expected time from offer.DeliveryTimeInDays,         --Done
+             * customer and freelancer IDs,             --Ignored(no need for customer)
+             * create conversation,             --Done
+             * job Deliverables,
+             * Media.Attachments,           --Ignored
+             * statues = payment (new offer net - old)          --No need offer can change only before payment
+             * (enhancement feature: add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
+         * }
+         * Start payment            --Done
+         * send email to customer 
+         * send email to freelancer who old offer
+         * send email to freelancer who new offer
+         * return Statues
+         */
+
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == OrderId && o.CustomerId == userId);
+
+        if (order == null)
+        {
+            return Failure(StatusCodes.Status404NotFound, new Error("order not Found", "there are no order with this id"));
+        }
+
+        if (order.AcceptedOfferId != oldOfferId && order.AcceptedOfferId == newOfferId && order.Status == OrderStatus.PendingPayment)
+        {
+            return Failure(StatusCodes.Status409Conflict, new Error("Conflict in offer Ids", "the old offer dosent match the new or it match the selected"));
+        }
+
+        var newOffer = await db.JobOffers.FirstOrDefaultAsync(o => o.Id == newOfferId && o.JobPostId == order.JobPostId);
+
+        if (newOffer == null)
+        {
+            return Failure(StatusCodes.Status404NotFound, new Error("new offer not Found", "there are no offer with this id"));
+        }
+
+        order.AcceptedOfferId = newOfferId;
+        order.Amount = newOffer.Amount;
+        order.ExpectedDeliveryDate = DateTime.UtcNow.AddDays(newOffer.DeliveryTimeInDays);
+        order.ServiceProviderId = newOffer.ProviderProfileId;
+        order.Conversation.ProviderId = order.AcceptedOffer.ProviderProfileId;
+
+
+
+        await db.SaveChangesAsync(cancellationToken);
+
+
+        EInvoiceRequestModel eInvoice = new EInvoiceRequestModel()
+        {
+            Currency = CurrencyCode.EGP.ToString(),
+            DueDate = order.ExpectedDeliveryDate,
+            SendEmail = true,
+            Status = order.Status,
+            RedirectionUrls = new RedirectionUrlsModel()
+            {
+                OnSuccess = clientSetting + "/DashBoard?State=OnSuccess",
+                OnFailure = clientSetting + "/DashBoard?State=OnFailure",
+                OnPending = clientSetting + "/DashBoard?State=OnPending",
+            },
+            PayLoad = new InvoicePayload()
+            {
+                OrderId = order.Id,
+                OrderType = OrderType.Job,
+                Provider = new ProviderModel()
+                {
+                    Id = order.ServiceProviderId,
+                    Email = order.ServiceProviderProfile.User.Email!,
+                    Username = order.ServiceProviderProfile.User.UserName!
+                }
+            },
+            Customer = new CustomerModel()
+            {
+                CustomerId = order.CustomerId,
+                FirstName = order.Customer.UserName!,
+                LastName = order.Customer.UserName!,
+                Email = order.Customer.Email,
+
+            },
+            CartItems = new()
+            {
+                new CartItemModel()
+                {
+                    Name = order.Job.Title,
+                    Price = order.AcceptedOffer.Amount,
+                    Quantity = 1
+                }
+            }
+        };
+
+
+        var result = await fawaterak.CreateEInvoiceAsync(eInvoice);
+        if (result != null)
+        {
+            order.InvoiceId = result.InvoiceId;
+            order.InvoiceKey = result.InvoiceKey;
+            await db.SaveChangesAsync(cancellationToken);
+
+            //TODO: send email to customer 
+            //TODO: send email to freelancer who has old offer
+            //TODO: send email to freelancer who has new offer
+
+            return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+        }
+
+        //TODO: send email to customer (Failed)
+
+
+        return Failure(StatusCodes.Status503ServiceUnavailable, new Error("Payment Gateway Error","The Payment Service Not Available"));
+    }
+
+    public async Task<resultBase> RejectOfferJob(int jobId, int offerId, CancellationToken cancellationToken)
+    {
+
+        /*TODOs:
+         * check if job.offer have offerId        --Done (with diffrent way)
+         * Delete offer                             --Done
+         * send email to Provider who have offer 
+         */
+
+        
+
+        if(await db.JobOffers.AnyAsync(o => o.Id == offerId && o.JobPostId == jobId))
+            return Failure(StatusCodes.Status404NotFound, new Error("Job or offer not Found", "there are no Job or offer with this id"));
+
+
+        await db.JobOffers.Where(o => o.Id == offerId && o.JobPostId == jobId).ExecuteDeleteAsync(cancellationToken: cancellationToken);
+
+
+        // send email to Provider who have offer
+
+        return Success(StatusCodes.Status204NoContent);
+    }
+    
+    
+    
 
     //order statues: Cancel , Failed , Success 
 
-    public Task<resultBase> CancelJobOrder(int orderId, string userId, OrderStatus orderStatus, CancellationToken cancellationToken)
+    public async Task<resultBase> CancelJobOrder(int orderId, string userId, CancellationToken cancellationToken)
     {
         /*TODOs:
          * check user id to determine who cancel the order (customer , freelancer)
@@ -297,39 +500,117 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * if Freelancer and order.state == in progress => order.state = cancelByFreeLancer + send email to Customer
          * 
          */
-        throw new NotImplementedException();
+
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken: cancellationToken);
+        if(order == null)
+            return Failure(StatusCodes.Status404NotFound,FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+
+        //TODO: Add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
+        if (order.CustomerId == userId)
+        {
+            order.Status = OrderStatus.CancelledByClient;
+            //TODO: send email to Customer
+        }
+
+
+
+
+        if (order.ServiceProviderId == userId)
+        {
+            order.Status = OrderStatus.CancelledByProvider;
+            //TODO: send email to freeLancer
+        }
+
+
+        //TODO: customer.Amount += offer.Amount
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+
+        
     }
 
-    public Task<resultBase> PaymentFailureJobOrder(int orderId, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken)
     {
         /*TODOs:
          * send email to customer (Payment fail)
          * (Feature enhancement: Add fail payment transaction list to store failed transactions)
          */
-        throw new NotImplementedException();
+
+        //TODO: send email to customer (Payment fail)
+
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
-    public Task<resultBase> PaymentSuccessJobOrder(int orderId, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * order.state = in progress
-         * add transactions
+         * order.state = in progress        --Done
+         * add transactions                 --Half Done (add transaction but not with all details)
          * send email to Customer
          * send email to Free Lancer
          */
-        throw new NotImplementedException();
+
+        model.Payload = model.PayloadString != null ? JsonSerializer.Deserialize<InvoicePayload>(model.PayloadString) : null;
+
+        if (model.Payload != null)
+        {
+            return Failure(StatusCodes.Status400BadRequest, new Error("Invalid Payload", "The payload data is invalid or missing"));
+        }
+
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == model.Payload!.OrderId && o.InvoiceKey == model.InvoiceKey, cancellationToken: cancellationToken);
+
+        if(order == null)
+        {
+            return Failure(StatusCodes.Status404NotFound, new Error("Order Not Found", "There are no order matching the provided details"));
+        }
+
+        CurrencyCode CurrencyCode = CurrencyCode.EGP;  //TODO: get currency code from model or order
+
+        order.PaymentTransaction = new PaymentTransaction()
+        {
+            Amount = order.Amount,
+            Currency = CurrencyCode,
+            TransactionDate = DateTime.UtcNow,
+            Status = TransactionStatus.Completed,
+            NetPayout = order.Amount,
+            GatewayUsed = PaymentGateway.Card,
+            PlatformFee = order.Amount * 0.1m // Assuming a 10% platform fee
+        };
+
+        order.Status = OrderStatus.Active;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        //TODO: send email to Customer
+        //TODO: send email to Free Lancer
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
 
     //order Detail 
 
-    public Task<resultBase> OrderSummary(int orderId, string userId)
+    public async Task<resultBase> OrderSummary(int orderId, string userId)
     {
         /*TODOs:
          * check if order is exists 
          * mapping job order to Contract.jobOrderSummary 
-         * 
          */
+
+        var file = System.IO.File.ReadAllBytes(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"));
+
+        var orderSummary = await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
+            .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync();
+
+        if (orderSummary == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+
+
         throw new NotImplementedException();
     }
 
@@ -340,6 +621,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * mapping job order to Contract.jobOrderDetailed 
          * 
          */
+
+
         throw new NotImplementedException();
     }
 
@@ -382,4 +665,12 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     {
         throw new NotImplementedException();
     }
+
+
+    private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken)
+        => await db.JobPosts.AnyAsync(j => j.Id == JobId, cancellationToken: cancellationToken);
+
+    private async Task<bool>  CheckJobAndOfferAsync(int JobId, int OfferId, CancellationToken cancellationToken)
+        => await db.JobPosts.AnyAsync(j => j.Id == JobId && j.Offers.Any(o => o.Id == OfferId), cancellationToken: cancellationToken);
+    
 }

@@ -43,21 +43,21 @@ public class JobOrder : OrderBase
 
     public virtual ICollection<Media>? MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
 
-    public JobOrder BuildOrder(JobPost job, JobOffer offer)
+    public static JobOrder BuildOrder(JobPost job, JobOffer offer)
     {
         var order = new JobOrder()
         {
 
-            AcceptedOfferId = offer.Id,
-            JobPostId = job.Id,
-            CustomerId = job.CustomerId,
-            ServiceProviderId = offer.ProviderProfileId,
-            ExpectedDeliveryDate = DateTime.UtcNow.AddDays( offer.DeliveryTimeInDays),
+            AcceptedOfferId = offer.Id,//
+            JobPostId = job.Id,//
+            CustomerId = job.CustomerId,//
+            ServiceProviderId = offer.ProviderProfileId,//
+            ExpectedDeliveryDate = DateTime.UtcNow.AddDays( offer.DeliveryTimeInDays),//
 
-            Status = OrderStatus.Pending,
-            Amount = offer.ProposedPrice,
+            Status = OrderStatus.Pending,//
+            Amount = offer.Amount,//
 
-            Conversation = new Conversation
+            Conversation = new Conversation//
             {
                 Category = ConversationCategory.Standard,
                 CustomerId = job.CustomerId,
@@ -67,6 +67,8 @@ public class JobOrder : OrderBase
 
             }
         };
+
+        
         return order;
     }
     
