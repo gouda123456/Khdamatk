@@ -71,7 +71,6 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     public DbSet<ReportAttachment> ReportAttachments { get; set; }
     public DbSet<ReportMessage> ReportMessages { get; set; }
     public DbSet<Report> Reports { get; set; } // السطر ده هيصلح الـ Error
-    public DbSet<Job> Jobs { get; set; } // السطر ده هو اللي هيشيل الـ Error CS1061
     #endregion
 
     #region Catalog DbSets
