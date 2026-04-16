@@ -31,9 +31,9 @@ public interface IJobOrderService
     Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken);
     Task<resultBase> OrderSummary(int orderId,string userId);
     Task<resultBase> OrderDetails(int orderId, string userId);
-    Task<resultBase> SubmitWorkAndMessage(int orderId, SubmitWorkAndMessageRequest request);
-    Task<resultBase> CompleteJobOrder(int orderId, CancellationToken cancellationToken);
-    Task<resultBase> RevisionJobOrder(int orderId, CancellationToken cancellationToken);
+    Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default);
+    Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken);
+    
 
     Task<resultBase> OpenDispute(int orderId,string RaiserId, string ReasonDetails, CancellationToken cancellationToken);
 

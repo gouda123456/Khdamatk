@@ -64,6 +64,9 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
         return base.SaveChangesAsync(cancellationToken);
     }
 
+
+    
+
     #region dashboard
     public DbSet<ReportAttachment> ReportAttachments { get; set; }
     public DbSet<ReportMessage> ReportMessages { get; set; }
