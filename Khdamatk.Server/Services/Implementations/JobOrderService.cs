@@ -1,15 +1,6 @@
 ﻿using System.Text.Json;
-using Humanizer;
-using Khdamatk.Server.Contracts.Fawaterak;
-using Khdamatk.Server.Contracts.orders;
 using Khdamatk.Server.Contracts.WebHook;
-using Khdamatk.Server.Data.Migrations;
 using Khdamatk.Server.Helper.Payment;
-using Mapster.Utils;
-using Microsoft.DotNet.Scaffolding.Shared.Project;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using Stripe;
-using Stripe.Climate;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -111,8 +102,6 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status200OK,SuccessMessages.General.Title, SuccessMessages.General.Message,OfferSummary);
     }
 
-
-    //Done
     public async Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken)
     {
         /*TODOs:
@@ -226,6 +215,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         {
             order.InvoiceId = result.InvoiceId;
             order.InvoiceKey = result.InvoiceKey;
+            
             await db.SaveChangesAsync(cancellationToken);
 
             //TODO: send email to customer 
@@ -469,29 +459,28 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          */
 
         
-
-        if(await db.JobOffers.AnyAsync(o => o.Id == offerId && o.JobPostId == jobId))
+        var offer = await db.JobOffers.FirstOrDefaultAsync(o => o.Id == offerId && o.JobPostId == jobId, cancellationToken: cancellationToken);
+        if (offer == null)
             return Failure(StatusCodes.Status404NotFound, new Error("Job or offer not Found", "there are no Job or offer with this id"));
 
-
-        await db.JobOffers.Where(o => o.Id == offerId && o.JobPostId == jobId).ExecuteDeleteAsync(cancellationToken: cancellationToken);
-
+        offer.Status = JobOfferStatus.Rejected;
+        await db.SaveChangesAsync(cancellationToken);
 
         // send email to Provider who have offer
 
         return Success(StatusCodes.Status204NoContent);
     }
-    
-    
-    
+
 
     //order statues: Cancel , Failed , Success 
 
+    //TODO: add cancel reason enum (cancel by customer , cancel by freelancer , cancel by system (payment failure or dispute) )
+    //TODO: Add Refund process (Feature enhancement: Add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
     public async Task<resultBase> CancelJobOrder(int orderId, string userId, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check user id to determine who cancel the order (customer , freelancer)
-         * if Customer and order.state == in progress =>
+         * check user id to determine who cancel the order (customer , freelancer)      --Done
+         * if Customer and order.state == in progress =>        --Half Done (order state)
          * {
              * customer.Amount += offer.Amount ,
              * order.state = cancelByCustomer ,
@@ -510,6 +499,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         if (order.CustomerId == userId)
         {
             order.Status = OrderStatus.CancelledByClient;
+            
             //TODO: send email to Customer
         }
 
@@ -522,8 +512,12 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             //TODO: send email to freeLancer
         }
 
+        if(order.Status == OrderStatus.Active)
+            order.Customer.Amount += order.AcceptedOffer.Amount;
 
-        //TODO: customer.Amount += offer.Amount
+
+
+        
 
         await db.SaveChangesAsync(cancellationToken);
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
@@ -540,7 +534,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         //TODO: send email to customer (Payment fail)
 
-
+        
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
@@ -569,6 +563,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         }
 
         CurrencyCode CurrencyCode = CurrencyCode.EGP;  //TODO: get currency code from model or order
+
+
 
         order.PaymentTransaction = new PaymentTransaction()
         {
@@ -611,59 +607,156 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
 
 
-        throw new NotImplementedException();
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message, orderSummary);
     }
 
-    public Task<resultBase> OrderDetails(int orderId, string userId)
+    public async Task<resultBase> OrderDetails(int orderId, string userId)
     {
         /*TODOs:
-         * check if order is exists 
-         * mapping job order to Contract.jobOrderDetailed 
+         * check if order is exists         --Done
+         * mapping job order to Contract.jobOrderDetailed       --Done (Need to Test it (Attachment and Conversation))
          * 
          */
 
 
-        throw new NotImplementedException();
+        var file = System.IO.File.ReadAllBytes(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"));
+
+        
+
+        var orderDetail = await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
+            .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync();
+
+        if (orderDetail == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message, orderDetail);
     }
 
-    public Task<resultBase> SubmitWorkAndMessage(int orderId, SubmitWorkAndMessageRequest request)
+    public async Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default)
     {
         /*TODOs:
-         * check if order is exists and state == in progress
-         * Validate request  
-         * check if there any attachments 
-         * add to conversation
-         * convert List<IFormFile> to Media  
+         * check if order is exists and state == in progress        --Done
+         * Validate request             --Done
+         * check if there any attachments           --Done
+         * check the user id to determine who submit the work (customer , freelancer)      --Done
+         * add to conversation              --Done
+         * convert List<IFormFile> to Media                 ****
          * (Feature:IFormFile.ToMedia(),list<IFormFile>): (params IFormFile[] Medias) => {store Data in project + convert IFormFile to media entity}
          */
-        throw new NotImplementedException();
+
+        var Joborder = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId));
+        
+
+        if (Joborder == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if(request.Attachments != null && request.Attachments.Count > 0)
+        {
+            //TODO: convert List<IFormFile> to List<Media> then save it in DB with relation to order
+            //TODO: store files in project (wwwroot/Uploads/JobOrderId/)
+
+        }
+
+        Joborder.Conversation.Messages.Add(new ()
+        {
+            SenderId = userId,
+            Content = request.Message,
+            IsRead = false,
+        });
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await OrderDetails(orderId, userId);
+
+
     }
 
-    public Task<resultBase> CompleteJobOrder(int orderId, CancellationToken cancellationToken)
+    public async Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check if order.state == in progress
-         * add offer Amount to free lancer
-         * order.state = complete
+         * check if order.state == in progress      --Done
+         * add offer Amount to free lancer          --Done (without refund process)
+         * add review to order            --Done
+         * order.state = complete           --Done
          * send email to free lancer
          */
-        throw new NotImplementedException();
+
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (order.Status != OrderStatus.Active)
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+        var freelancer = await db.ServiceProviderProfiles.FirstOrDefaultAsync(s => s.UserId == order.ServiceProviderId, cancellationToken);
+
+        //TODO: Add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
+        
+        freelancer!.User.Amount += order.AcceptedOffer.Amount; 
+
+        order.Review = new Data.Entities.Interaction.Review()
+        {
+            Rating = request.Rating,
+            Content = request.Content,
+            Title = request.Title,
+            ReviewerId = order.CustomerId,
+            ServiceProviderId = order.ServiceProviderId
+        };
+
+        order.Status = OrderStatus.Completed;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        //TODO: send email to free lancer
+
+
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
-    public Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken)
+    public async Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken)
     {
         /*TODOs:
-         * check if order.state == in progress
-         * compare the RaiserId to know if it customer or freelancer
-         * send email to the 3 party (customer , freelancer , admins)
-         * create Dispute object
+         * check if order.state == in progress          --Done
+         * compare the RaiserId to know if it customer or freelancer            --Done
+         * send email to the 3 party (customer , freelancer , admins)               ***
+         * create Dispute object            --Done
          */
-        throw new NotImplementedException();
-    }
 
-    public Task<resultBase> RevisionJobOrder(int orderId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (order.Status != OrderStatus.Active)
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+        if (order.CustomerId != RaiserId && order.ServiceProviderId != RaiserId)
+            return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
+
+        if (db.Disputes.Any(o => o.JobOrderId == orderId))
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+
+        if (order.CustomerId == RaiserId)
+        {
+            order.Status = OrderStatus.Disputed;
+            order.Dispute = new ()
+            {
+                JobOrderId = orderId,
+                RaiserId = RaiserId,
+                ReasonDetails = ReasonDetails
+            };
+        }
+
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
 
