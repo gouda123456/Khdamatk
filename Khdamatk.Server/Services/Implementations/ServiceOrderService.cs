@@ -1,9 +1,12 @@
 ﻿using Khdamatk.Server.Contracts.Service;
+using Khdamatk.Server.Contracts.WebHook;
 
 namespace Khdamatk.Server.Services.Implementations;
 
 public class ServiceOrderService : IServiceOrderService
 {
+    #region CRUD OPERATIONS FOR SERVICES
+
     public async Task<resultBase> AddServiceAsync(AddServiceRequest request, CancellationToken cancellationToken = default)
     {
         /*TODOs:
@@ -31,7 +34,14 @@ public class ServiceOrderService : IServiceOrderService
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
-    
+
+
+    #endregion
+
+
+
+    #region Iniatal Order Operations
+
     public async Task<resultBase> AddOrderAsync(int ServiceId, string CustomerId, OrderServiceRequest request, CancellationToken cancellationToken = default)
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
@@ -51,7 +61,23 @@ public class ServiceOrderService : IServiceOrderService
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
-    
+
+    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+
+
+    #endregion
+
+
+
+    #region Order Operations
+
     public async Task<resultBase> GetOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
@@ -66,7 +92,22 @@ public class ServiceOrderService : IServiceOrderService
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
-    
+
+    public async Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+    public async Task<resultBase> GetConversationMessages(int serviceId, string UserId, CancellationToken cancellationToken = default)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+
+
+    #endregion
+
+
+    #region Final Order Operations
+
     public async Task<resultBase> CompleteOrderAsync(int orderId, ReviewRequest request, CancellationToken cancellationToken = default)
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
@@ -81,4 +122,6 @@ public class ServiceOrderService : IServiceOrderService
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
+
+    #endregion
 }
