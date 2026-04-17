@@ -47,7 +47,7 @@ public interface IServiceOrderService : IService
     Task<resultBase> GetOrdersAsync(CancellationToken cancellationToken = default);
     Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default);
     Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default);
-    Task<resultBase> GetConversationMessages(int serviceId, string UserId, CancellationToken cancellationToken = default);
+    Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default);
     Task<resultBase> CompleteOrderAsync(int orderId, ReviewRequest request, CancellationToken cancellationToken = default);
     Task<resultBase> CancelOrderAsync(int orderId, CancellationToken cancellationToken = default);
     Task<resultBase> AriseDisputeAsync(int orderId, string reason, CancellationToken cancellationToken = default);

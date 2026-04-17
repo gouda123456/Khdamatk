@@ -674,6 +674,15 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     }
 
+    public async Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+    public async Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default)
+    {
+        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+    }
+
     public async Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken)
     {
         /*TODOs:

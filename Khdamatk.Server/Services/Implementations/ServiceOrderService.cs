@@ -59,6 +59,10 @@ public class ServiceOrderService : IServiceOrderService
     
     public async Task<resultBase> PayOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
+        /*TODOs:
+         * 
+         */
+
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
 
@@ -76,7 +80,7 @@ public class ServiceOrderService : IServiceOrderService
 
 
 
-    #region Order Operations
+    #region Core Order Operations
 
     public async Task<resultBase> GetOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
@@ -97,7 +101,7 @@ public class ServiceOrderService : IServiceOrderService
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
-    public async Task<resultBase> GetConversationMessages(int serviceId, string UserId, CancellationToken cancellationToken = default)
+    public async Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default)
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
