@@ -193,6 +193,7 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -264,7 +265,7 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Jobs",
+                name: "Job",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -277,9 +278,9 @@ namespace Khdamatk.Server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Jobs", x => x.Id);
+                    table.PrimaryKey("PK_Job", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Jobs_AspNetUsers_UserId",
+                        name: "FK_Job_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -533,7 +534,6 @@ namespace Khdamatk.Server.Data.Migrations
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContextType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    JobOrderId1 = table.Column<int>(type: "int", nullable: true),
                     Createdat = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -695,7 +695,6 @@ namespace Khdamatk.Server.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProposedPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DeliveryTimeInDays = table.Column<int>(type: "int", nullable: false),
                     SimilarWorkExamplesURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -737,6 +736,9 @@ namespace Khdamatk.Server.Data.Migrations
                     CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ServiceProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PaymentTransactionId = table.Column<int>(type: "int", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: true),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    DisputeId = table.Column<int>(type: "int", nullable: true),
                     Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -754,6 +756,18 @@ namespace Khdamatk.Server.Data.Migrations
                         name: "FK_JobOrders_AspNetUsers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_JobOrders_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_JobOrders_Disputes_DisputeId",
+                        column: x => x.DisputeId,
+                        principalTable: "Disputes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -782,9 +796,10 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BudgetMin = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -874,8 +889,7 @@ namespace Khdamatk.Server.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StoredFileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FileExtension = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Size = table.Column<long>(type: "bigint", nullable: false),
@@ -1105,7 +1119,6 @@ namespace Khdamatk.Server.Data.Migrations
                     ServiceProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ServiceOrderId = table.Column<int>(type: "int", nullable: true),
                     JobOrderId = table.Column<int>(type: "int", nullable: true),
-                    JobOrderId1 = table.Column<int>(type: "int", nullable: true),
                     ServiceOrderId1 = table.Column<int>(type: "int", nullable: true),
                     Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -1128,11 +1141,6 @@ namespace Khdamatk.Server.Data.Migrations
                         principalTable: "JobOrders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_JobOrders_JobOrderId1",
-                        column: x => x.JobOrderId1,
-                        principalTable: "JobOrders",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Reviews_ServiceOrders_ServiceOrderId",
                         column: x => x.ServiceOrderId,
@@ -1252,13 +1260,6 @@ namespace Khdamatk.Server.Data.Migrations
                 filter: "[JobOrderId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Conversations_JobOrderId1",
-                table: "Conversations",
-                column: "JobOrderId1",
-                unique: true,
-                filter: "[JobOrderId1] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Conversations_ProviderId",
                 table: "Conversations",
                 column: "ProviderId");
@@ -1328,6 +1329,11 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "TargetId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Job_UserId",
+                table: "Job",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_JobDeliverables_JobOrderId",
                 table: "JobDeliverables",
                 column: "JobOrderId");
@@ -1358,9 +1364,19 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "AcceptedOfferId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobOrders_ConversationId",
+                table: "JobOrders",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_JobOrders_CustomerId",
                 table: "JobOrders",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobOrders_DisputeId",
+                table: "JobOrders",
+                column: "DisputeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobOrders_JobPostId",
@@ -1372,6 +1388,11 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "JobOrders",
                 column: "PaymentTransactionId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobOrders_ReviewId",
+                table: "JobOrders",
+                column: "ReviewId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobOrders_ServiceProviderId",
@@ -1392,11 +1413,6 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "IX_JobPosts_OrderId",
                 table: "JobPosts",
                 column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Jobs_UserId",
-                table: "Jobs",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobSkillRequirements_SkillId",
@@ -1500,13 +1516,6 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "JobOrderId",
                 unique: true,
                 filter: "[JobOrderId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Reviews_JobOrderId1",
-                table: "Reviews",
-                column: "JobOrderId1",
-                unique: true,
-                filter: "[JobOrderId1] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_ReviewerId",
@@ -1656,13 +1665,6 @@ namespace Khdamatk.Server.Data.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Conversations_JobOrders_JobOrderId1",
-                table: "Conversations",
-                column: "JobOrderId1",
-                principalTable: "JobOrders",
-                principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
                 name: "FK_Conversations_ServiceOrders_ServiceOrderId",
                 table: "Conversations",
                 column: "ServiceOrderId",
@@ -1743,6 +1745,14 @@ namespace Khdamatk.Server.Data.Migrations
                 onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
+                name: "FK_JobOrders_Reviews_ReviewId",
+                table: "JobOrders",
+                column: "ReviewId",
+                principalTable: "Reviews",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_Medias_ServiceOrders_ServiceOrderId",
                 table: "Medias",
                 column: "ServiceOrderId",
@@ -1767,12 +1777,28 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "CreditCards");
 
             migrationBuilder.DropForeignKey(
+                name: "FK_Disputes_AspNetUsers_AdminReviewerId",
+                table: "Disputes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Disputes_AspNetUsers_RaiserId",
+                table: "Disputes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Disputes_AspNetUsers_TargetId",
+                table: "Disputes");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_JobOrders_AspNetUsers_CustomerId",
                 table: "JobOrders");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_JobPosts_AspNetUsers_CustomerId",
                 table: "JobPosts");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_AspNetUsers_ReviewerId",
+                table: "Reviews");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_ServiceOrders_AspNetUsers_CustomerId",
@@ -1795,6 +1821,10 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "JobOrders");
 
             migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_ServiceProviderProfiles_ServiceProviderId",
+                table: "Reviews");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_ServiceOrders_ServiceProviderProfiles_ServiceProviderId",
                 table: "ServiceOrders");
 
@@ -1807,8 +1837,8 @@ namespace Khdamatk.Server.Data.Migrations
                 table: "Conversations");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Conversations_JobOrders_JobOrderId1",
-                table: "Conversations");
+                name: "FK_Disputes_JobOrders_JobOrderId",
+                table: "Disputes");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_JobOffers_JobOrders_OrderId",
@@ -1817,6 +1847,10 @@ namespace Khdamatk.Server.Data.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_JobPosts_JobOrders_OrderId",
                 table: "JobPosts");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_JobOrders_JobOrderId",
+                table: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -1840,10 +1874,7 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "DeliveredJobFile");
 
             migrationBuilder.DropTable(
-                name: "Disputes");
-
-            migrationBuilder.DropTable(
-                name: "Jobs");
+                name: "Job");
 
             migrationBuilder.DropTable(
                 name: "JobSkillRequirements");
@@ -1865,9 +1896,6 @@ namespace Khdamatk.Server.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ReportMessages");
-
-            migrationBuilder.DropTable(
-                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "ServiceMedia");
@@ -1912,7 +1940,13 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "JobOrders");
 
             migrationBuilder.DropTable(
+                name: "Disputes");
+
+            migrationBuilder.DropTable(
                 name: "JobOffers");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "Conversations");
