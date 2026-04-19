@@ -97,9 +97,45 @@ public class ServiceOrderService(Database db) : IServiceOrderService
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
     
+    
+
     public async Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default)
     {
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+        /*TODOs:
+         * check if order is exists and state == in progress        --Done
+         * Validate request             --Done
+         * check if there any attachments           --Done
+         * check the user id to determine who submit the work (customer , freelancer)      --Done
+         * add to conversation              --Done
+         * convert List<IFormFile> to Media                 ****
+         * (Feature:IFormFile.ToMedia(),list<IFormFile>): (params IFormFile[] Medias) => {store Data in project + convert IFormFile to media entity}
+         */
+
+        var Joborder = await db.ServiceOrders.FirstOrDefaultAsync(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId));
+
+
+        if (Joborder == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (request.Attachments != null && request.Attachments.Count > 0)
+        {
+            //TODO: convert List<IFormFile> to List<Media> then save it in DB with relation to order
+            //TODO: store files in project (wwwroot/Uploads/JobOrderId/)
+
+        }
+
+        Joborder.Conversation.Messages.Add(new()
+        {
+            SenderId = userId,
+            Content = request.Message,
+            IsRead = false,
+        });
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetOrderAsync(orderId, cancellationToken);
+
+
     }
 
     public async Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default)
