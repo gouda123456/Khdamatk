@@ -49,18 +49,24 @@ public static class DependancyInjections
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         
-        services.AddScoped<IHomeService, HomeService>();
-        services.AddTransient<IFileManagement, FileManagement>();
-        services.AddScoped<IServiceProviderService, ServiceProviderService>();
-        services.AddScoped<IJobService, JobService>();
-        services.AddScoped<IServiceProviderService, ServiceProviderService>();
-
         services.AddScoped<IAdminDashboardSerivce, AdminDashboardService>();
+        services.AddScoped<IHomeService, HomeService>();
 
-        services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
-        services.AddScoped<IReportDashboardService, ReportDashboardService>();
-
+        services.AddScoped<IJobOrderService, JobOrderService>();
+        services.AddScoped<IJobService, JobService>();
         services.AddScoped<IOrderService, OrderService>();
+
+
+        services.AddScoped<IReportDashboardService, ReportDashboardService>();
+        services.AddScoped<IServiceOrderService, ServiceOrderService>();
+        services.AddScoped<IServiceProviderService, ServiceProviderService>();
+        services.AddScoped<IServiceProviderService, ServiceProviderService>();
+        services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
+
+        services.AddTransient<IFileManagement, FileManagement>();
+
+
+
         return services;
     }
 

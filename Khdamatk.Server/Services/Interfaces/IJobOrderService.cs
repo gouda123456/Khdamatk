@@ -32,6 +32,9 @@ public interface IJobOrderService
     Task<resultBase> OrderSummary(int orderId,string userId);
     Task<resultBase> OrderDetails(int orderId, string userId);
     Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default);
+    Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default);
+    Task<resultBase> GetConversationMessages(int OrderId, string UserId, CancellationToken cancellationToken = default);
+    
     Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken);
     
 

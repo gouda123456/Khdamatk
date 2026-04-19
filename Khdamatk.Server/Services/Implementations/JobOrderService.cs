@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
 
@@ -672,6 +673,43 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return await OrderDetails(orderId, userId);
 
 
+    }
+
+    public async Task<resultBase> GetConversations(string userId, CancellationToken cancellationToken = default)
+    {
+        var conversations = await db.JobOrders.Where(c => c.CustomerId == userId || c.ServiceProviderId == userId).
+            Select(c => new ConversationsSummaryResponse(
+                userId,
+        (userId == c.CustomerId) ? c.Customer.UserName : c.ServiceProviderProfile.User.UserName,
+        (userId == c.CustomerId) ? c.Customer.ProfilePicture.FullPath : c.ServiceProviderProfile.User.ProfilePicture.FullPath,
+        c.Job.Title,
+        c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Content : "",
+                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Createdat : DateTime.MinValue,
+                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.IsRead : true
+                 )
+                ).ToListAsync(cancellationToken: cancellationToken);
+            
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message, conversations);
+    }
+    public async Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default)
+    {
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId && (o.CustomerId == UserId || o.ServiceProviderId == UserId), cancellationToken: cancellationToken);
+
+        var converationDetailed = new ConversationsDetailed(
+            order.Conversation.Id,
+            order.Job.Title,
+            UserId,
+            (UserId == order.CustomerId) ? order.Customer.UserName : order.ServiceProviderProfile.User.UserName,
+            (UserId == order.CustomerId) ? order.Customer.ProfilePicture.FullPath : order.ServiceProviderProfile.User.ProfilePicture.FullPath,
+            (UserId != order.CustomerId)? order.CustomerId : order.ServiceProviderId,
+            (UserId != order.CustomerId)? order.Customer.UserName : order.ServiceProviderProfile.User.UserName, 
+            (UserId != order.CustomerId)? order.Customer.ProfilePicture.FullPath : order.ServiceProviderProfile.User.ProfilePicture.FullPath,
+            order.Conversation.Messages.Select(m => new ConversationMessageResponse(m.Id, m.Content, m.SenderId, m.Createdat)).ToList()
+            );
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message,converationDetailed);
     }
 
     public async Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken)
