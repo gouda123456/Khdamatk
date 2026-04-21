@@ -49,11 +49,23 @@ public class ServiceOrderService(Database db) : IServiceOrderService
 
     public async Task<resultBase> AddOrderAsync(int ServiceId, string CustomerId, OrderServiceRequest request, CancellationToken cancellationToken = default)
     {
+        /*TODOs:
+         * check if service is exists
+         * check if customer is exists
+         * create order with pendingApproval state
+         * create conversation for this order
+         * send Email to freelancer about new order
+         * return order details to customer
+         */
+
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
     
     public async Task<resultBase> FreeLancerAcceptOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
+        //TODO: change order state from pendingApproval to PendingPayment
+        //TODO: send email to customer with payment link (using Flatwaterk)
+
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
     
@@ -65,18 +77,33 @@ public class ServiceOrderService(Database db) : IServiceOrderService
     public async Task<resultBase> PayOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
-         * 
+         * check if order is exists and state == pendingPayment        
+         * send E Invoice to client with payment link (using Flatwaterk)
          */
+
+        ServiceOrder? order = await db.ServiceOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken: cancellationToken);
+
+        if(order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+        if(order.Status != OrderStatus.PendingApproval)
+            return Failure(StatusCodes.Status400BadRequest, FailureMessages.General.Title, "Order must be in accepted state to proceed with payment.");
+
+
 
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
 
     public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken)
     {
+        //TODOs: change order state from pendingPayment to Active
+        //TODO: send email to freelancer about new active order
+
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
     public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken)
     {
+        //TODOs: send email to customer about payment failure and instructions to retry payment
+
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
 

@@ -62,6 +62,7 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
     [HttpPost("add-education")]
     public async Task<IActionResult> AddEducation([FromBody] AddEducationRequest request)
     {
+        string userId = User.GetUserId();
         var result = await _service.AddEducation(User.GetUserId(), request);
         return result.Respond();
     }
