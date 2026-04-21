@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.orders;
 using Khdamatk.Server.Contracts.Orders;
@@ -7,18 +8,19 @@ using Stripe;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class OrderService : IOrderService
+public class OrderService(
+    Database db,
+    IEmailHelper emailHelper,
+    IFawaterakPaymentHelper fawaterakPaymentHelper,
+    IServiceOrderService serviceOrder,
+    IJobOrderService jobOrder
+    ) : IOrderService
 {
-    private readonly Database db;
-    private readonly IEmailHelper emailHelper;
-    private readonly IFawaterakPaymentHelper fawaterakPaymentHelper;
-
-    public OrderService(Database db, IEmailHelper emailHelper, IFawaterakPaymentHelper fawaterakPaymentHelper)
-    {
-        this.db = db;
-        this.emailHelper = emailHelper;
-        this.fawaterakPaymentHelper = fawaterakPaymentHelper;
-    }
+    private readonly Database db = db;
+    private readonly IEmailHelper emailHelper = emailHelper;
+    private readonly IFawaterakPaymentHelper fawaterakPaymentHelper = fawaterakPaymentHelper;
+    private readonly IServiceOrderService serviceOrder = serviceOrder;
+    private readonly IJobOrderService jobOrder = jobOrder;
 
     public async Task<resultBase> StartServiceOrderPaymentAsync(StartServiceOrderPaymentRequest request, int orderId, string userId)
     {
@@ -201,53 +203,38 @@ public class OrderService : IOrderService
 
     public async Task HandlePaymentSuccessAsync(WebHookModel webHookModel)
     {
-        var (serviceOrder, jobOrder) = await FindOrderByInvoiceAsync(webHookModel.InvoiceId, webHookModel.InvoiceKey);
-        if (serviceOrder is null && jobOrder is null)
-            return;
+        //TODO: Handle Email Implementation
 
-        string? customerEmail = null;
-        string orderDescription;
+        var payload = JsonSerializer.Deserialize<InvoicePayload>(webHookModel.PayloadString);
 
-        if (serviceOrder is not null)
+        if(payload is null) throw new InvalidOperationException("Invalid payload........");
+
+        
+
+        if (payload.OrderType == OrderType.Service)
         {
-            serviceOrder.Status = OrderStatus.Active;
-            if (serviceOrder.PaymentTransaction is not null)
-            {
-                serviceOrder.PaymentTransaction.Status = TransactionStatus.Completed;
-                serviceOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
-            }
+            var result =await serviceOrder.PaymentSuccessJobOrder(webHookModel);
 
-            customerEmail = serviceOrder.Customer?.Email;
-            orderDescription = $"خدمة رقم {serviceOrder.Id}";
+            if(!result.IsSuccess)
+                throw new InvalidOperationException("Failed to process service order payment success........");
+
+        }
+        else if(payload.OrderType == OrderType.Job)
+        {
+            var result = await jobOrder.PaymentSuccessJobOrder(webHookModel);
+
+            if(!result.IsSuccess)
+                throw new InvalidOperationException("Failed to process job order payment success........");
         }
         else
         {
-            jobOrder!.Status = OrderStatus.Active;
-            if (jobOrder.PaymentTransaction != null && jobOrder.PaymentTransaction.Status != TransactionStatus.Completed)
-            {
-
-                jobOrder.PaymentTransaction.Amount = jobOrder.Amount;
-                jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Card;
-                jobOrder.PaymentTransaction.Status = TransactionStatus.Completed;
-                jobOrder.PaymentTransaction.Currency = CurrencyCode.EGP;
-
-
-                //Status = TransactionStatus.Completed;
-                //jobOrder.PaymentTransaction.GatewayUsed = PaymentGateway.Fawry;
-            }
-
-            customerEmail = jobOrder.Customer?.Email;
-            orderDescription = $"طلب عمل رقم {jobOrder.Id}";
+            throw new InvalidOperationException("Invalid order type........");
         }
 
+        
         await db.SaveChangesAsync();
 
-        if (!string.IsNullOrWhiteSpace(customerEmail))
-        {
-            var subject = "تم الدفع بنجاح";
-            var body = $"تم إتمام عملية الدفع بنجاح لـ {orderDescription} (فاتورة رقم {webHookModel.InvoiceId}). شكرًا لاستخدامك خدماتك.";
-            await emailHelper.SendEmailAsync(customerEmail, subject, body);
-        }
+        
     }
 
     public async Task HandlePaymentFailedAsync(long invoiceId, string invoiceKey, string? errorMessage)

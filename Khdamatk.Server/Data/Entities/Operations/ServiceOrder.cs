@@ -52,7 +52,9 @@ public enum OrderStatus
 {
 
     // مرحلة ما قبل بدء العمل
-    PendingApproval,             // الطلب تم إنشاؤه ولكن لم يتم اتخاذ أي إجراء بعد
+    Pending,             // الطلب تم إنشاؤه ولكن لم يتم اتخاذ أي إجراء بعد
+
+    PendingApproval,
 
     PendingPayment ,     // الطلب موجود ولكن في انتظار الدفع (بدء المعاملة)
 

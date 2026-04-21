@@ -1,12 +1,16 @@
-﻿using Khdamatk.Server.Contracts.Conversations;
+﻿using System.Text.Json;
+using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.Service;
 using Khdamatk.Server.Contracts.WebHook;
+using Khdamatk.Server.Helper.Payment;
+using Stripe;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class ServiceOrderService(Database db) : IServiceOrderService
+public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) : IServiceOrderService
 {
     private readonly Database db = db;
+    private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
 
 
 
@@ -85,22 +89,128 @@ public class ServiceOrderService(Database db) : IServiceOrderService
 
         if(order == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
-        if(order.Status != OrderStatus.PendingApproval)
+        if(order.Status != OrderStatus.PendingPayment)
             return Failure(StatusCodes.Status400BadRequest, FailureMessages.General.Title, "Order must be in accepted state to proceed with payment.");
 
+        EInvoiceRequestModel eInvoice = new EInvoiceRequestModel
+        {
+            SendEmail = true,
+            Customer = new CustomerModel
+            {
+                 CustomerId = order.CustomerId,
+                 FirstName = order.Customer!.UserName!,
+                 LastName = "",
+                 Email = order.Customer!.Email!,
+                 Phone = order.Customer!.PhoneNumber!,
+            },
+            CartItems = new()
+            {
+                new CartItemModel()
+                {
+                    Name = order.Service.Title,
+                    Quantity = 1,
+                    Price = order.Service.Price
+                }
+            },
+            Currency = CurrencyCode.EGP.ToString(),
+            DueDate = DateTime.UtcNow.AddDays(7),
+            PayLoad = new InvoicePayload()
+            {
+                OrderId = order.Id,
+                OrderType = OrderType.Service,
+                Provider = new ProviderModel()
+                {
+                    Id = order.ServiceProviderId,
+                    Username = order.ServiceProviderProfile.User.UserName!,
+                    Email = order.ServiceProviderProfile.User.Email!
+                },
+            },
+            RedirectionUrls = new()
+            {
+                OnFailure = "https://www.youtube.com/",
+                OnPending = "https://www.youtube.com/",
+                OnSuccess = "https://www.youtube.com/"
+            }
+        };
 
+        var result = await fawaterak.CreateEInvoiceAsync(eInvoice);
 
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+        if (result != null)
+        {
+            order.InvoiceId = result.InvoiceId;
+            order.InvoiceKey = result.InvoiceKey;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            //TODO: send email to customer 
+            //TODO: send email to freelancer
+
+            return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+        }
+
+        //TODO: send email to customer (Failed)
+
+        return Failure(StatusCodes.Status503ServiceUnavailable, new Error("Payment Gateway Error", "The Payment Service Not Available"));
+
     }
 
-    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken = default)
     {
+        /*TODOs:
+         * Deserialize payload to get order details
+         * check if order is exists and state == pendingPayment
+         */
+
         //TODOs: change order state from pendingPayment to Active
         //TODO: send email to freelancer about new active order
 
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+
+        model.Payload = model.PayloadString != null ? JsonSerializer.Deserialize<InvoicePayload>(model.PayloadString) : null;
+
+        if (model.Payload != null)
+        {
+            return Failure(StatusCodes.Status400BadRequest, new Error("Invalid Payload", "The payload data is invalid or missing"));
+        }
+
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == model.Payload!.OrderId && o.InvoiceKey == model.InvoiceKey, cancellationToken: cancellationToken);
+
+        if (order == null)
+        {
+            return Failure(StatusCodes.Status404NotFound, new Error("Order Not Found", "There are no order matching the provided details"));
+        }
+        
+        if (order.Status != OrderStatus.PendingPayment)
+        {
+            return Failure(StatusCodes.Status400BadRequest, new Error("Invalid Order State", "The order is not in a pending payment state"));
+        }
+
+        CurrencyCode CurrencyCode = CurrencyCode.EGP;  //TODO: get currency code from model or order
+
+
+
+        order.PaymentTransaction = new PaymentTransaction()
+        {
+            Amount = order.Amount,
+            Currency = CurrencyCode,
+            TransactionDate = DateTime.UtcNow,
+            Status = TransactionStatus.Completed,
+            NetPayout = order.Amount,
+            GatewayUsed = PaymentGateway.Card,
+            PlatformFee = order.Amount * 0.1m // Assuming a 10% platform fee
+        };
+
+        order.Status = OrderStatus.Active;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        //TODO: send email to Customer
+        //TODO: send email to Free Lancer
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+
+        
     }
-    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken = default)
     {
         //TODOs: send email to customer about payment failure and instructions to retry payment
 

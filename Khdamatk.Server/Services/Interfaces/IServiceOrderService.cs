@@ -41,8 +41,8 @@ public interface IServiceOrderService : IService
     Task<resultBase> FreeLancerAcceptOrderAsync(int orderId, CancellationToken cancellationToken = default);
     Task<resultBase> FreelancerRejectOrderAsync(int orderId, CancellationToken cancellationToken = default);
     Task<resultBase> PayOrderAsync(int orderId, CancellationToken cancellationToken = default);
-    Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken);
-    Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken);
+    Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken = default);
+    Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken = default);
     Task<resultBase> GetOrderAsync(int orderId, CancellationToken cancellationToken = default);
     Task<resultBase> GetOrdersAsync(CancellationToken cancellationToken = default);
     Task<resultBase> SubmitWorkAndMessage(int orderId, string userId, SubmitWorkAndMessageRequest request, CancellationToken cancellationToken = default);

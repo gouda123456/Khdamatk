@@ -14,7 +14,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
 
     //Add Job and offer
-    public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken)
+    public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * Validate request      --Done
@@ -37,7 +37,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status201Created);
     }
 
-    public async Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken)
+    public async Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check job Id Done    --Done
@@ -67,7 +67,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status201Created);
     }
 
-    public async Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken)
+    public async Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check job Id     --Done
@@ -103,7 +103,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status200OK,SuccessMessages.General.Title, SuccessMessages.General.Message,OfferSummary);
     }
 
-    public async Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken)
+    public async Task<resultBase> ViewOfferDetails(int jobId, int offerId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check job id     --Done
@@ -124,7 +124,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     //initialize order by select, change offer and start payment
 
-    public async Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken)
+    public async Task<resultBase> StartJobOrder(int jobId, int offerId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check if job do not have any order       --Done
@@ -232,7 +232,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     }
 
-    public async Task<resultBase> AcceptOfferJob(int jobId, int offerId, string CustomerId, CancellationToken cancellationToken)
+    public async Task<resultBase> AcceptOfferJob(int jobId, int offerId, string CustomerId, CancellationToken cancellationToken = default)
     {
 
         var offer = db.JobOffers.Find(offerId);
@@ -333,7 +333,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     }
 
-    public async Task<resultBase> ChangeSelectionOfferJob(int OrderId, int oldOfferId, int newOfferId, string userId, CancellationToken cancellationToken)
+    public async Task<resultBase> ChangeSelectionOfferJob(int OrderId, int oldOfferId, int newOfferId, string userId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * validate old offer == order.AcceptedOfferId          --Done
@@ -450,7 +450,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Failure(StatusCodes.Status503ServiceUnavailable, new Error("Payment Gateway Error","The Payment Service Not Available"));
     }
 
-    public async Task<resultBase> RejectOfferJob(int jobId, int offerId, CancellationToken cancellationToken)
+    public async Task<resultBase> RejectOfferJob(int jobId, int offerId, CancellationToken cancellationToken = default)
     {
 
         /*TODOs:
@@ -477,7 +477,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     //TODO: add cancel reason enum (cancel by customer , cancel by freelancer , cancel by system (payment failure or dispute) )
     //TODO: Add Refund process (Feature enhancement: Add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
-    public async Task<resultBase> CancelJobOrder(int orderId, string userId, CancellationToken cancellationToken)
+    public async Task<resultBase> CancelJobOrder(int orderId, string userId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check user id to determine who cancel the order (customer , freelancer)      --Done
@@ -526,7 +526,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         
     }
 
-    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentFailureJobOrder(CancelTransactionModel model, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * send email to customer (Payment fail)
@@ -540,7 +540,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
-    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken)
+    public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * order.state = in progress        --Done
@@ -712,7 +712,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message,converationDetailed);
     }
 
-    public async Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken)
+    public async Task<resultBase> CompleteJobOrder(int orderId, ReviewRequest request, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check if order.state == in progress      --Done
@@ -757,7 +757,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
-    public async Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken)
+    public async Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * check if order.state == in progress          --Done
@@ -766,7 +766,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * create Dispute object            --Done
          */
 
-        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken = default);
 
         if (order == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
@@ -798,10 +798,10 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     }
 
 
-    private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken)
+    private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken = default)
         => await db.JobPosts.AnyAsync(j => j.Id == JobId, cancellationToken: cancellationToken);
 
-    private async Task<bool>  CheckJobAndOfferAsync(int JobId, int OfferId, CancellationToken cancellationToken)
+    private async Task<bool>  CheckJobAndOfferAsync(int JobId, int OfferId, CancellationToken cancellationToken = default)
         => await db.JobPosts.AnyAsync(j => j.Id == JobId && j.Offers.Any(o => o.Id == OfferId), cancellationToken: cancellationToken);
     
 }
