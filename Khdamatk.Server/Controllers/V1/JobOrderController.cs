@@ -16,7 +16,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     {
         return (await jobOrderService.AddJobASync(request, cancellationToken)).Respond();
     }
-       
+
 
     [HttpPost("Jobs/{jobId}/")]
     public async Task<IActionResult> GetJob([FromRoute] int jobId, AddJopOfferRequest request, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
 
 
     [HttpPut("Jobs/{jobId}/Offers/{offerId}/Start/")]
-    public async Task<IActionResult> AddJob([FromRoute] int jobId, [FromRoute] int offerId,CancellationToken cancellationToken)
+    public async Task<IActionResult> AddJob([FromRoute] int jobId, [FromRoute] int offerId, CancellationToken cancellationToken)
     {
         return (await jobOrderService.StartJobOrder(jobId, offerId, cancellationToken)).Respond();
     }
@@ -53,7 +53,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     [HttpPut("Jobs/{jobId}/Offers/{offerId}/ChangeSelectionTo/{newOfferId}/")]
     public async Task<IActionResult> ChangeSelectionOfferJob([FromRoute] int jobId, [FromRoute] int offerId, [FromRoute] int newOfferId, CancellationToken cancellationToken)
     {
-        return (await jobOrderService.ChangeSelectionOfferJob(jobId, offerId, newOfferId,User?.GetUserId()!, cancellationToken)).Respond();
+        return (await jobOrderService.ChangeSelectionOfferJob(jobId, offerId, newOfferId, User?.GetUserId()!, cancellationToken)).Respond();
     }
 
 
@@ -94,7 +94,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     [HttpPost("JobOrders/{orderId}/SubmitWorkAndMessage/")]
     public async Task<IActionResult> SubmitWorkAndMessage([FromRoute] int orderId, [FromBody] SubmitWorkAndMessageRequest request, CancellationToken cancellationToken)
     {
-        return (await jobOrderService.SubmitWorkAndMessage(orderId,User.GetUserId()!, request, cancellationToken)).Respond();
+        return (await jobOrderService.SubmitWorkAndMessage(orderId, User.GetUserId()!, request, cancellationToken)).Respond();
     }
 
     [HttpGet("JobOrders/{orderId}/ConversationMessages/")]
@@ -132,6 +132,50 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
 
     #endregion
 
+    [HttpPost("add-order")]
+    public async Task<IActionResult> AddOrder([FromBody] CreateJobOrderRequest request, CancellationToken cancellationToken)
+    {
+        // 1. لازم تجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (العميل)
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        // 2. ابعت الـ userId للـ Service لأنها مستنياه في الترتيب التاني
+        var result = await jobOrderService.AddOrderAsync(request, userId, cancellationToken);
+
+        return result.IsSuccess
+            ? StatusCode(StatusCodes.Status201Created, result)
+            : BadRequest(result);
+    }
+
+    // 2. قبول الأوردر (من طرف الفريلانسر)
+    [HttpPut("accept-order/{orderId}")]
+    public async Task<IActionResult> AcceptOrder(int orderId, CancellationToken cancellationToken)
+    {
+        // هنا بنجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (الفريلانسر)
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var result = await jobOrderService.AcceptOrderAsync(orderId, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    // 3. رفض الأوردر (من طرف الفريلانسر)
+    [HttpPut("reject-order/{orderId}")]
+    public async Task<IActionResult> RejectOrder(int orderId, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var result = await jobOrderService.RejectOrderAsync(orderId, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
 
 
 
@@ -140,6 +184,6 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
 
 
 
-
+    }
 }
 
