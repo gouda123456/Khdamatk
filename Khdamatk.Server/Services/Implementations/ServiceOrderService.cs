@@ -157,8 +157,8 @@ public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) 
     public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken = default)
     {
         /*TODOs:
-         * Deserialize payload to get order details
-         * check if order is exists and state == pendingPayment
+         * Deserialize payload to get order details                 --Done
+         * check if order is exists and state == pendingPayment     --Done
          */
 
         //TODOs: change order state from pendingPayment to Active

@@ -20,8 +20,8 @@ public interface IServiceOrderService : IService
         * addOrder,                 A
         * FreeLancerAcceptOrder,    A
         * FreelancerRejectOrder,    A
-        * PayOrder,                     G
-        * PaymentSuccess,               G
+        * PayOrder,                     G Done
+        * PaymentSuccess,               G Done
         * PaymentFailure,               G
         * GetOrder,                 A
         * GetOrders,                A
