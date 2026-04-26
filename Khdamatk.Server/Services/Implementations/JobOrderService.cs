@@ -1,7 +1,8 @@
-﻿using System.Text.Json;
-using Khdamatk.Server.Contracts.Conversations;
+﻿using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
+using Stripe.Climate;
+using System.Text.Json;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -795,8 +796,63 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+
     }
 
+
+    // 1. إضافة طلب جديد (بناءً على شغلانة وعرض سعر مقبول)
+    public async Task<resultBase> AddOrderAsync(CreateJobOrderRequest request, string customerId, CancellationToken cancellationToken = default)
+    {
+        // نجيب الشغلانة والعرض عشان نستخدمهم في الـ BuildOrder
+        var job = await db.JobPosts.FindAsync([request.JobPostId], cancellationToken);
+        var offer = await db.JobOffers.FindAsync([request.OfferId], cancellationToken);
+
+        if (job == null || offer == null)
+            return Failure(StatusCodes.Status404NotFound, "Data Not Found", "Job or Offer not found.");
+
+        // استخدام الـ Static Method اللي إنت عاملها في الكلاس
+        var order = JobOrder.BuildOrder(job, offer);
+
+        await db.JobOrders.AddAsync(order, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Success(StatusCodes.Status201Created, "Order Created", "The job order has been created successfully.");
+    }
+
+    // 2. قبول الأوردر من طرف الفريلانسر
+    public async Task<resultBase> AcceptOrderAsync(int orderId, string freelancerId, CancellationToken cancellationToken = default)
+    {
+        // لاحظ استخدام ServiceProviderId بدل ProviderId
+        var order = await db.JobOrders
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.ServiceProviderId == freelancerId, cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, "Order Not Found", "Order not found or unauthorized.");
+
+        // التأكد إن الـ Status نوعها Enum
+        if (order.Status != OrderStatus.Pending)
+            return Failure(StatusCodes.Status400BadRequest, "Error", "Order is already processed.");
+
+        order.Status = OrderStatus.Accepted; // اتأكد إن Accepted موجودة في الـ Enum
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Success(StatusCodes.Status200OK, "Accepted", "You have accepted the order.");
+    }
+
+    // 3. رفض الأوردر من طرف الفريلانسر
+    public async Task<resultBase> RejectOrderAsync(int orderId, string freelancerId, CancellationToken cancellationToken = default)
+    {
+        var order = await db.JobOrders
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.ServiceProviderId == freelancerId, cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, "Order Not Found", "Order not found.");
+
+        order.Status = OrderStatus.Rejected; // اتأكد إن Rejected موجودة في الـ Enum
+        await db.SaveChangesAsync(cancellationToken);
+
+        return Success(StatusCodes.Status200OK, "Rejected", "Order has been rejected.");
+    }
 
     private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken = default)
         => await db.JobPosts.AnyAsync(j => j.Id == JobId, cancellationToken: cancellationToken);
