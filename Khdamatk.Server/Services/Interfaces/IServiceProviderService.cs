@@ -53,5 +53,4 @@ public interface IServiceProviderService : IService
     Task<resultBase> UpdatePortfolioItem(string userId, int itemId, AddPortfolioRequest request);
 
 
-
 }

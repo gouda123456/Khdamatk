@@ -1,5 +1,6 @@
 ﻿using Khdamatk.Server.Contracts.Home;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -12,6 +13,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
     public async Task<resultBase> FreelancersPage(FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
     {
+
         // 1. Fetch sidebar categories for display
         var servicesSidebar = await db.Categories
             .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
@@ -278,6 +280,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         await db.SaveChangesAsync();
         return Success(StatusCodes.Status200OK, "Item updated successfully");
     }
+
     /// Deletes an education record using the general portfolio deletion logic.
     public async Task<resultBase> DeleteEducation(string userId, int eduId) => await DeletePortfolioItem(userId, eduId);
 

@@ -1,6 +1,7 @@
 ﻿using Khdamatk.Server.Contracts.Home;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Khdamatk.Server.Statics.Consts.PermissionsDefault;
 
 namespace Khdamatk.Server.Controllers.V1;
 
@@ -120,4 +121,5 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
         var result = await _service.UpdatePortfolioItem(User.GetUserId(), itemId, request);
         return result.Respond();
     }
+   
 }
