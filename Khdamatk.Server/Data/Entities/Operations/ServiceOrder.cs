@@ -38,8 +38,17 @@ public class ServiceOrder : OrderBase
     public int PaymentTransactionId { get; set; }
     public virtual PaymentTransaction PaymentTransaction { get; set; } = new();
 
+    [ForeignKey(nameof(Review))]
+    public int? ReviewId { get; set; }
     public virtual Review? Review { get; set; }
+
+    [ForeignKey(nameof(Conversation))]
+    public int ConversationId { get; set; }
     public virtual Conversation Conversation { get; set; } = null!;
+
+    [ForeignKey(nameof(Dispute))]
+    public int? DisputeId { get; set; }
+    public virtual Dispute? Dispute { get; set; }
 
     public virtual ICollection<Media> MediaAttachments { get; set; } = []; // المرفقات (صور، ملفات، إلخ) 
 

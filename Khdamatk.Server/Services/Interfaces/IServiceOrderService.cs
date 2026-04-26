@@ -25,10 +25,10 @@ public interface IServiceOrderService : IService
         * PaymentFailure,               G
         * GetOrder,                 A
         * GetOrders,                A
-        * SubmitWork(files or message and assign to userId),        G
-        * CompleteOrder,        G
+        * SubmitWork(files or message and assign to userId),        G Done
+        * CompleteOrder,        G Done
         * CancelOrder,          G
-        * AriseDispute,         G
+        * AriseDispute,         G Done
     * }
      */
 
@@ -50,7 +50,7 @@ public interface IServiceOrderService : IService
     Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default);
     Task<resultBase> CompleteOrderAsync(int orderId, ReviewRequest request, CancellationToken cancellationToken = default);
     Task<resultBase> CancelOrderAsync(int orderId, CancellationToken cancellationToken = default);
-    Task<resultBase> AriseDisputeAsync(int orderId, string reason, CancellationToken cancellationToken = default);
+    Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken = default);
 
 
 }
