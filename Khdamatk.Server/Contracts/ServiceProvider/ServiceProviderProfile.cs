@@ -76,3 +76,20 @@ public record UpdateExperienceRequest(
     DateTime StartDate,
     DateTime EndDate
     );
+
+// --- Social Media Links (التعديل الجديد هنا) ---
+// جعلناها nullable (?) لأنها اختيارية في الفورم
+public class ServiceProviderProfile // لازم تضيف السطر ده وتفتح القوس
+{
+    [Url]
+    public string? FacebookUrl { get; set; }
+
+    [Url]
+    public string? LinkedInUrl { get; set; }
+
+    [Url]
+    public string? GithubUrl { get; set; }
+
+    [Url]
+    public string? TwitterUrl { get; set; }
+}

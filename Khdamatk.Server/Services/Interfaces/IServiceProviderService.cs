@@ -51,4 +51,7 @@ public interface IServiceProviderService : IService
     /// Adds a professional certificate or license.
     Task<resultBase> AddCertificate(string userId, AddCertificateRequest request);
     Task<resultBase> UpdatePortfolioItem(string userId, int itemId, AddPortfolioRequest request);
+
+
+
 }
