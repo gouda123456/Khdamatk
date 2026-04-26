@@ -3,6 +3,7 @@ using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.Service;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
+using Microsoft.Identity.Client;
 using Stripe;
 
 namespace Khdamatk.Server.Services.Implementations;
@@ -157,8 +158,8 @@ public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) 
     public async Task<resultBase> PaymentSuccessJobOrder(WebHookModel model, CancellationToken cancellationToken = default)
     {
         /*TODOs:
-         * Deserialize payload to get order details
-         * check if order is exists and state == pendingPayment
+         * Deserialize payload to get order details                 --Done
+         * check if order is exists and state == pendingPayment     --Done
          */
 
         //TODOs: change order state from pendingPayment to Active
@@ -319,17 +320,89 @@ public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) 
 
     public async Task<resultBase> CompleteOrderAsync(int orderId, ReviewRequest request, CancellationToken cancellationToken = default)
     {
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+        /*TODOs:
+         * check if order.state == in progress      --Done
+         * add offer Amount to free lancer          --Done (without refund process)
+         * add review to order            --Done
+         * order.state = complete           --Done
+         * send email to free lancer
+         */
+
+        var order = await db.ServiceOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (order.Status != OrderStatus.Active)
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+        var freelancer = await db.ServiceProviderProfiles.FirstOrDefaultAsync(s => s.UserId == order.ServiceProviderId, cancellationToken);
+
+        //TODO: Add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
+
+        freelancer!.User.Amount += order.Amount;
+
+        order.Review = new Data.Entities.Interaction.Review()
+        {
+            Rating = request.Rating,
+            Content = request.Content,
+            Title = request.Title,
+            ReviewerId = order.CustomerId,
+            ServiceProviderId = order.ServiceProviderId
+        };
+
+        order.Status = OrderStatus.Completed;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        //TODO: send email to free lancer
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
-    
+
     public async Task<resultBase> CancelOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
         return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
     }
     
-    public async Task<resultBase> AriseDisputeAsync(int orderId, string reason, CancellationToken cancellationToken = default)
+    public async Task<resultBase> OpenDispute(int orderId, string RaiserId, string ReasonDetails, CancellationToken cancellationToken = default)
     {
-        return Failure(StatusCodes.Status501NotImplemented, FailureMessages.NotImplemented.Title, FailureMessages.NotImplemented.Message);
+        /*TODOs:
+         * check if order.state == in progress          --Done
+         * compare the RaiserId to know if it customer or freelancer            --Done
+         * create Dispute object            --Done
+         * send email to the 3 party (customer , freelancer , admins)               ***
+         */
+
+        ServiceOrder? order = await db.ServiceOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken = default);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (order.Status != OrderStatus.Active)
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+        if (order.CustomerId != RaiserId && order.ServiceProviderId != RaiserId)
+            return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
+
+        if (db.Disputes.Any(o => o.JobOrderId == orderId))
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
+
+
+        if (order.CustomerId == RaiserId)
+        {
+            order.Status = OrderStatus.Disputed;
+            order.Dispute = new()
+            {
+                JobOrderId = orderId,
+                RaiserId = RaiserId,
+                ReasonDetails = ReasonDetails
+            };
+        }
+
+
+
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
     #endregion

@@ -763,8 +763,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         /*TODOs:
          * check if order.state == in progress          --Done
          * compare the RaiserId to know if it customer or freelancer            --Done
-         * send email to the 3 party (customer , freelancer , admins)               ***
          * create Dispute object            --Done
+         * send email to the 3 party (customer , freelancer , admins)               ***
          */
 
         var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken = default);
