@@ -121,5 +121,5 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
         var result = await _service.UpdatePortfolioItem(User.GetUserId(), itemId, request);
         return result.Respond();
     }
-   
+
 }

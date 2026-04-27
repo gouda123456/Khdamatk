@@ -165,12 +165,19 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status200OK, "Added successfully");
     }
 
-    /// Adds educational background details to the provider's profile.
     public async Task<resultBase> AddEducation(string userId, AddEducationRequest request)
     {
         var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
+        // 1. بندور على أي سجلات تعليم قديمة للمستخدم ده ونمسحها الأول
+        var oldEducation = db.PortfolioItems.Where(p => p.ServiceProviderProfileId == userId);
+        if (oldEducation.Any())
+        {
+            db.PortfolioItems.RemoveRange(oldEducation);
+        }
+
+        // 2. بنضيف السجل الجديد اللي جاي في الـ Request
         var education = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
             ServiceProviderProfileId = userId,
@@ -183,8 +190,11 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         };
 
         await db.PortfolioItems.AddAsync(education);
+
+        // 3. بنحفظ التغييرات (المسح والإضافة بيحصلوا في خطوة واحدة)
         await db.SaveChangesAsync();
-        return Success(StatusCodes.Status201Created, "Education added successfully");
+
+        return Success(StatusCodes.Status201Created, "Education updated successfully");
     }
 
     /// Adds work experience records to the provider's profile.
