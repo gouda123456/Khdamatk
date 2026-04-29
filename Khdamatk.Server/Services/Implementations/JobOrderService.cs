@@ -853,6 +853,49 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         return Success(StatusCodes.Status200OK, "Rejected", "Order has been rejected.");
     }
+    // 1. تجيب أوردر واحد محدد
+    public async Task<resultBase> GetOrderById(int id, string userId)
+    {
+        var order = await db.JobOrders
+    .Where(o => o.Id == id && (o.CustomerId == userId || o.ServiceProviderId == userId))
+    .Select(o => new OrderResponse(
+        o.Id,
+        o.Job.Title,             // ✅ صح: بنجيبها من جدول الـ Job المرتبط
+        o.Job.Description,       // ✅ صح: بنجيبها من جدول الـ Job المرتبط
+        o.Amount,                // ✅ صح: في الـ Entity عندك اسمها Amount
+        o.Status.ToString(),
+        o.CreatedAt,             // تأكد إن الاسم ده موجود في OrderBase
+        o.ServiceProviderProfile.User.UserName, // ✅ صح: الاسم اللي في الـ Entity
+        o.Customer.UserName      // ✅ صح: اسم العميل
+    ))
+    .FirstOrDefaultAsync();
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Order not found");
+
+        return Success(StatusCodes.Status200OK, order);
+    }
+
+    // 2. تجيب كل أوردرات المستخدم
+    public async Task<resultBase> GetUserOrders(string userId)
+    {
+        var orders = await db.JobOrders
+            .Where(o => o.CustomerId == userId || o.ServiceProviderId == userId)
+            .OrderByDescending(o => o.Id) // ترتيب حسب الأحدث
+            .Select(o => new OrderResponse(
+                o.Id,
+                o.Job.Title,
+                o.Job.Description,
+                o.Amount,
+                o.Status.ToString(),
+                o.CreatedAt,
+                o.ServiceProviderProfile.User.UserName,
+                o.Customer.UserName
+            ))
+            .ToListAsync();
+
+        return Success(StatusCodes.Status200OK, orders);
+    }
 
     private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken = default)
         => await db.JobPosts.AnyAsync(j => j.Id == JobId, cancellationToken: cancellationToken);

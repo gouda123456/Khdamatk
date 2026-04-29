@@ -66,3 +66,18 @@ public record CreateJobOrderRequest(
     int OfferId
 );
 
+public record OrderResponse(
+    int Id,
+    string OrderTitle,       // استعملت OrderTitle بدل Title عشان الأرور اللي كان عندك
+    string OrderDescription, // استعملت OrderDescription بدل Description عشان الأرور
+    decimal Budget,
+    string Status,           // الحالة (Pending, Accepted, etc.)
+    DateTime CreatedAt,
+    string ProviderName,     // اسم مقدم الخدمة
+    string CustomerName      // اسم العميل
+);
+public record OrderFiltersRequest(
+    string? Status, // فلتر بحالة الأوردر
+    int PageNumber = 1,
+    int PageSize = 10
+);

@@ -49,6 +49,11 @@ public interface IJobOrderService
 
     // 3. رفض الطلب من طرف الـ Freelancer
     Task<resultBase> RejectOrderAsync(int orderId, string freelancerId, CancellationToken cancellationToken = default);
+    // 1. الميثود الخاصة بجلب أوردر واحد محدد
+    Task<resultBase> GetOrderById(int id, string userId);
+
+    // 2. الميثود الخاصة بجلب كل أوردرات المستخدم
+    Task<resultBase> GetUserOrders(string userId);
 
 }
 

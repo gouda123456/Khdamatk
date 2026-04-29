@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Climate;
 
 namespace Khdamatk.Server.Controllers.V1;
 
@@ -177,13 +178,25 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
 
         return result.IsSuccess ? Ok(result) : BadRequest(result);
 
+    }
 
+    // 1. تجيب كل أوردرات المستخدم (My Orders)
+    [HttpGet("my-orders")]
+    public async Task<IActionResult> GetOrders()
+    {
+        // بنجيب الـ UserId من الـ Claims بتاعة الـ Token
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await jobOrderService.GetUserOrders(userId);
+        return result.Respond(); // تأكد إن عندك Extension Method اسمها Respond بتتعامل مع resultBase
+    }
 
-
-
-
-
-
+    // 2. تجيب أوردر واحد محدد بالـ ID
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrder(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await jobOrderService.GetOrderById(id, userId);
+        return result.Respond();
     }
 }
 
