@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.Migrations
+namespace Khdamatk.Server.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260425195117_AddJobOrderAndFixStatus")]
-    partial class AddJobOrderAndFixStatus
+    [Migration("20260430165558_InitialCreate2")]
+    partial class InitialCreate2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,12 +56,12 @@ namespace Khdamatk.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -86,11 +86,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("YearAcquired")
                         .HasColumnType("int");
@@ -399,12 +399,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<DateTime>("CompletionDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Degree")
                         .IsRequired()
@@ -444,11 +444,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -511,12 +511,12 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("DeliveryTimeInDays")
                         .HasColumnType("int");
@@ -554,11 +554,11 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("TotalReviews")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1144,12 +1144,12 @@ namespace Khdamatk.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -1161,11 +1161,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -1197,14 +1197,14 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CustomerId")
                         .IsRequired()
@@ -1230,11 +1230,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1267,12 +1267,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<decimal>("AmountUnderDispute")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("FinalDecisionDetails")
                         .HasColumnType("nvarchar(max)");
@@ -1323,11 +1323,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1366,14 +1366,14 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("ConversationId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -1385,11 +1385,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1413,12 +1413,12 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
@@ -1436,9 +1436,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int?>("ServiceOrderId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ServiceOrderId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("ServiceProviderId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -1448,11 +1445,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1465,10 +1462,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("ServiceOrderId")
                         .IsUnique()
                         .HasFilter("[ServiceOrderId] IS NOT NULL");
-
-                    b.HasIndex("ServiceOrderId1")
-                        .IsUnique()
-                        .HasFilter("[ServiceOrderId1] IS NOT NULL");
 
                     b.HasIndex("ServiceProviderId");
 
@@ -1483,12 +1476,12 @@ namespace Khdamatk.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -1500,11 +1493,11 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("JobOrderId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1530,12 +1523,12 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("ConversationId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Createdat")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("CustomerId")
                         .IsRequired()
@@ -1573,11 +1566,11 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1619,18 +1612,24 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<DateTime?>("CompletionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("Createdat")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("DisputeId")
+                        .HasColumnType("int");
 
                     b.Property<long?>("InvoiceId")
                         .HasColumnType("bigint");
@@ -1644,6 +1643,9 @@ namespace Khdamatk.Server.Data.Migrations
                     b.Property<int>("PaymentTransactionId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ReviewId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ServiceID")
                         .HasColumnType("int");
 
@@ -1655,18 +1657,24 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Updatedat")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
 
                     b.HasIndex("CustomerId");
 
+                    b.HasIndex("DisputeId");
+
                     b.HasIndex("PaymentTransactionId")
                         .IsUnique();
+
+                    b.HasIndex("ReviewId");
 
                     b.HasIndex("ServiceID");
 
@@ -2258,8 +2266,8 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "ServiceOrder")
-                        .WithOne("Conversation")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Conversation", "ServiceOrderId")
+                        .WithMany()
+                        .HasForeignKey("ServiceOrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
@@ -2364,10 +2372,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "ServiceOrderId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", null)
-                        .WithOne("Review")
-                        .HasForeignKey("Khdamatk.Server.Data.Entities.Interaction.Review", "ServiceOrderId1");
-
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", "ServiceProvider")
                         .WithMany("Reviews")
                         .HasForeignKey("ServiceProviderId")
@@ -2460,15 +2464,31 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
                 {
+                    b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Conversation", "Conversation")
+                        .WithMany()
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Khdamatk.Server.Data.Entities.Identity.User", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Dispute", "Dispute")
+                        .WithMany()
+                        .HasForeignKey("DisputeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Khdamatk.Server.Data.Entities.Financial.PaymentTransaction", "PaymentTransaction")
                         .WithOne("ServiceOrder")
                         .HasForeignKey("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", "PaymentTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Khdamatk.Server.Data.Entities.Interaction.Review", "Review")
+                        .WithMany()
+                        .HasForeignKey("ReviewId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Khdamatk.Server.Data.Entities.Catalog.Service", "Service")
@@ -2483,9 +2503,15 @@ namespace Khdamatk.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Conversation");
+
                     b.Navigation("Customer");
 
+                    b.Navigation("Dispute");
+
                     b.Navigation("PaymentTransaction");
+
+                    b.Navigation("Review");
 
                     b.Navigation("Service");
 
@@ -2667,12 +2693,7 @@ namespace Khdamatk.Server.Data.Migrations
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Operations.ServiceOrder", b =>
                 {
-                    b.Navigation("Conversation")
-                        .IsRequired();
-
                     b.Navigation("MediaAttachments");
-
-                    b.Navigation("Review");
                 });
 #pragma warning restore 612, 618
         }

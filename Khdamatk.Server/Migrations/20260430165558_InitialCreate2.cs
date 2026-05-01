@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace Khdamatk.Server.Data.Migrations
+namespace Khdamatk.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -379,9 +379,9 @@ namespace Khdamatk.Server.Data.Migrations
                     Value = table.Column<int>(type: "int", nullable: false),
                     IsUsed = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -449,9 +449,9 @@ namespace Khdamatk.Server.Data.Migrations
                     Company = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -503,9 +503,9 @@ namespace Khdamatk.Server.Data.Migrations
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     YearAcquired = table.Column<int>(type: "int", nullable: false),
                     MediaId = table.Column<int>(type: "int", nullable: true),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -534,9 +534,9 @@ namespace Khdamatk.Server.Data.Migrations
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContextType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -567,9 +567,9 @@ namespace Khdamatk.Server.Data.Migrations
                     SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -628,9 +628,9 @@ namespace Khdamatk.Server.Data.Migrations
                     IsDecisionAcceptedByTarget = table.Column<bool>(type: "bit", nullable: true),
                     OpenedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ResolutionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -677,9 +677,9 @@ namespace Khdamatk.Server.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     JobOrderId = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -739,9 +739,9 @@ namespace Khdamatk.Server.Data.Migrations
                     ReviewId = table.Column<int>(type: "int", nullable: true),
                     ConversationId = table.Column<int>(type: "int", nullable: false),
                     DisputeId = table.Column<int>(type: "int", nullable: true),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -971,9 +971,9 @@ namespace Khdamatk.Server.Data.Migrations
                     ServiceProviderProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     MainMediaId = table.Column<int>(type: "int", nullable: true),
                     Concepts = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -1025,57 +1025,6 @@ namespace Khdamatk.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ServiceOrders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ServiceID = table.Column<int>(type: "int", nullable: false),
-                    CompletionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    AdditionalDetails = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ServiceProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PaymentTransactionId = table.Column<int>(type: "int", nullable: false),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsDelete = table.Column<bool>(type: "bit", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InvoiceId = table.Column<long>(type: "bigint", nullable: true),
-                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ServiceOrders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ServiceOrders_AspNetUsers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ServiceOrders_PaymentTransactions_PaymentTransactionId",
-                        column: x => x.PaymentTransactionId,
-                        principalTable: "PaymentTransactions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ServiceOrders_ServiceProviderProfiles_ServiceProviderId",
-                        column: x => x.ServiceProviderId,
-                        principalTable: "ServiceProviderProfiles",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ServiceOrders_Services_ServiceID",
-                        column: x => x.ServiceID,
-                        principalTable: "Services",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserFavorites",
                 columns: table => new
                 {
@@ -1119,10 +1068,9 @@ namespace Khdamatk.Server.Data.Migrations
                     ServiceProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ServiceOrderId = table.Column<int>(type: "int", nullable: true),
                     JobOrderId = table.Column<int>(type: "int", nullable: true),
-                    ServiceOrderId1 = table.Column<int>(type: "int", nullable: true),
-                    Createdat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Updatedat = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -1142,21 +1090,82 @@ namespace Khdamatk.Server.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Reviews_ServiceOrders_ServiceOrderId",
-                        column: x => x.ServiceOrderId,
-                        principalTable: "ServiceOrders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Reviews_ServiceOrders_ServiceOrderId1",
-                        column: x => x.ServiceOrderId1,
-                        principalTable: "ServiceOrders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_Reviews_ServiceProviderProfiles_ServiceProviderId",
                         column: x => x.ServiceProviderId,
                         principalTable: "ServiceProviderProfiles",
                         principalColumn: "UserId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceOrders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ServiceID = table.Column<int>(type: "int", nullable: false),
+                    CompletionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AdditionalDetails = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ServiceProviderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PaymentTransactionId = table.Column<int>(type: "int", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: true),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    DisputeId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDelete = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InvoiceId = table.Column<long>(type: "bigint", nullable: true),
+                    InvoiceKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_AspNetUsers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Disputes_DisputeId",
+                        column: x => x.DisputeId,
+                        principalTable: "Disputes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_PaymentTransactions_PaymentTransactionId",
+                        column: x => x.PaymentTransactionId,
+                        principalTable: "PaymentTransactions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_ServiceProviderProfiles_ServiceProviderId",
+                        column: x => x.ServiceProviderId,
+                        principalTable: "ServiceProviderProfiles",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceOrders_Services_ServiceID",
+                        column: x => x.ServiceID,
+                        principalTable: "Services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -1530,13 +1539,6 @@ namespace Khdamatk.Server.Data.Migrations
                 filter: "[ServiceOrderId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_ServiceOrderId1",
-                table: "Reviews",
-                column: "ServiceOrderId1",
-                unique: true,
-                filter: "[ServiceOrderId1] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_ServiceProviderId",
                 table: "Reviews",
                 column: "ServiceProviderId");
@@ -1547,15 +1549,30 @@ namespace Khdamatk.Server.Data.Migrations
                 column: "MediaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_ConversationId",
+                table: "ServiceOrders",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ServiceOrders_CustomerId",
                 table: "ServiceOrders",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_DisputeId",
+                table: "ServiceOrders",
+                column: "DisputeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ServiceOrders_PaymentTransactionId",
                 table: "ServiceOrders",
                 column: "PaymentTransactionId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOrders_ReviewId",
+                table: "ServiceOrders",
+                column: "ReviewId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ServiceOrders_ServiceID",
@@ -1759,6 +1776,14 @@ namespace Khdamatk.Server.Data.Migrations
                 principalTable: "ServiceOrders",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Reviews_ServiceOrders_ServiceOrderId",
+                table: "Reviews",
+                column: "ServiceOrderId",
+                principalTable: "ServiceOrders",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
@@ -1852,6 +1877,18 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "FK_Reviews_JobOrders_JobOrderId",
                 table: "Reviews");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Conversations_ServiceOrders_ServiceOrderId",
+                table: "Conversations");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Disputes_ServiceOrders_ServiceOrderId",
+                table: "Disputes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Reviews_ServiceOrders_ServiceOrderId",
+                table: "Reviews");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -1940,16 +1977,7 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "JobOrders");
 
             migrationBuilder.DropTable(
-                name: "Disputes");
-
-            migrationBuilder.DropTable(
                 name: "JobOffers");
-
-            migrationBuilder.DropTable(
-                name: "Reviews");
-
-            migrationBuilder.DropTable(
-                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "JobPosts");
@@ -1958,10 +1986,19 @@ namespace Khdamatk.Server.Data.Migrations
                 name: "ServiceOrders");
 
             migrationBuilder.DropTable(
+                name: "Disputes");
+
+            migrationBuilder.DropTable(
                 name: "PaymentTransactions");
 
             migrationBuilder.DropTable(
+                name: "Reviews");
+
+            migrationBuilder.DropTable(
                 name: "Services");
+
+            migrationBuilder.DropTable(
+                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "CreditCards");

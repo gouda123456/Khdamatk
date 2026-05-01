@@ -11,7 +11,6 @@ public abstract class OrderBase : BaseEntity
     [Range(1, 100_000_000)]
     public decimal Amount { get; set; } // المبلغ الكلي المتفق عليه (قد يتضمن ضرائب ورسوم)
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
 
 

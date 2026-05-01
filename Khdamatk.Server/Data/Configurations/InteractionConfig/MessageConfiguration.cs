@@ -20,7 +20,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
                .OnDelete(DeleteBehavior.Cascade); // حذف الرسائل إذا حُذفت المحادثة
 
         // 4. تأكيد على الوقت
-        builder.Property(m => m.Createdat) // أو الخاصية التي ورثتها
+        builder.Property(m => m.CreatedAt) // أو الخاصية التي ورثتها
                 .HasDefaultValueSql("GETUTCDATE()");
     }
 }

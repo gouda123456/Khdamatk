@@ -8,7 +8,7 @@ public class ServiceOrderConfiguration : IEntityTypeConfiguration<ServiceOrder>
     {
         
 
-        builder.Property(uf => uf.Createdat)
+        builder.Property(uf => uf.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
 
         builder.HasOne(uf => uf.Customer)

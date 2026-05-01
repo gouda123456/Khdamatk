@@ -684,9 +684,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         (userId == c.CustomerId) ? c.Customer.UserName : c.ServiceProviderProfile.User.UserName,
         (userId == c.CustomerId) ? c.Customer.ProfilePicture.FullPath : c.ServiceProviderProfile.User.ProfilePicture.FullPath,
         c.Job.Title,
-        c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Content : "",
-                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Createdat : DateTime.MinValue,
-                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.IsRead : true
+        c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.Content : "",
+                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.CreatedAt : DateTime.MinValue,
+                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.IsRead : true
                  )
                 ).ToListAsync(cancellationToken: cancellationToken);
             
@@ -706,7 +706,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             (UserId != order.CustomerId)? order.CustomerId : order.ServiceProviderId,
             (UserId != order.CustomerId)? order.Customer.UserName : order.ServiceProviderProfile.User.UserName, 
             (UserId != order.CustomerId)? order.Customer.ProfilePicture.FullPath : order.ServiceProviderProfile.User.ProfilePicture.FullPath,
-            order.Conversation.Messages.Select(m => new ConversationMessageResponse(m.Id, m.Content, m.SenderId, m.Createdat)).ToList()
+            order.Conversation.Messages.Select(m => new ConversationMessageResponse(m.Id, m.Content, m.SenderId, m.CreatedAt)).ToList()
             );
 
 
