@@ -2,6 +2,7 @@ using Khdamatk.Server;
 using Khdamatk.Server.MiddleWares;
 using Khdamatk.Server.Services;
 using Scalar.AspNetCore;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDependancyInjections(builder.Configuration);
 
-
+builder.Services.AddControllers().AddJsonOptions(options => {
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 
 
 var app = builder.Build();

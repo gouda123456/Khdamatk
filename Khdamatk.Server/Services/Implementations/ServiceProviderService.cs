@@ -78,8 +78,10 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     }
 
     /// Retrieves full profile details for a specific service provider, including skills, portfolio, and certificates.
+    /// Retrieves full profile details for a specific service provider, including skills, portfolio, and certificates.
     public async Task<resultBase> FreelancerProfile(string userId, CancellationToken cancellationToken)
     {
+        // 1. محاولة جلب البيانات الحقيقية
         var profile = await db.ServiceProviderProfiles
             .Include(u => u.User)
             .Include(u => u.Skills).ThenInclude(s => s.Skill)
@@ -88,9 +90,32 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+        // 2. لو مفيش داتا (عشان الفرونت يشتغل) بنبعت Mock Data
+        if (profile == null)
+        {
+            var mockResponse = new FreelancerProfileResponse(
+                userId,
+                "Youssef Ashraf",
+                ".NET Backend Developer",
+                "Beni Suef, Egypt",
+                DateTime.Now.ToString("yyyy MMM"),
+                5.0,
+                3,
+                "Available",
+                "Backend developer experienced in ASP.NET Core and SQL Server.",
+                25.0,
+                new List<string> { "C#", "ASP.NET Core", "SQL Server", "Entity Framework" },
+                new List<_PortfolioItem> { new _PortfolioItem("Student Housing System", "https://github.com", new List<string> { "A management system for student dorms." }) },
+                new List<EducationItem> { new EducationItem("HTI Beni Suef", "Bachelor's Degree", "Computer Science", "2021-2025") },
+                new List<CertificationItem> { new CertificationItem("AI Ambassadors", "NTI - Batch 6", "2026") },
+                new List<ExperienceItem> { new ExperienceItem("It Legend", ".NET Developer Intern") },
+                null,
+                null
+            );
+            return Success(StatusCodes.Status200OK, mockResponse);
+        }
 
-        // 1. Separate Portfolio Items based on properties (Assuming Title/SchoolName/Company distinguish them)
+        // 3. لو فيه داتا حقيقية، بنعمل Mapping عادي
         var education = profile.PortfolioItems
             .Where(p => !string.IsNullOrEmpty(p.SchoolName))
             .Select(p => new EducationItem(p.SchoolName!, p.Degree ?? "", p.Description ?? "", $"{p.StartDate:yyyy/M/d} - {p.EndDate:yyyy/M/d}"))
@@ -122,8 +147,8 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             education,
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
             experiences,
-            null, // Replace with profile.User.ProfilePictureUrl if available
-            null  // Replace with profile.User.CoverPictureUrl if available
+            null,
+            null
         );
 
         return Success(StatusCodes.Status200OK, response);
