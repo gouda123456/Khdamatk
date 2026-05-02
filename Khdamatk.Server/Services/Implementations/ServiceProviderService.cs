@@ -90,29 +90,65 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-        // 2. لو مفيش داتا (عشان الفرونت يشتغل) بنبعت Mock Data
+        // 2. لو مفيش داتا (عشان الفرونت يشتغل) بنبعت Mock Data بناءً على الـ ID
         if (profile == null)
         {
-            var mockResponse = new FreelancerProfileResponse(
-                userId,
-                "Youssef Ashraf",
-                ".NET Backend Developer",
-                "Beni Suef, Egypt",
-                DateTime.Now.ToString("yyyy MMM"),
-                5.0,
-                3,
-                "Available",
-                "Backend developer experienced in ASP.NET Core and SQL Server.",
-                25.0,
-                new List<string> { "C#", "ASP.NET Core", "SQL Server", "Entity Framework" },
-                new List<_PortfolioItem> { new _PortfolioItem("Student Housing System", "https://github.com", new List<string> { "A management system for student dorms." }) },
-                new List<EducationItem> { new EducationItem("HTI Beni Suef", "Bachelor's Degree", "Computer Science", "2021-2025") },
-                new List<CertificationItem> { new CertificationItem("AI Ambassadors", "NTI - Batch 6", "2026") },
-                new List<ExperienceItem> { new ExperienceItem("It Legend", ".NET Developer Intern") },
-                null,
-                null
-            );
-            return Success(StatusCodes.Status200OK, mockResponse);
+            if (userId == "1") // Mock Data لأمنية صلاح
+            {
+                var mockOmnia = new FreelancerProfileResponse1(
+                    "1",
+                    "Omnia Salah",
+                    "UI/UX Designer",
+                    "Cairo, Egypt",
+                    DateTime.Now.ToString("yyyy MMM"),
+                    4.8,
+                    2,
+                    "Available",
+                    "Specialized in creating user-centric designs and wireframes.",
+                    350.0,
+                    new List<SkillDto> {
+                    new SkillDto(1, "UI"),
+                    new SkillDto(2, "UX"),
+                    new SkillDto(3, "Figma"),
+                    new SkillDto(4, "Adobe XD")
+                    },
+                    new List<_PortfolioItem> { new _PortfolioItem("E-commerce App", "https://behance.net", new List<string> { "Full UI kit for a shopping app." }) },
+                    new List<EducationItem> { new EducationItem("Faculty of Applied Arts", "Bachelor's Degree", "Design", "2020-2024") },
+                    new List<CertificationItem> { new CertificationItem("Google UX Design", "Coursera", "2025") },
+                    new List<ExperienceItem> { new ExperienceItem("Design Agency", "Junior Designer") },
+                    null,
+                    null
+                );
+                return Success(StatusCodes.Status200OK, mockOmnia);
+            }
+            else // Mock Data ليوسف أشرف (الافتراضي)
+            {
+                var mockYoussef = new FreelancerProfileResponse1(
+                    userId,
+                    "Youssef Ashraf",
+                    ".NET Backend Developer",
+                    "Beni Suef, Egypt",
+                    DateTime.Now.ToString("yyyy MMM"),
+                    5.0,
+                    3,
+                    "Available",
+                    "Backend developer experienced in ASP.NET Core and SQL Server.",
+                    500.0,
+                    new List<SkillDto> {
+                    new SkillDto(5, "C#"),
+                    new SkillDto(6, "ASP.NET Core"),
+                    new SkillDto(7, "SQL Server"),
+                    new SkillDto(8, "React")
+                    },
+                    new List<_PortfolioItem> { new _PortfolioItem("Shipping System", "https://github.com", new List<string> { "A real-time tracking web system." }) },
+                    new List<EducationItem> { new EducationItem("HTI Beni Suef", "Bachelor's Degree", "Computer Science", "2021-2025") },
+                    new List<CertificationItem> { new CertificationItem("AI Ambassadors", "NTI - Batch 6", "2026") },
+                    new List<ExperienceItem> { new ExperienceItem("Talabeyah", "Sales Representative") },
+                    null,
+                    null
+                );
+                return Success(StatusCodes.Status200OK, mockYoussef);
+            }
         }
 
         // 3. لو فيه داتا حقيقية، بنعمل Mapping عادي
@@ -131,7 +167,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .Select(p => new _PortfolioItem(p.Title, p.ProjectUrl, new List<string> { p.Description ?? "" }))
             .ToList();
 
-        var response = new FreelancerProfileResponse(
+        var response = new FreelancerProfileResponse1(
             profile.UserId,
             profile.User.UserName ?? "Unknown",
             profile.JobTitle,
@@ -142,13 +178,13 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             "Flexible hours",
             profile.Bio ?? "",
             (double)profile.HourlyRate,
-            profile.Skills.Select(s => s.Skill.Name).ToList(),
+            profile.Skills.Select(s => new SkillDto(s.SkillId, s.Skill.Name)).ToList(), // تحويل السكيلز لـ DTO
             portfolio,
             education,
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
             experiences,
-            null,
-            null
+            profile.FacebookUrl,
+            profile.GithubUrl
         );
 
         return Success(StatusCodes.Status200OK, response);

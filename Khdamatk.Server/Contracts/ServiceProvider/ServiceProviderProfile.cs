@@ -41,6 +41,27 @@ public record AddExperienceRequest(
 public record UpdateSkillsRequest(
     List<int> SkillIds
 );
+public record SkillDto(int Id, string Name);
+
+public record FreelancerProfileResponse1(
+    string UserId,
+    string Name,
+    string JobTitle,
+    string Location,
+    string MemberSince,
+    double Rating,
+    int ExperienceYears,
+    string Availability,
+    string Bio,
+    double HourlyRate,
+    List<SkillDto> Skills,
+    List<_PortfolioItem> Portfolio,
+    List<EducationItem> Education,
+    List<CertificationItem> Certifications,
+    List<ExperienceItem> Experiences,
+    string? FacebookUrl,
+    string? GithubUrl
+); 
 public record AddCertificateRequest(
     string Title,
     string Issuer,
