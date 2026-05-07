@@ -48,7 +48,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         var providers = await query
             .Select(u => new FreelancerCards(
                 u.UserId,
-                u.User.ProfilePictureId,
+                u.User.ProfilePicture.FullPath,
                 u.User.UserName ?? "Unknown",
                 u.JobTitle,
                 (double)u.HourlyRate,
@@ -61,8 +61,8 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         {
             providers = new List<FreelancerCards>
             {
-                new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
-                new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" })
+                new FreelancerCards("1", "101", "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
+                new FreelancerCards("2", "102", "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" })
             };
 
             if (servicesSidebar.Count < 1)

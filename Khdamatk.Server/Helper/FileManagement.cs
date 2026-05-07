@@ -1,29 +1,53 @@
 ﻿
 namespace Khdamatk.Server.Helper;
 
-public class FileManagement(IWebHostEnvironment hostEnvironment) : IFileManagement
+public static class FileManagement
 {
-    private readonly IWebHostEnvironment hostEnvironment = hostEnvironment;
+    public static IWebHostEnvironment hostEnvironment;
 
-    private readonly string MediaPath = Path.Combine(hostEnvironment.WebRootPath, "Images");
+    private static string MediaPath;
 
-    public Task DeleteFileAsync(string filePath)
+    public static void enableFileManagement(IWebHostEnvironment env)
+    {
+        hostEnvironment = env;
+        MediaPath = Path.Combine(hostEnvironment.WebRootPath, "Uploads");
+        if (!Directory.Exists(MediaPath))
+        {
+            Directory.CreateDirectory(MediaPath);
+        }
+    }
+
+    public static Task DeleteFileAsync(string filePath)
     {
         throw new NotImplementedException();
     }
 
-    public Task<byte[]> DownloadFileAsync(string filePath)
+    public static byte[] DownloadFileAsyncByteVersion(this Media media)
     {
-        throw new NotImplementedException();
+        if (media == null)
+            return Array.Empty<byte>();
+
+        var filePath = Path.Combine(MediaPath, media.FileName);
+
+        var fileBytes = File.ReadAllBytes(filePath);
+
+        return fileBytes;
     }
 
-    public async Task<int> UploadFileAsync(IFormFile file)
+    public static string DownloadFileAsyncPathVersion(this Media media)
+    {
+        return Path.Combine(MediaPath, media.FileName);
+    }
+
+    public static async Task<Media> UploadFileAsync(IFormFile file)
     {
         var media = new Media()
         {
             FileName = file.FileName,
             ContentType = file.ContentType,
-            Size = file.Length
+            Size = file.Length,
+            FileExtension = Path.GetExtension(file.FileName)
+            
         };
 
         var filePath = Path.Combine(MediaPath, media.FileName);
@@ -33,6 +57,6 @@ public class FileManagement(IWebHostEnvironment hostEnvironment) : IFileManageme
         }
 
 
-        return media.Id;
+        return media;
     }
 }

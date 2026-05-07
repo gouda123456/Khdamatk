@@ -22,7 +22,7 @@ public class AdminDashboardService(Database db) : IAdminDashboardSerivce
         var recentUsers = await db.Users
             .OrderByDescending(u => u.CreatedAt)
             .Take(4)
-            .Select(u => new RecentUserDto(u.FullName, u.Role, u.CreatedAt, null))
+            .Select(u => new RecentUserDto(u.FullName, u.Role, u.CreatedAt, u.ProfilePicture.FullPath))
             .ToListAsync(ct);
 
         // هنا استخدمنا ClientName كبديل لـ ReporterName بناءً على الكلاس بتاعك

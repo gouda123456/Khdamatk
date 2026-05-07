@@ -302,10 +302,10 @@ public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) 
             order.Service.Title,
             UserId,
             (UserId == order.CustomerId) ? order.Customer.UserName : order.ServiceProviderProfile.User.UserName,
-            (UserId == order.CustomerId) ? order.Customer.ProfilePicture.FullPath : order.ServiceProviderProfile.User.ProfilePicture.FullPath,
+            (UserId == order.CustomerId) ? order.Customer.ProfilePicture.DownloadFileAsyncPathVersion() : order.ServiceProviderProfile.User.ProfilePicture.DownloadFileAsyncPathVersion(),
             (UserId != order.CustomerId) ? order.CustomerId : order.ServiceProviderId,
             (UserId != order.CustomerId) ? order.Customer.UserName : order.ServiceProviderProfile.User.UserName,
-            (UserId != order.CustomerId) ? order.Customer.ProfilePicture.FullPath : order.ServiceProviderProfile.User.ProfilePicture.FullPath,
+            (UserId != order.CustomerId) ? order.Customer.ProfilePicture.DownloadFileAsyncPathVersion() : order.ServiceProviderProfile.User.ProfilePicture.DownloadFileAsyncPathVersion(),
             order.Conversation.Messages.Select(m => new ConversationMessageResponse(m.Id, m.Content, m.SenderId, m.Createdat)).ToList()
             );
 

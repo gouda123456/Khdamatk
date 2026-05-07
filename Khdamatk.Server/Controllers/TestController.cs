@@ -97,5 +97,20 @@ public class TestController : ControllerBase
         return Ok(response);
     }
 
-    
+    [HttpGet("test-file-Download")]
+    public async Task<IActionResult> TestFileDownload([FromServices] Database db)
+    {
+        var media = db.Medias.FirstOrDefault();
+        var path = media.FullPath;
+        return Ok(path);
+    }
+
+    [HttpPost("test-file-upload")]
+    public async Task<IActionResult> TestFileUploadPost([FromServices] Database db, IFormFile file)
+    {
+        var media = await FileManagement.UploadFileAsync(file);
+        db.Medias.Add(media);
+        await db.SaveChangesAsync();
+        return Ok(media);
+    }
 }

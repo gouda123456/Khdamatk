@@ -10,8 +10,7 @@ public class Media
     public string? ContentType { get; init; }
     public string FileExtension { get; set; } = string.Empty;
     public long Size { get; init; }
-
-    public string FullPath { get; init; } = string.Empty;
+    public string FullPath => this.DownloadFileAsyncPathVersion();
 
 
 }

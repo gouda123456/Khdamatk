@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDependancyInjections(builder.Configuration);
 
-
+FileManagement.enableFileManagement(builder.Environment);
 
 
 var app = builder.Build();
