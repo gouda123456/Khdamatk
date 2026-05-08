@@ -215,6 +215,8 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         profile.Bio = request.Bio;
         profile.HourlyRate = (double)request.HourlyRate;
         profile.ExperienceYears = request.ExperienceYears;
+        profile.ProfileImageUrl = request.ProfileImageUrl;
+        profile.CoverImageUrl = request.CoverImageUrl;
         profile.FacebookUrl = request.FacebookUrl;
         profile.LinkedInUrl = request.LinkedInUrl;
         profile.GithubUrl = request.GithubUrl;

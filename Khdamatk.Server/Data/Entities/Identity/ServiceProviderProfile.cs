@@ -49,7 +49,8 @@ public class ServiceProviderProfile
     public double HourlyRate { get; set; } = 1;
 
     public int AverageResponseTime { get; set; } = 0; // بالساعة
-
+    public string? ProfileImageUrl { get; set; }
+    public string? CoverImageUrl { get; set; }
     // --- العلاقات ---
     public virtual ICollection<ProviderSkill> Skills { get; set; } = [];
     public virtual ICollection<Service> Services { get; set; } = [];

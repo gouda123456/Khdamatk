@@ -37,7 +37,6 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
     [HttpPut("update-basic-info")]
     public async Task<IActionResult> UpdateInfo(UpdateProfileRequest request)
     {
-        // استخدم نفس الـ ID اللي حطيناه في السكريبت فوق بالظبط
         var userId = "1";
 
         var result = await _service.UpdateProfileBasicInfo(userId, request);

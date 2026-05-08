@@ -30,8 +30,9 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     {
         // سيتم تحويل أي Enum في أي Entity إلى String في قاعدة البيانات تلقائياً
         configurationBuilder
-            .Properties<Enum>()
+            .Properties<string>()
             .HaveConversion<string>();
+
     }
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

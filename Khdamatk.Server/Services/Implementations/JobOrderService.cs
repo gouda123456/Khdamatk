@@ -9,6 +9,7 @@ namespace Khdamatk.Server.Services.Implementations;
 public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env,IOptions<ClientSetting> options) : IJobOrderService
 {
     private readonly Database db = db;
+    private readonly IMapper _mapper;
     private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
     private readonly IWebHostEnvironment env = env;
     private readonly ClientSetting clientSetting = options.Value;
@@ -895,6 +896,138 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             .ToListAsync();
 
         return Success(StatusCodes.Status200OK, orders);
+    }
+
+    ///////////s////////
+
+
+    // 1. الحصول على قائمة الخدمات مع البحث والفلترة (GetServices)
+    public async Task<resultBase> GetServices(GetServicesRequest request, CancellationToken ct)
+    {
+        // بناء الاستعلام الأساسي (IQueryable) لضمان الأداء
+        var query = db.Services
+            .Include(s => s.Category)
+            .Include(s => s.ServiceProviderProfile)
+                .ThenInclude(p => p.User) // للوصول لاسم الشخص من جدول AspNetUsers
+            .Where(s => !s.IsDelete)
+            .AsNoTracking() // تحسين أداء القراءة
+            .AsQueryable();
+
+        // منطق البحث: لو اليوزر بعت SearchTerm، بيبحث في العنوان والـ Concepts
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var search = request.SearchTerm.Trim().ToLower();
+            query = query.Where(s => s.Title.Contains(search)
+                      || (s.Concepts != null && s.Concepts.Contains(search)));
+        }
+
+        // منطق الفلترة (اختياري حسب الـ Request)
+        if (request.CategoryId.HasValue)
+            query = query.Where(s => s.CategoryId == request.CategoryId);
+
+        if (request.MinPrice.HasValue)
+            query = query.Where(s => s.Price >= request.MinPrice);
+
+        if (request.MaxPrice.HasValue)
+            query = query.Where(s => s.Price <= request.MaxPrice);
+
+        // تنفيذ الاستعلام وتحويله لـ List من الـ Response Contract المختصر
+        var services = await query
+            .Select(s => new ServiceSummaryResponse(
+                s.Id,
+                s.Title,
+                s.ShortDescription,
+                s.Price,
+                s.AverageRating,
+                s.TotalReviews,
+                s.Category.Name,
+                s.ServiceProviderProfile.User.FullName
+            ))
+            .ToListAsync(ct);
+
+        return Success(StatusCodes.Status200OK, services);
+    }
+
+    // 2. الحصول على خدمة واحدة بكامل تفاصيلها (GetService)
+    public async Task<resultBase> GetServiceById(int id, CancellationToken ct)
+    {
+        var service = await db.Services
+            .Include(s => s.Category)
+            .Include(s => s.ServiceProviderProfile)
+                .ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(s => s.Id == id && !s.IsDelete, ct);
+
+        if (service == null)
+            return Failure(StatusCodes.Status404NotFound, "Error","Service not found.");       
+        var response = _mapper.Map<OrderServiceDetailsResponse>(service);
+        return Success(StatusCodes.Status200OK, response);
+    }
+
+    // 3. إضافة خدمة جديدة (AddService) - Manual Mapping
+    public async Task<resultBase> AddService(AddServiceRequest1 request, CancellationToken ct)
+    {
+        // بنحول الـ Request لـ Entity يدويًا عشان نتجنب الـ Null Mapper
+        var service = new Service
+        {
+            Title = request.Title,
+            ShortDescription = request.ShortDescription,
+            DetailedDescription = request.DetailedDescription,
+            Price = request.Price,
+            DeliveryTimeInDays = request.DeliveryTimeInDays,
+            CategoryId = request.CategoryId,
+            ServiceProviderProfileId = request.ServiceProviderProfileId,
+
+            // تعيين القيم التلقائية
+            CreatedAt = DateTime.UtcNow,
+            IsDelete = false,
+            //IsActive = true, // مهمة جدًا عشان الأيرور اللي ظهرلك في الداتابيز
+            AverageRating = 0,
+            TotalReviews = 0
+        };
+
+        try
+        {
+            await db.Services.AddAsync(service, ct);
+            await db.SaveChangesAsync(ct); // دي اللحظة اللي كنت واقف عندها في الـ Debugger
+
+            return Success(StatusCodes.Status201Created, "Service created successfully.");
+        }
+        catch (DbUpdateException)
+        {
+            // لو حصل تعارض في الـ Foreign Key (زي ما حصل معاك قبل كدة)
+            return Failure(StatusCodes.Status400BadRequest, "error", "Service not found");
+        }
+    }
+
+    // 4. تحديث خدمة موجودة (UpdateService)
+    public async Task<resultBase> UpdateService(int id, UpdateServiceRequest request, CancellationToken ct)
+    {
+        var service = await db.Services.FirstOrDefaultAsync(s => s.Id == id && !s.IsDelete, ct);
+
+        if (service == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Order not found");
+        // تحديث البيانات من الـ Request
+        _mapper.Map(request, service);
+        service.UpdatedAt = DateTime.UtcNow;
+
+        db.Services.Update(service);
+        await db.SaveChangesAsync(ct);
+
+        return Failure(StatusCodes.Status404NotFound, "Error", "Order not found");
+    }
+
+    // 5. حذف خدمة (DeleteService - Soft Delete)
+    public async Task<resultBase> DeleteService(int id, CancellationToken ct)
+    {
+        var service = await db.Services.FirstOrDefaultAsync(s => s.Id == id && !s.IsDelete, ct);
+
+        if (service == null)
+            return Failure(StatusCodes.Status404NotFound, "Error", "Order not found");
+
+        service.IsDelete = true; // Soft Delete بدلاً من المسح النهائي
+        await db.SaveChangesAsync(ct);
+
+        return Failure(StatusCodes.Status404NotFound, "Error", "Order not found");
     }
 
     private async Task<bool> CheckJobAsync(int JobId, CancellationToken cancellationToken = default)

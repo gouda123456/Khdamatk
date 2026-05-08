@@ -81,3 +81,60 @@ public record OrderFiltersRequest(
     int PageNumber = 1,
     int PageSize = 10
 );
+
+//////S////////
+public record GetServicesRequest(
+    string? SearchTerm,    // يبحث في الـ Title أو الـ Concepts
+    decimal? MinPrice,     // فلتر أقل سعر
+    decimal? MaxPrice,     // فلتر أعلى سعر
+    int? CategoryId,       // فلتر بالقسم
+    string? SortBy         // ترتيب حسب (Price, Rating, Date)
+);
+
+public record ServiceSummaryResponse(
+    int Id,
+    string Title,
+    string ShortDescription,
+    decimal Price,
+    double AverageRating,
+    int TotalReviews,
+    string CategoryName,
+    string ServiceProviderName
+);
+
+public record OrderServiceDetailsResponse(
+    int Id,
+    string Title,
+    string ShortDescription,
+    string DetailedDescription, // التفاصيل الكاملة هنا
+    decimal Price,
+    int DeliveryTimeInDays,
+    double AverageRating,
+    int TotalReviews,
+    int RevisionCount,
+    string CategoryName,
+    string ServiceProviderName,
+    string Concepts,            // البيانات اللي ضفناها في الداتابيز
+    DateTime CreatedAt
+);
+
+public record AddServiceRequest1(
+    string Title,
+    string ShortDescription,
+    string DetailedDescription,
+    decimal Price,
+    int DeliveryTimeInDays,
+    int CategoryId,
+    string ServiceProviderProfileId,
+    string Concepts
+);
+
+public record UpdateServiceRequest(
+    string Title,
+    string ShortDescription,
+    string DetailedDescription,
+    decimal Price,
+    int DeliveryTimeInDays,
+    int CategoryId,
+    string Concepts
+);

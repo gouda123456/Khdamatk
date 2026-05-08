@@ -74,6 +74,8 @@ public record UpdateProfileRequest(
     string Bio,
     double HourlyRate,
     int ExperienceYears,
+    string? ProfileImageUrl,
+    string? CoverImageUrl, 
     string? FacebookUrl,
     string? LinkedInUrl,
     string? GithubUrl,

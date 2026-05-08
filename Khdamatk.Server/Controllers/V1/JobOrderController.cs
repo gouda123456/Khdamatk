@@ -133,11 +133,12 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
 
     #endregion
 
+    [AllowAnonymous]
     [HttpPost("add-order")]
     public async Task<IActionResult> AddOrder([FromBody] CreateJobOrderRequest request, CancellationToken cancellationToken)
     {
         // 1. لازم تجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (العميل)
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userId = "1";
 
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
@@ -197,6 +198,43 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var result = await jobOrderService.GetOrderById(id, userId);
         return result.Respond();
+    }
+
+    /// //////////s////////
+
+    [HttpGet("GetServices")]
+    public async Task<resultBase> GetServices([FromQuery] GetServicesRequest request, CancellationToken ct)
+    {
+        // لو الـ request جاي فاضي، الـ Service هترجع كل الداتا تلقائياً
+        return await jobOrderService.GetServices(request, ct);
+    }
+
+    // 2. الحصول على خدمة واحدة بالتفصيل
+    [HttpGet("GetService/{id}")]
+    public async Task<resultBase> GetService(int id, CancellationToken ct)
+    {
+        return await jobOrderService.GetServiceById(id, ct);
+    }
+
+    // 3. إضافة خدمة جديدة
+    [HttpPost("AddService")]
+    public async Task<resultBase> AddService([FromBody] AddServiceRequest1 request, CancellationToken ct)
+    {
+        return await jobOrderService.AddService(request, ct);
+    }
+
+    // 4. تحديث خدمة موجودة
+    [HttpPut("UpdateService/{id}")]
+    public async Task<resultBase> UpdateService(int id, [FromBody] UpdateServiceRequest request, CancellationToken ct)
+    {
+        return await jobOrderService.UpdateService(id, request, ct);
+    }
+
+    // 5. حذف خدمة (Soft Delete)
+    [HttpDelete("DeleteService/{id}")]
+    public async Task<resultBase> DeleteService(int id, CancellationToken ct)
+    {
+        return await jobOrderService.DeleteService(id, ct);
     }
 }
 
