@@ -43,26 +43,3 @@ public record JobMileStone(
     bool IsCompleted,
     decimal Price
     );
-// 1. طلب إضافة أوردر جديد
-public record CreateOrderRequest(
-    string ProviderId,    // الـ ID بتاع الـ Freelancer
-    decimal FinalPrice,   // السعر المتفق عليه
-    string JobDescription,
-    List<CreateMileStoneRequest> MileStones // لو الشغل متقسم مراحل
-);
-
-public record CreateMileStoneRequest(
-    string Name,
-    string Description,
-    decimal Price
-);
-
-// 2. طلب رفض الأوردر (ممكن تضيف سبب الرفض لو حابب)
-public record RejectOrderRequest(
-    string Reason 
-);
-public record CreateJobOrderRequest(
-    int JobPostId,
-    int OfferId
-);
-

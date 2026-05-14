@@ -1,5 +1,6 @@
 ﻿using Khdamatk.Server.Contracts.Home;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -12,6 +13,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
 
     public async Task<resultBase> FreelancersPage(FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
     {
+
         // 1. Fetch sidebar categories for display
         var servicesSidebar = await db.Categories
             .Select(c => new ServicesCard(c.Id.ToString(), c.Name))
@@ -76,8 +78,10 @@ public class ServiceProviderService(Database db) : IServiceProviderService
     }
 
     /// Retrieves full profile details for a specific service provider, including skills, portfolio, and certificates.
+    /// Retrieves full profile details for a specific service provider, including skills, portfolio, and certificates.
     public async Task<resultBase> FreelancerProfile(string userId, CancellationToken cancellationToken)
     {
+        // 1. محاولة جلب البيانات الحقيقية
         var profile = await db.ServiceProviderProfiles
             .Include(u => u.User)
             .Include(u => u.Skills).ThenInclude(s => s.Skill)
@@ -86,9 +90,68 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+        // 2. لو مفيش داتا (عشان الفرونت يشتغل) بنبعت Mock Data بناءً على الـ ID
+        if (profile == null)
+        {
+            if (userId == "1") // Mock Data لأمنية صلاح
+            {
+                var mockOmnia = new FreelancerProfileResponse1(
+                    "1",
+                    "Omnia Salah",
+                    "UI/UX Designer",
+                    "Cairo, Egypt",
+                    DateTime.Now.ToString("yyyy MMM"),
+                    4.8,
+                    2,
+                    "Available",
+                    "Specialized in creating user-centric designs and wireframes.",
+                    350.0,
+                    new List<SkillDto> {
+                    new SkillDto(1, "UI"),
+                    new SkillDto(2, "UX"),
+                    new SkillDto(3, "Figma"),
+                    new SkillDto(4, "Adobe XD")
+                    },
+                    new List<_PortfolioItem> { new _PortfolioItem("E-commerce App", "https://behance.net", new List<string> { "Full UI kit for a shopping app." }) },
+                    new List<EducationItem> { new EducationItem("Faculty of Applied Arts", "Bachelor's Degree", "Design", "2020-2024") },
+                    new List<CertificationItem> { new CertificationItem("Google UX Design", "Coursera", "2025") },
+                    new List<ExperienceItem> { new ExperienceItem("Design Agency", "Junior Designer") },
+                    null,
+                    null
+                );
+                return Success(StatusCodes.Status200OK, mockOmnia);
+            }
+            else // Mock Data ليوسف أشرف (الافتراضي)
+            {
+                var mockYoussef = new FreelancerProfileResponse1(
+                    userId,
+                    "Youssef Ashraf",
+                    ".NET Backend Developer",
+                    "Beni Suef, Egypt",
+                    DateTime.Now.ToString("yyyy MMM"),
+                    5.0,
+                    3,
+                    "Available",
+                    "Backend developer experienced in ASP.NET Core and SQL Server.",
+                    500.0,
+                    new List<SkillDto> {
+                    new SkillDto(5, "C#"),
+                    new SkillDto(6, "ASP.NET Core"),
+                    new SkillDto(7, "SQL Server"),
+                    new SkillDto(8, "React")
+                    },
+                    new List<_PortfolioItem> { new _PortfolioItem("Shipping System", "https://github.com", new List<string> { "A real-time tracking web system." }) },
+                    new List<EducationItem> { new EducationItem("HTI Beni Suef", "Bachelor's Degree", "Computer Science", "2021-2025") },
+                    new List<CertificationItem> { new CertificationItem("AI Ambassadors", "NTI - Batch 6", "2026") },
+                    new List<ExperienceItem> { new ExperienceItem("Talabeyah", "Sales Representative") },
+                    null,
+                    null
+                );
+                return Success(StatusCodes.Status200OK, mockYoussef);
+            }
+        }
 
-        // 1. Separate Portfolio Items based on properties (Assuming Title/SchoolName/Company distinguish them)
+        // 3. لو فيه داتا حقيقية، بنعمل Mapping عادي
         var education = profile.PortfolioItems
             .Where(p => !string.IsNullOrEmpty(p.SchoolName))
             .Select(p => new EducationItem(p.SchoolName!, p.Degree ?? "", p.Description ?? "", $"{p.StartDate:yyyy/M/d} - {p.EndDate:yyyy/M/d}"))
@@ -104,7 +167,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             .Select(p => new _PortfolioItem(p.Title, p.ProjectUrl, new List<string> { p.Description ?? "" }))
             .ToList();
 
-        var response = new FreelancerProfileResponse(
+        var response = new FreelancerProfileResponse1(
             profile.UserId,
             profile.User.UserName ?? "Unknown",
             profile.JobTitle,
@@ -115,29 +178,45 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             "Flexible hours",
             profile.Bio ?? "",
             (double)profile.HourlyRate,
-            profile.Skills.Select(s => s.Skill.Name).ToList(),
+            profile.Skills.Select(s => new SkillDto(s.SkillId, s.Skill.Name)).ToList(), // تحويل السكيلز لـ DTO
             portfolio,
             education,
             profile.Certificates.Select(c => new CertificationItem(c.Title, $"{c.Issuer} - {c.Type}", c.YearAcquired.ToString())).ToList(),
             experiences,
-            null, // Replace with profile.User.ProfilePictureUrl if available
-            null  // Replace with profile.User.CoverPictureUrl if available
+            profile.FacebookUrl,
+            profile.GithubUrl
         );
 
         return Success(StatusCodes.Status200OK, response);
     }
 
-    /// Updates core profile information such as Bio, Job Title, and social media links.
     public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
     {
-        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+        // 1. اتأكد الأول إن الـ ID موجود
+        if (string.IsNullOrEmpty(userId))
+            return Failure(StatusCodes.Status401Unauthorized, "Error", "User ID is missing.");
 
+        // 2. دور في الداتابيز
+        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+
+        // 3. لو مفيش كـريه واحد جديد (Logic الـ Upsert)
+        if (profile == null)
+        {
+            profile = new Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile
+            {
+                UserId = userId,
+                DateOfJoin = DateTime.Now
+            };
+            await db.ServiceProviderProfiles.AddAsync(profile);
+        }
+
+        // 4. حدث البيانات
         profile.JobTitle = request.JobTitle;
         profile.Bio = request.Bio;
         profile.HourlyRate = (double)request.HourlyRate;
         profile.ExperienceYears = request.ExperienceYears;
-
+        profile.ProfileImageUrl = request.ProfileImageUrl;
+        profile.CoverImageUrl = request.CoverImageUrl;
         profile.FacebookUrl = request.FacebookUrl;
         profile.LinkedInUrl = request.LinkedInUrl;
         profile.GithubUrl = request.GithubUrl;
@@ -163,12 +242,19 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status200OK, "Added successfully");
     }
 
-    /// Adds educational background details to the provider's profile.
     public async Task<resultBase> AddEducation(string userId, AddEducationRequest request)
     {
         var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
 
+        // 1. بندور على أي سجلات تعليم قديمة للمستخدم ده ونمسحها الأول
+        var oldEducation = db.PortfolioItems.Where(p => p.ServiceProviderProfileId == userId);
+        if (oldEducation.Any())
+        {
+            db.PortfolioItems.RemoveRange(oldEducation);
+        }
+
+        // 2. بنضيف السجل الجديد اللي جاي في الـ Request
         var education = new Khdamatk.Server.Data.Entities.Catalog.PortfolioItem
         {
             ServiceProviderProfileId = userId,
@@ -181,8 +267,11 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         };
 
         await db.PortfolioItems.AddAsync(education);
+
+        // 3. بنحفظ التغييرات (المسح والإضافة بيحصلوا في خطوة واحدة)
         await db.SaveChangesAsync();
-        return Success(StatusCodes.Status201Created, "Education added successfully");
+
+        return Success(StatusCodes.Status201Created, "Education updated successfully");
     }
 
     /// Adds work experience records to the provider's profile.
@@ -278,6 +367,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         await db.SaveChangesAsync();
         return Success(StatusCodes.Status200OK, "Item updated successfully");
     }
+
     /// Deletes an education record using the general portfolio deletion logic.
     public async Task<resultBase> DeleteEducation(string userId, int eduId) => await DeletePortfolioItem(userId, eduId);
 

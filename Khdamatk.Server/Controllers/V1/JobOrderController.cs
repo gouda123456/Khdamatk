@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Climate;
 
 namespace Khdamatk.Server.Controllers.V1;
 
@@ -126,64 +127,12 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     {
         return (await jobOrderService.OpenDispute(orderId, User.GetUserId()!, reasonDetails, cancellationToken)).Respond();
     }
+}
 
 
 
 
     #endregion
 
-    [HttpPost("add-order")]
-    public async Task<IActionResult> AddOrder([FromBody] CreateJobOrderRequest request, CancellationToken cancellationToken)
-    {
-        // 1. لازم تجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (العميل)
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        // 2. ابعت الـ userId للـ Service لأنها مستنياه في الترتيب التاني
-        var result = await jobOrderService.AddOrderAsync(request, userId, cancellationToken);
-
-        return result.IsSuccess
-            ? StatusCode(StatusCodes.Status201Created, result)
-            : BadRequest(result);
-    }
-
-    // 2. قبول الأوردر (من طرف الفريلانسر)
-    [HttpPut("accept-order/{orderId}")]
-    public async Task<IActionResult> AcceptOrder(int orderId, CancellationToken cancellationToken)
-    {
-        // هنا بنجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (الفريلانسر)
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        var result = await jobOrderService.AcceptOrderAsync(orderId, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok(result) : BadRequest(result);
-    }
-
-    // 3. رفض الأوردر (من طرف الفريلانسر)
-    [HttpPut("reject-order/{orderId}")]
-    public async Task<IActionResult> RejectOrder(int orderId, CancellationToken cancellationToken)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        var result = await jobOrderService.RejectOrderAsync(orderId, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok(result) : BadRequest(result);
-
-
-
-
-
-
-
-
-    }
-}
 

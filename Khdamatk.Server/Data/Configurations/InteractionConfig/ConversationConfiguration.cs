@@ -29,7 +29,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
 
 
         // 5. تأكيد خصائص التدقيق من BaseEntity
-        builder.Property(c => c.Createdat)
+        builder.Property(c => c.CreatedAt)
                .HasDefaultValueSql("GETUTCDATE()");
     }
 }

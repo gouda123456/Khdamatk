@@ -30,8 +30,9 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
     {
         // سيتم تحويل أي Enum في أي Entity إلى String في قاعدة البيانات تلقائياً
         configurationBuilder
-            .Properties<Enum>()
+            .Properties<string>()
             .HaveConversion<string>();
+
     }
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -46,16 +47,16 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
                 if (entry.State == EntityState.Added)
                 {
                     entry.Property(p => p.CreatedBy).CurrentValue = userid;
-                    entry.Property(p => p.Createdat).CurrentValue = DateTime.UtcNow;
+                    entry.Property(p => p.CreatedAt).CurrentValue = DateTime.UtcNow;
                 }
                 else if (entry.State == EntityState.Modified)
                 {
                     entry.Property(p => p.UpdatedBy).CurrentValue = userid;
-                    entry.Property(p => p.Updatedat).CurrentValue = DateTime.UtcNow;
+                    entry.Property(p => p.UpdatedAt).CurrentValue = DateTime.UtcNow;
 
                     // إضافة سطرين لضمان عدم تغيير بيانات الإنشاء
                     entry.Property(p => p.CreatedBy).IsModified = false;
-                    entry.Property(p => p.Createdat).IsModified = false;
+                    entry.Property(p => p.CreatedAt).IsModified = false;
                 }
             }
         }

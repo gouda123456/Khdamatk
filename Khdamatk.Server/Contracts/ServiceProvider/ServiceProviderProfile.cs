@@ -41,6 +41,27 @@ public record AddExperienceRequest(
 public record UpdateSkillsRequest(
     List<int> SkillIds
 );
+public record SkillDto(int Id, string Name);
+
+public record FreelancerProfileResponse1(
+    string UserId,
+    string Name,
+    string JobTitle,
+    string Location,
+    string MemberSince,
+    double Rating,
+    int ExperienceYears,
+    string Availability,
+    string Bio,
+    double HourlyRate,
+    List<SkillDto> Skills,
+    List<_PortfolioItem> Portfolio,
+    List<EducationItem> Education,
+    List<CertificationItem> Certifications,
+    List<ExperienceItem> Experiences,
+    string? FacebookUrl,
+    string? GithubUrl
+); 
 public record AddCertificateRequest(
     string Title,
     string Issuer,
@@ -53,6 +74,8 @@ public record UpdateProfileRequest(
     string Bio,
     double HourlyRate,
     int ExperienceYears,
+    string? ProfileImageUrl,
+    string? CoverImageUrl, 
     string? FacebookUrl,
     string? LinkedInUrl,
     string? GithubUrl,
@@ -76,3 +99,20 @@ public record UpdateExperienceRequest(
     DateTime StartDate,
     DateTime EndDate
     );
+
+// --- Social Media Links (التعديل الجديد هنا) ---
+// جعلناها nullable (?) لأنها اختيارية في الفورم
+public class ServiceProviderProfile // لازم تضيف السطر ده وتفتح القوس
+{
+    [Url]
+    public string? FacebookUrl { get; set; }
+
+    [Url]
+    public string? LinkedInUrl { get; set; }
+
+    [Url]
+    public string? GithubUrl { get; set; }
+
+    [Url]
+    public string? TwitterUrl { get; set; }
+}

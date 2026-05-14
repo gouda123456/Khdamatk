@@ -40,15 +40,7 @@ public interface IJobOrderService
 
     Task<resultBase> OpenDispute(int orderId,string RaiserId, string ReasonDetails, CancellationToken cancellationToken = default);
 
-    // 1. إضافة طلب جديد (العميل بيبعت طلب لـ Freelancer معين)
-    // في الـ IJobOrderService
-    Task<resultBase> AddOrderAsync(CreateJobOrderRequest request, string customerId, CancellationToken cancellationToken = default);
-
-    // 2. قبول الطلب من طرف الـ Freelancer
-    Task<resultBase> AcceptOrderAsync(int orderId, string freelancerId, CancellationToken cancellationToken = default);
-
-    // 3. رفض الطلب من طرف الـ Freelancer
-    Task<resultBase> RejectOrderAsync(int orderId, string freelancerId, CancellationToken cancellationToken = default);
-
+    
+    
 }
 

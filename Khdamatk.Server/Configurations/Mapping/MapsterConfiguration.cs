@@ -252,7 +252,7 @@ public class MapsterConfiguration : IRegister
                     m.Id,
                     m.SenderId,
                     m.Content,
-                    m.Createdat
+                    m.CreatedAt
                 )))
 
 

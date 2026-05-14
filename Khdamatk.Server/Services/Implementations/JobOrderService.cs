@@ -8,6 +8,7 @@ namespace Khdamatk.Server.Services.Implementations;
 public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env,IOptions<ClientSetting> options) : IJobOrderService
 {
     private readonly Database db = db;
+    private readonly IMapper _mapper;
     private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
     private readonly IWebHostEnvironment env = env;
     private readonly ClientSetting clientSetting = options.Value;
@@ -724,9 +725,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         (userId == c.CustomerId) ? c.ServiceProviderProfile.User.UserName! : c.Customer.UserName!,
         (userId == c.CustomerId) ? c.ServiceProviderProfile.User.ProfilePicture!.FullPath : c.Customer.ProfilePicture!.FullPath,
         c.Job.Title,
-        c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Content : "",
-                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Createdat : DateTime.MinValue,
-                c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.IsRead : true
+        c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.Content : "",
+                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.CreatedAt : DateTime.MinValue,
+                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.IsRead : true
                  )
                 ).ToListAsync(cancellationToken: cancellationToken);
             

@@ -11,7 +11,7 @@ public class VerificationsCodes :BaseEntity
     public int Value { get; set; }
     public bool IsUsed { get; set; } = false;
 
-    public bool IsActive => DateTime.UtcNow < Createdat.AddDays(1) && IsUsed && !IsDelete;
+    public bool IsActive => DateTime.UtcNow < CreatedAt.AddDays(1) && IsUsed && !IsDelete;
 
     [ForeignKey(nameof(User))]
     public string UserId { get; set; } = string.Empty;

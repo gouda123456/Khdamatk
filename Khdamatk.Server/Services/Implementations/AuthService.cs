@@ -282,7 +282,7 @@ public class AuthService(
 
                     cancellationToken);
 
-        if (validCode?.Createdat >= expiryTime)
+        if (validCode?.CreatedAt >= expiryTime)
             return Failure(StatusCodes.Status409Conflict);
         
 
@@ -293,7 +293,7 @@ public class AuthService(
 
         // 3. تعليم الكود كمستخدم (Invalidate)
         validCode.IsUsed = true;
-        validCode.Updatedat = DateTime.UtcNow;
+        validCode.UpdatedAt = DateTime.UtcNow;
 
         // 4. تنفيذ إعادة تعيين كلمة المرور
         var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
