@@ -55,7 +55,7 @@ public static class DependancyInjections
         services.AddScoped<IJobOrderService, JobOrderService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IOrderService, OrderService>();
-
+        services.AddScoped<IServiceOrderService,ServiceOrderService>();
 
         services.AddScoped<IReportDashboardService, ReportDashboardService>();
         services.AddScoped<IServiceOrderService, ServiceOrderService>();
