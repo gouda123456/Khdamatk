@@ -32,7 +32,7 @@ public class OrderService(
             .Include(o => o.Service)
             .Include(o => o.ServiceProviderProfile)
                 .ThenInclude(p => p.User)
-            .FirstOrDefaultAsync(o => o.Id == 1);
+            .FirstOrDefaultAsync(o => o.Id == orderId);
 
 
         if (request.Order.CartItems.Count == 0 || request.Order.CartItems.Count > 1)

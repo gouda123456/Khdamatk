@@ -1,7 +1,6 @@
-﻿using Khdamatk.Server.Contracts.Conversations;
+using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
-using Stripe.Climate;
 using System.Text.Json;
 
 namespace Khdamatk.Server.Services.Implementations;
@@ -28,6 +27,14 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
 
         var job = request.Adapt<JobPost>();
+
+        var category = await db.Categories.FirstOrDefaultAsync(c => c.Name == request.CategoryName);
+        if(category == null)
+        {
+            category = new Category { Name = request.CategoryName };
+            await db.Categories.AddAsync(category, cancellationToken);
+        }
+        job.CategoryId = category.Id;
         //TODO: Deal with files
         await db.JobPosts.AddAsync(job, cancellationToken);
 
@@ -52,13 +59,17 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         if (await db.JobPosts.FindAsync(JobId) is not { } Job)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
 
-        if(await db.JobOffers.AnyAsync(o => o.ProviderProfileId == request.ProviderServiceId))
-            return Failure(StatusCodes.Status409Conflict,FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,new Error("duplicated proposal","free lancer can provide only one proposal for each job"));
+        if (await db.JobOffers.AnyAsync(
+                o => o.JobPostId == JobId && o.ProviderProfileId == request.ProviderServiceId,
+                cancellationToken))
+            return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,
+                new Error("duplicated proposal", "This freelancer already submitted an offer for this job."));
 
         //TODO: IformFile Attachment => media 
 
         var offer = request.Adapt<JobOffer>();
-        
+        offer.JobPostId = JobId;
+        offer.DeliveryTimeInDays = Math.Max(1, (int)Math.Ceiling((request.Deadline - DateTime.UtcNow).TotalDays));
 
         Job.Offers!.Add(offer);
         await db.SaveChangesAsync(cancellationToken);
@@ -77,13 +88,18 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * Create Offers Job Summary  
          */
 
-        if(await db.JobPosts.FirstOrDefaultAsync(j => j.Id == JobId) is not { } Job)
-            return Failure(StatusCodes.Status404NotFound,FailureMessages.NotFound.Title, FailureMessages.NotFound.Message);
+        if (await db.JobPosts
+                .Include(j => j.Offers)
+                .ThenInclude(o => o.ProviderProfile)
+                .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(j => j.Id == JobId, cancellationToken) is not { } Job)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.NotFound.Title, FailureMessages.NotFound.Message);
 
         var providerPic = await System.IO.File.ReadAllBytesAsync(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"), cancellationToken);
 
-        if(Job.Offers.Count() > 0) //TODO: Send Email to freeLancers
-            return Failure(StatusCodes.Status404NotFound,FailureMessages.DataNotFound.Title,FailureMessages.DataNotFound.Message,new Error("there are no offers yet","there are no freelancer submit offer yet, please wait"));
+        if (!Job.Offers.Any()) //TODO: Send Email to freeLancers
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message,
+                new Error("there are no offers yet", "No freelancers have submitted an offer yet; please wait."));
 
 
         var OfferSummary = Job.Offers.Select(o => new OneOfferSummaryResponse(
@@ -113,10 +129,14 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * get the Offer Details Response       --Done
          */
 
-        if(!db.JobPosts.Any(j => j.Id == jobId && j.Offers.Any(o => o.Id == offerId)))
+        var offer = await db.JobOffers.FirstOrDefaultAsync(
+            o => o.Id == offerId && o.JobPostId == jobId,
+            cancellationToken);
+
+        if (offer == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
 
-        var offerDetail = db.JobOffers.Find(offerId).Adapt<OfferDetailedForServiceResponse>();
+        var offerDetail = offer.Adapt<OfferDetailedForServiceResponse>();
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message, offerDetail);
 
@@ -145,14 +165,20 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * return statues
          */
 
-        if(await CheckJobAndOfferAsync(jobId, offerId,cancellationToken))
-            return Failure(StatusCodes.Status404NotFound,FailureMessages.NotFound.Title, FailureMessages.NotFound.Message,
-                new Error("job does not exist","there are no job linked to this Id"));
+        if (!await CheckJobAndOfferAsync(jobId, offerId, cancellationToken))
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.NotFound.Title, FailureMessages.NotFound.Message,
+                new Error("job or offer not found", "No job with this id is linked to this offer id."));
 
-        JobPost? job = await db.JobPosts.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken: cancellationToken);
-        JobOffer? offer = await db.JobOffers.FirstOrDefaultAsync(o => o.Id == jobId && o.JobPostId == jobId, cancellationToken:cancellationToken);
+        JobPost? job = await db.JobPosts.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        JobOffer? offer = await db.JobOffers.FirstOrDefaultAsync(
+            o => o.Id == offerId && o.JobPostId == jobId,
+            cancellationToken);
 
-        if(job!.OrderId != null)
+        if (job == null || offer == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.NotFound.Title, FailureMessages.NotFound.Message,
+                new Error("job or offer not found", "Could not load the job or offer after validation."));
+
+        if (job.OrderId != null)
             return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,
                 new Error("job is already linked to order", "there are order linked to this job please change offer or check on order details "));
 
@@ -177,9 +203,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             Status = order.Status,
             RedirectionUrls = new RedirectionUrlsModel()
             {
-                OnSuccess = clientSetting + "/DashBoard?State=OnSuccess",
-                OnFailure = clientSetting + "/DashBoard?State=OnFailure",
-                OnPending = clientSetting + "/DashBoard?State=OnPending",
+                OnSuccess = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnSuccess",
+                OnFailure = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnFailure",
+                OnPending = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnPending",
             },
             PayLoad = new InvoicePayload()
             {
@@ -306,7 +332,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             Status = OrderStatus.PendingPayment,
             PayLoad = new InvoicePayload
             {
-                OrderId = 1,
+                OrderId = order.Id,
                 OrderType = OrderType.Job,
                 Provider = new ProviderModel
                 {
@@ -334,7 +360,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
     }
 
-    public async Task<resultBase> ChangeSelectionOfferJob(int OrderId, int oldOfferId, int newOfferId, string userId, CancellationToken cancellationToken = default)
+    public async Task<resultBase> ChangeSelectionOfferJob(int jobId, int oldOfferId, int newOfferId, string userId, CancellationToken cancellationToken = default)
     {
         /*TODOs:
          * validate old offer == order.AcceptedOfferId          --Done
@@ -358,19 +384,32 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * return Statues
          */
 
-        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == OrderId && o.CustomerId == userId);
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.JobPostId == jobId && o.CustomerId == userId, cancellationToken);
 
         if (order == null)
         {
             return Failure(StatusCodes.Status404NotFound, new Error("order not Found", "there are no order with this id"));
         }
 
-        if (order.AcceptedOfferId != oldOfferId && order.AcceptedOfferId == newOfferId && order.Status == OrderStatus.PendingPayment)
+        if (order.AcceptedOfferId != oldOfferId)
         {
-            return Failure(StatusCodes.Status409Conflict, new Error("Conflict in offer Ids", "the old offer dosent match the new or it match the selected"));
+            return Failure(StatusCodes.Status409Conflict, new Error("Conflict in offer Ids", "The current order is not linked to the specified old offer."));
         }
 
-        var newOffer = await db.JobOffers.FirstOrDefaultAsync(o => o.Id == newOfferId && o.JobPostId == order.JobPostId);
+        if (order.AcceptedOfferId == newOfferId)
+        {
+            return Failure(StatusCodes.Status409Conflict, new Error("Conflict in offer Ids", "The new offer is the same as the current accepted offer."));
+        }
+
+        if (order.Status != OrderStatus.PendingPayment)
+        {
+            return Failure(StatusCodes.Status409Conflict, new Error("Conflict", "The offer can only be changed while the order is waiting for payment."));
+        }
+
+        var newOffer = await db.JobOffers
+            .Include(o => o.ProviderProfile)
+            .ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(o => o.Id == newOfferId && o.JobPostId == order.JobPostId, cancellationToken);
 
         if (newOffer == null)
         {
@@ -381,7 +420,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         order.Amount = newOffer.Amount;
         order.ExpectedDeliveryDate = DateTime.UtcNow.AddDays(newOffer.DeliveryTimeInDays);
         order.ServiceProviderId = newOffer.ProviderProfileId;
-        order.Conversation.ProviderId = order.AcceptedOffer.ProviderProfileId;
+        if (order.Conversation != null)
+            order.Conversation.ProviderId = newOffer.ProviderProfileId;
 
 
 
@@ -396,9 +436,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             Status = order.Status,
             RedirectionUrls = new RedirectionUrlsModel()
             {
-                OnSuccess = clientSetting + "/DashBoard?State=OnSuccess",
-                OnFailure = clientSetting + "/DashBoard?State=OnFailure",
-                OnPending = clientSetting + "/DashBoard?State=OnPending",
+                OnSuccess = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnSuccess",
+                OnFailure = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnFailure",
+                OnPending = clientSetting.ClientUrl.TrimEnd('/') + "/DashBoard?State=OnPending",
             },
             PayLoad = new InvoicePayload()
             {
@@ -406,9 +446,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
                 OrderType = OrderType.Job,
                 Provider = new ProviderModel()
                 {
-                    Id = order.ServiceProviderId,
-                    Email = order.ServiceProviderProfile.User.Email!,
-                    Username = order.ServiceProviderProfile.User.UserName!
+                    Id = newOffer.ProviderProfileId,
+                    Email = newOffer.ProviderProfile.User.Email!,
+                    Username = newOffer.ProviderProfile.User.UserName!
                 }
             },
             Customer = new CustomerModel()
@@ -424,7 +464,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
                 new CartItemModel()
                 {
                     Name = order.Job.Title,
-                    Price = order.AcceptedOffer.Amount,
+                    Price = newOffer.Amount,
                     Quantity = 1
                 }
             }
@@ -496,25 +536,23 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         if(order == null)
             return Failure(StatusCodes.Status404NotFound,FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
 
+        if (order.CustomerId != userId && order.ServiceProviderId != userId)
+            return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
 
-        //TODO: Add Amount in User Entity + add endpoint to pay for user Amount + refunds + checkout (pull money) )    --Not Done yet
+        var wasActive = order.Status == OrderStatus.Active;
+
         if (order.CustomerId == userId)
         {
             order.Status = OrderStatus.CancelledByClient;
-            
             //TODO: send email to Customer
         }
-
-
-
-
-        if (order.ServiceProviderId == userId)
+        else if (order.ServiceProviderId == userId)
         {
             order.Status = OrderStatus.CancelledByProvider;
             //TODO: send email to freeLancer
         }
 
-        if(order.Status == OrderStatus.Active)
+        if (wasActive && order.CustomerId == userId)
             order.Customer.Amount += order.AcceptedOffer.Amount;
 
 
@@ -552,12 +590,10 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         model.Payload = model.PayloadString != null ? JsonSerializer.Deserialize<InvoicePayload>(model.PayloadString) : null;
 
-        if (model.Payload != null)
-        {
+        if (model.Payload == null)
             return Failure(StatusCodes.Status400BadRequest, new Error("Invalid Payload", "The payload data is invalid or missing"));
-        }
 
-        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == model.Payload!.OrderId && o.InvoiceKey == model.InvoiceKey, cancellationToken: cancellationToken);
+        var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == model.Payload.OrderId && o.InvoiceKey == model.InvoiceKey, cancellationToken: cancellationToken);
 
         if(order == null)
         {
@@ -568,15 +604,16 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
 
 
-        order.PaymentTransaction = new PaymentTransaction()
+        var platformFee = order.Amount * 0.1m;
+        order.PaymentTransaction = new PaymentTransaction
         {
             Amount = order.Amount,
             Currency = CurrencyCode,
             TransactionDate = DateTime.UtcNow,
             Status = TransactionStatus.Completed,
-            NetPayout = order.Amount,
+            NetPayout = order.Amount - platformFee,
             GatewayUsed = PaymentGateway.Card,
-            PlatformFee = order.Amount * 0.1m // Assuming a 10% platform fee
+            PlatformFee = platformFee
         };
 
         order.Status = OrderStatus.Active;
@@ -662,6 +699,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         }
 
+        if (Joborder.Conversation == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
         Joborder.Conversation.Messages.Add(new ()
         {
             SenderId = userId,
@@ -680,9 +720,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     {
         var conversations = await db.JobOrders.Where(c => c.CustomerId == userId || c.ServiceProviderId == userId).
             Select(c => new ConversationsSummaryResponse(
-                userId,
-        (userId == c.CustomerId) ? c.Customer.UserName : c.ServiceProviderProfile.User.UserName,
-        (userId == c.CustomerId) ? c.Customer.ProfilePicture.FullPath : c.ServiceProviderProfile.User.ProfilePicture.FullPath,
+                userId == c.CustomerId ? c.ServiceProviderId : c.CustomerId,
+        (userId == c.CustomerId) ? c.ServiceProviderProfile.User.UserName! : c.Customer.UserName!,
+        (userId == c.CustomerId) ? c.ServiceProviderProfile.User.ProfilePicture!.FullPath : c.Customer.ProfilePicture!.FullPath,
         c.Job.Title,
         c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Content : "",
                 c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.Createdat).FirstOrDefault()!.Createdat : DateTime.MinValue,
@@ -696,6 +736,12 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     public async Task<resultBase> GetConversationMessages(int orderId, string UserId, CancellationToken cancellationToken = default)
     {
         var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId && (o.CustomerId == UserId || o.ServiceProviderId == UserId), cancellationToken: cancellationToken);
+
+        if (order == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
+
+        if (order.Conversation == null)
+            return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
 
         var converationDetailed = new ConversationsDetailed(
             order.Conversation.Id,
@@ -743,7 +789,9 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             Content = request.Content,
             Title = request.Title,
             ReviewerId = order.CustomerId,
-            ServiceProviderId = order.ServiceProviderId
+            ServiceProviderId = order.ServiceProviderId,
+            JobOrderId = order.Id,
+            CreatedBy = order.CustomerId
         };
 
         order.Status = OrderStatus.Completed;
@@ -778,22 +826,13 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         if (order.CustomerId != RaiserId && order.ServiceProviderId != RaiserId)
             return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
 
-        if (db.Disputes.Any(o => o.JobOrderId == orderId))
+        if (await db.Disputes.AnyAsync(o => o.JobOrderId == orderId, cancellationToken))
             return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message);
 
+        order.Status = OrderStatus.Disputed;
+        // Dispute entity requires TargetId, Type, AmountUnderDispute, and admin conversations — add a dedicated workflow before attaching order.Dispute.
 
-        if (order.CustomerId == RaiserId)
-        {
-            order.Status = OrderStatus.Disputed;
-            order.Dispute = new ()
-            {
-                JobOrderId = orderId,
-                RaiserId = RaiserId,
-                ReasonDetails = ReasonDetails
-            };
-        }
-
-
+        await db.SaveChangesAsync(cancellationToken);
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
 
@@ -804,11 +843,17 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
     public async Task<resultBase> AddOrderAsync(CreateJobOrderRequest request, string customerId, CancellationToken cancellationToken = default)
     {
         // نجيب الشغلانة والعرض عشان نستخدمهم في الـ BuildOrder
-        var job = await db.JobPosts.FindAsync([request.JobPostId], cancellationToken);
-        var offer = await db.JobOffers.FindAsync([request.OfferId], cancellationToken);
+        var job = await db.JobPosts.FindAsync(new object[] { request.JobPostId }, cancellationToken);
+        var offer = await db.JobOffers.FindAsync(new object[] { request.OfferId }, cancellationToken);
 
         if (job == null || offer == null)
             return Failure(StatusCodes.Status404NotFound, "Data Not Found", "Job or Offer not found.");
+
+        if (job.CustomerId != customerId)
+            return Failure(StatusCodes.Status403Forbidden, FailureMessages.Forbidden.Title, FailureMessages.Forbidden.Message);
+
+        if (offer.JobPostId != job.Id)
+            return Failure(StatusCodes.Status400BadRequest, "Invalid offer", "This offer does not belong to the specified job.");
 
         // استخدام الـ Static Method اللي إنت عاملها في الكلاس
         var order = JobOrder.BuildOrder(job, offer);

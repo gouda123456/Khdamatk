@@ -21,7 +21,7 @@ public class JobService(Database db) : IJobService
     public async Task<resultBase> GetJobAsync(int jobId)
     {
         var Jobs = await db.JobPosts.AsNoTracking().ProjectToType<JobDetailed>().ToListAsync();
-        return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs);
+        return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs.FirstOrDefault(j => j.Id == jobId));
     }
 
     public Task<resultBase> GetUsersJobAsync(string userId)

@@ -10,7 +10,7 @@ public record AddJobRequest(
     decimal BudgetMax,
     TimeCommit TimeCommitment, //TODO: Add TimeCommitment to job Entity
     ExperienceLevel ExperienceLevel,
-    ICollection<Media>? Media,
+    ICollection<IFormFile>? Media,
     DateTime Deadline
     );
 

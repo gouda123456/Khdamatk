@@ -18,8 +18,8 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     }
 
 
-    [HttpPost("Jobs/{jobId}/")]
-    public async Task<IActionResult> GetJob([FromRoute] int jobId, AddJopOfferRequest request, CancellationToken cancellationToken)
+    [HttpPost("Jobs/{jobId}/Offers/")]
+    public async Task<IActionResult> AddOffer([FromRoute] int jobId, [FromForm] AddJopOfferRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.AddOfferAsync(jobId, request, cancellationToken)).Respond();
     }

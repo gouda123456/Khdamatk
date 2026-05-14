@@ -1,4 +1,4 @@
-﻿namespace Khdamatk.Server.Data.Entities.Identity;
+namespace Khdamatk.Server.Data.Entities.Identity;
 
 public class VerificationsCodes :BaseEntity
 {

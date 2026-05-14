@@ -81,15 +81,7 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.Deadline, src => src.Deadline)
             .Map(dest => dest.ExperienceLevel, src => src.ExperienceLevel)
             .Map(dest => dest.TimeCommitment, src => src.TimeCommitment)
-            .Map(dest => dest.Media, src => new List<Media>(src.Media != null
-                ? src.Media.Select(List => new Media
-                {
-                    FileName = List.FileName,
-                    
-                    ContentType = List.ContentType,
-                    FileExtension = List.FileExtension,
-                    Size = List.Size
-                }) : null!))
+            
             // Mapping CategoryName to CategoryId will require a custom resolver or additional logic
             .TwoWays()
             .IgnoreNonMapped(true)
