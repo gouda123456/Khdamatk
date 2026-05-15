@@ -18,6 +18,25 @@ public class DeliveredJobFile
     public virtual MileStone MileStone { get; set; }
     public virtual Media Media { get; set; }
 
+
+    public static List<DeliveredJobFile> Data(int minId)
+    {
+        var list = new List<DeliveredJobFile>();
+
+        for (int i = minId; i < minId + 5; i++)
+        {
+            list.Add(new DeliveredJobFile
+            {
+                JobId = i,
+                MileStoneId = i,
+                MediaId = i,
+                Statues = DeliveredFileStatues.New
+            });
+        }
+
+        return list;
+    }
+
 }
 
 public enum DeliveredFileStatues

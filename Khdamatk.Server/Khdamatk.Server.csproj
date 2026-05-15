@@ -11,13 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\Migrations\**" />
-    <Content Remove="Data\Migrations\**" />
-    <EmbeddedResource Remove="Data\Migrations\**" />
-    <None Remove="Data\Migrations\**" />
-  </ItemGroup>
-
-  <ItemGroup>
+	<PackageReference Include="Bogus" Version="35.6.5" />
 	<PackageReference Include="Stripe.net" Version="50.3.0" />
 	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	<PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />

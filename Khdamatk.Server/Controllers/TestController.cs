@@ -1,25 +1,38 @@
-using Asp.Versioning;
 using System.Globalization;
+using Asp.Versioning;
+using Bogus;
 using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Helper.Payment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Khdamatk.Server.Statics.Consts.PermissionsDefault;
+using Database = Khdamatk.Server.Data.Database;
 
 namespace Khdamatk.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 
-public class TestController : ControllerBase
+public class TestController(
+        [FromServices] Database db,
+        [FromServices] UserManager<User> userManager,
+        [FromServices] IWebHostEnvironment env) : ControllerBase
 {
+
+    private readonly Database db = db;
+    private readonly UserManager<User> userManager = userManager;
+    private readonly IWebHostEnvironment env = env;
+
+
+
     /// <summary>بادئة عناوين/حقول البيانات المزروعة لتمييزها وإعادة التشغيل بأمان.</summary>
     private const string SeedMarker = "[SEED]";
     private const string SeedEmailDomain = "@khdamatk-seed.test";
     private const string SeedCreatedBy = "TestSeed";
     private const string SeedMediaPrefix = "seed_media_";
     private const string SeedOrderMarker = "SEED_ORDER|";
-
+    
     [HttpGet]
     public IActionResult Get()
     {
@@ -106,7 +119,7 @@ public class TestController : ControllerBase
     }
 
     [HttpGet("test-file-Download")]
-    public async Task<IActionResult> TestFileDownload([FromServices] Database db)
+    public async Task<IActionResult> TestFileDownload()
     {
         var media = db.Medias.FirstOrDefault();
         var path = media.FullPath;
@@ -114,7 +127,7 @@ public class TestController : ControllerBase
     }
 
     [HttpPost("test-file-upload")]
-    public async Task<IActionResult> TestFileUploadPost([FromServices] Database db, IFormFile file)
+    public async Task<IActionResult> TestFileUploadPost(IFormFile file)
     {
         var media = await FileManagement.UploadFileAsync(file);
         db.Medias.Add(media);
@@ -122,45 +135,54 @@ public class TestController : ControllerBase
         return Ok(media);
     }
 
+     
+    
+
+
     [HttpPost("SeedData")]
-    public async Task<IActionResult> SeedData(
-        [FromServices] Database db,
-        [FromServices] UserManager<User> userManager,
-        [FromServices] IWebHostEnvironment env)
+    public async Task<IActionResult> SeedData()
     {
         try
         {
-            var mediaList = await GetOrCreateSeedMediaAsync(db, env);
-            var categories = await GetOrCreateSeedCategoriesAsync(db);
-            var skills = await GetOrCreateSeedSkillsAsync(db);
-            var users = await GetOrCreateSeedUsersAsync(userManager, mediaList);
-            var providers = await GetOrCreateSeedProviderProfilesAsync(db, users, mediaList, skills);
-            var services = await GetOrCreateSeedServicesAsync(db, providers, categories, mediaList);
-            var jobPosts = await GetOrCreateSeedJobPostsAsync(db, users, categories);
-            await GetOrCreateSeedJobSkillRequirementsAsync(db, jobPosts, skills);
-            var serviceOrders = await GetOrCreateSeedServiceOrdersAsync(db, services, users, providers);
-            await GetOrCreateSeedReviewsAsync(db, serviceOrders, providers);
-            await EnsureSeedExtensionEntitiesAsync(db, users, services, serviceOrders, jobPosts, mediaList);
 
-            return Ok(new
-            {
-                Message = "Seed completed (idempotent). Safe to call multiple times.",
-                Notes =
-                    $"{SeedMarker} marks seeded rows. JobOffer/JobOrder remain skipped (circular FK). Investigation entity is not mapped to EF. DeliveredJobFile is included when milestones exist.",
-                Stats = new
-                {
-                    Users = users.Count,
-                    Categories = categories.Count,
-                    Skills = skills.Count,
-                    Providers = providers.Count,
-                    Services = services.Count,
-                    JobPosts = jobPosts.Count,
-                    ServiceOrders = serviceOrders.Count,
-                    Media = mediaList.Count,
-                    JobSkillRequirements = await db.JobSkillRequirements.CountAsync(j => jobPosts.Select(p => p.Id).Contains(j.JobPostId)),
-                    Reviews = await db.Reviews.CountAsync(r => r.Title.StartsWith(SeedMarker))
-                }
-            });
+
+            
+            
+            
+
+                   var msg = await InjectData();
+
+
+
+            // الحصول على الـ ServiceProvider لإنشاء Scope جديد في الخلفية
+           
+
+            return Ok(msg);
+
+
+            
+
+        //    return Ok(new
+        //    {
+        //        Message = "Seed completed (idempotent). Safe to call multiple times.",
+        //        Notes =
+        //            $"{SeedMarker} marks seeded rows. Investigation entity is not mapped to EF. DeliveredJobFile is included when milestones exist.",
+        //        Stats = new
+        //        {
+        //            Users = users.Count,
+        //            Categories = categories.Count,
+        //            //Skills = skills.Count,
+        //            Providers = providers.Count,
+        //            //Services = services.Count,
+        //            JobPosts = jobPosts.Count,
+        //            JobOrders = jobOrders.Count,
+        //            //JobDeliverables = jobDeliverables.Count,
+        //            //ServiceOrders = serviceOrders.Count,
+        //            Media = mediaList.Count,
+        //            //JobSkillRequirements = await db.JobSkillRequirements.CountAsync(j => jobPosts.Select(p => p.Id).Contains(j.JobPostId)),
+        //            //Reviews = await db.Reviews.CountAsync(r => r.Title.StartsWith(SeedMarker))
+        //        }
+        //    });
         }
         catch (DbUpdateException dbEx)
         {
@@ -177,10 +199,642 @@ public class TestController : ControllerBase
         }
     }
 
+
+
+    private async Task<object> InjectData()
+    {
+        try
+        {
+            //MY WORK
+            //Identity
+            await SeedImagesUsingSystemFilesAsync();
+            var mediaList = await SyncMediaAsync();
+            var availableUserMediaIds = await db.Medias
+                                    .Where(m => !db.Users.Any(u => u.ProfilePictureId == m.Id))
+                                    .Select(m => m.Id)
+                                    .ToListAsync();
+
+            var roles = await AddRolesAsync();
+            var users = await InjectUsersAndServiceProviderWithMediaAsync(availableUserMediaIds);
+            var providers = await db.ServiceProviderProfiles.Include(p => p.User).ToListAsync();
+            await AddRolesToUsersAndProviders(users);
+            //verification Data, certificates, portfolio (item , media), Skills, provider Skills 
+
+            //Jop Posts Domain
+            var categories = await GetOrCreateSeedCategoriesAsync();
+
+            var availableJobMediaIds = await db.Medias
+                                    .Where(m => !db.JobPosts.Any(j => j.Media.Any(md => md.Id == m.Id)))
+                                    .ToListAsync();
+
+            var jobPosts = await InjectJobPostsAsync(users.Where(u => !u.IsServiceProvider).Select(u => u.Id).ToList(), categories.Select(c => c.Id).ToList(), availableJobMediaIds);
+            await InjectOffersForJobPostsAsync(jobPosts, mediaList);
+
+            var jobOrders = await InjectJobOrdersFullCycleAsync(jobPosts);
+
+            //milstones, deliveredFiles, skill requirements,
+
+            //END OF MY WORK
+
+
+            //var skills = await GetOrCreateSeedSkillsAsync(db);
+
+            //var services = await GetOrCreateSeedServicesAsync(db, providers, categories, mediaList);
+
+            //await GetOrCreateSeedJobSkillRequirementsAsync(db, jobPosts, skills);
+            //var serviceOrders = await GetOrCreateSeedServiceOrdersAsync(db, services, users, providers);
+            //await GetOrCreateSeedReviewsAsync(db, serviceOrders, providers);
+
+            //var jobDeliverables = await GetOrCreateSeedJobDeliverablesAsync(db, jobOrders, mediaList);
+            //await EnsureSeedExtensionEntitiesAsync(db, users, services, serviceOrders, jobPosts, mediaList);
+
+            return new
+            {
+                Users = users.Count,
+                Categories = categories.Count,
+                //Skills = skills.Count,
+                Providers = providers.Count,
+                //Services = services.Count,
+                JobPosts = jobPosts.Count,
+                JobOrders = jobOrders.Count,
+                //JobDeliverables = jobDeliverables.Count,
+                //ServiceOrders = serviceOrders.Count,
+                Media = mediaList.Count,
+                //JobSkillRequirements = await db.JobSkillRequirements.CountAsync(j => jobPosts.Select(p => p.Id).Contains(j.JobPostId)),
+                //Reviews = await db.Reviews.CountAsync(r => r.Title.StartsWith(SeedMarker))
+            };
+        }
+        catch (DbUpdateException dbEx)
+        {
+            return new
+            {
+                Error = dbEx.Message,
+                Detail = dbEx.InnerException?.Message,
+                Type = nameof(DbUpdateException)
+            };
+        }
+        catch (Exception ex)
+        {
+            return new { Error = ex.Message, Detail = ex.InnerException?.Message, Type = ex.GetType().Name };
+        }
+
+    }
+
     #region Helper Methods for Seeding
+
+    //MY WORK:::
+
+    [NonAction]
+    public async Task<List<Media>> SeedImagesUsingSystemFilesAsync(int count = 65)
+    {
+        var client = new HttpClient();
+        var mediaEntities = new List<Media>();
+
+        for (int i = 1; i <= count; i++)
+        {
+            try
+            {
+                // 1. تحميل الصورة من الإنترنت
+                var imageUrl = $"https://picsum.photos/400/400?random={i}";
+                var imageBytes = await client.GetByteArrayAsync(imageUrl);
+
+                // 2. تحويل الـ Bytes إلى FormFile لمحاكاة رفع ملف حقيقي
+                var fileName = $"profile_seed_{i}.jpg";
+                var stream = new MemoryStream(imageBytes);
+
+                var formFile = new FormFile(stream, 0, imageBytes.Length, "file", fileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = "image/jpeg"
+                };
+
+                // 3. استخدام ميثود الـ FileManagement الخاصة بك
+                // ملاحظة: بما أنها Static نستخدم اسم الكلاس مباشرة
+                var media = await FileManagement.UploadFileAsync(formFile);
+
+                if (media != null)
+                {
+                    mediaEntities.Add(media);
+                    Console.WriteLine($"[FileManagement] Processed: {fileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error seeding image {i}: {ex.Message}");
+            }
+        }
+
+        // 4. حفظ الكائنات في قاعدة البيانات ليكون لها ID
+        if (mediaEntities.Any())
+        {
+            await db.Medias.AddRangeAsync(mediaEntities);
+            await db.SaveChangesAsync();
+        }
+
+        return mediaEntities;
+    }
+
+
+
+    [NonAction]
+    public async Task<List<Media>> SyncMediaAsync()
+    {
+        // 1. جلب كل الأسماء الموجودة حالياً في الداتا بيز
+        var existingNames = await db.Medias
+            .Select(m => m.FileName)
+            .ToListAsync();
+
+        // 2. مناداة ميثود المزامنة
+        var newMedia = FileManagement.SyncFolderWithDatabase(existingNames);
+
+        // 3. الحفظ في الداتا بيز إذا وجد جديد
+        if (newMedia.Any())
+        {
+            db.Medias.AddRange(newMedia);
+            await db.SaveChangesAsync();
+        }
+
+        return db.Medias.ToList();
+    }
+    
+    [NonAction]
+    public async Task<List<Role>> AddRolesAsync()
+    {
+        if (await db.Roles.CountAsync() >= 3)
+            return await db.Roles.ToListAsync();
+
+        await db.Roles.AddRangeAsync(
+            new Role
+            {
+                Id = "1",
+                Name = RolesStrings.Admin,
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            },
+            new Role
+            {
+                Id = "2",
+                Name = RolesStrings.Member,
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            },
+            new Role
+            {
+                Id = "3",
+                Name = RolesStrings.ServiceProvider,
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            }
+        );
+        await db.SaveChangesAsync();
+        return await db.Roles.ToListAsync();
+    }
+
+    [NonAction]
+    public async Task<List<User>> InjectUsersAndServiceProviderWithMediaAsync(List<int> mediaIds, int count = 50)
+    {
+
+
+        try
+        {
+
+        
+        
+
+        // 3. توليد المستخدمين وربطهم عشوائياً بالميديا
+        var passwordHasher = new PasswordHasher<User>();
+        var newUsers = GetUserFaker(count, mediaIds, passwordHasher);
+
+        // 3. تحديد من سيصبح فري لانسر (70%)
+        var random = new Random();
+        var shuffledUsers = newUsers.OrderBy(x => random.Next()).ToList();
+        int providerCount = (int)(count * 0.7);
+
+        var providersToCreate = new List<ServiceProviderProfile>();
+
+        for (int i = 0; i < shuffledUsers.Count; i++)
+        {
+            var user = shuffledUsers[i];
+
+            if (i < providerCount)
+            {
+                // هذا المستخدم فري لانسر
+                
+
+                // إنشاء بروفايل له
+                var profileFaker = GetProfileFaker(user.Id);
+                providersToCreate.Add(profileFaker.Generate());
+            }
+            else
+            {
+                // هذا المستخدم عميل فقط
+                
+            }
+        }
+
+        // 4. الحفظ في قاعدة البيانات
+        await db.Users.AddRangeAsync(newUsers);
+        await db.ServiceProviderProfiles.AddRangeAsync(providersToCreate);
+
+        await db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+
+        return await db.Users.ToListAsync();
+
+    }
+
+    [NonAction]
+    public static Faker<ServiceProviderProfile> GetProfileFaker(string userId)
+    {
+        return new Faker<ServiceProviderProfile>("en")
+            .RuleFor(p => p.UserId, userId)
+            .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
+            .RuleFor(p => p.Bio, f => f.Lorem.Letter(100))
+            .RuleFor(p => p.ExperienceYears, f => f.Random.Number(1, 15))
+            .RuleFor(p => p.HourlyRate, f => f.Random.Double(10, 200))
+            .RuleFor(p => p.WorkingHoursPerWeek, f => f.Random.Double(10, 60))
+            .RuleFor(p => p.IsActive, true)
+            .RuleFor(p => p.IsAvailable, f => f.Random.Bool(0.9f)) // 90% متاحين للعمل
+            .RuleFor(p => p.FacebookUrl, f => f.Internet.Url())
+            .RuleFor(p => p.GithubUrl, f => f.Internet.Url())
+            .RuleFor(p => p.LinkedInUrl, f => f.Internet.Url())
+            .RuleFor(p => p.TwitterUrl, f => f.Internet.Url())
+            .RuleFor(p => p.TotalReviews, f => f.Random.Number(0, 50))
+            .RuleFor(p => p.AverageRating, f => f.Random.Double(3, 5))
+            .RuleFor(p => p.CompletedJobs, f => f.Random.Number(0, 100))
+            .RuleFor(p => p.AverageResponseTime, f => f.Random.Number(1, 24))
+            .RuleFor(p => p.DateOfJoin, f => f.Date.Past(1));
+    }
+
+
+    [NonAction]
+    public static List<User> GetUserFaker(int count, List<int> availableMediaIds, IPasswordHasher<User> passwordHasher)
+    {
+        int photoIndex = 0;
+
+        var userFaker = new Faker<User>("en")
+            .RuleFor(u => u.Id, f => Guid.CreateVersion7().ToString())
+            .RuleFor(u => u.FullName, f => f.Name.FirstName() + " " + f.Name.LastName())
+            .RuleFor(u => u.UserName, (f, u) => f.Internet.UserName(u.FullName).ToLower())
+            .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.FullName).ToLower())
+            .RuleFor(u => u.Amount, f => f.Finance.Amount(100, 10000))
+            .RuleFor(u => u.DateOfBirth, f => f.Date.Past(50, DateTime.UtcNow.AddYears(-18)))
+            .RuleFor(u => u.IsTrustedByAdmin, f => f.Random.Bool(0.3f)) // 30% chance to be trusted
+            .RuleFor(u => u.IsVerified, f => f.Random.Bool(0.7f)) // 70% chance to be verified
+            // تأكيد الحسابات
+            .RuleFor(u => u.EmailConfirmed, true)
+            .RuleFor(u => u.PhoneNumberConfirmed, true)
+            .RuleFor(u => u.TwoFactorEnabled, false)
+            // ربط الميديا (صورة البروفايل)
+            .RuleFor(u => u.ProfilePictureId, f =>
+            {
+                // إذا كان العداد أقل من عدد الصور المتاحة، خذ الصورة التالية
+                if (photoIndex < availableMediaIds.Count)
+                {
+                    return availableMediaIds[photoIndex++];
+                }
+                return (int?)null; // في حال انتهت الصور (لكننا تأكدنا أنها كافية)
+            })
+            .FinishWith((f, u) =>
+            {
+                // تشفير كلمة السر المطلوبة
+                u.PasswordHash = passwordHasher.HashPassword(u, "Giggo343@");
+            });
+
+        return userFaker.Generate(count);
+    }
+
+    [NonAction]
+    public async Task AddRolesToUsersAndProviders(List<User> users)
+    {
+        var memberRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.Member)).Id;
+        var providerRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.ServiceProvider)).Id;
+
+        // 1. جلب كل العلاقات الموجودة حالياً في القاعدة لتجنب التكرار
+        var existingUserRoles = await db.UserRoles.ToListAsync();
+
+        var newUserRoles = new List<IdentityUserRole<string>>();
+
+        foreach (var user in users)
+        {
+            var targetRoleId = user.IsServiceProvider ? providerRoleId : memberRoleId;
+
+            // 2. التحقق: هل هذا المستخدم لديه هذا الدور فعلاً؟
+            bool alreadyHasRole = existingUserRoles.Any(ur => ur.UserId == user.Id && ur.RoleId == targetRoleId);
+
+            if (!alreadyHasRole)
+            {
+                newUserRoles.Add(new IdentityUserRole<string>
+                {
+                    UserId = user.Id,
+                    RoleId = targetRoleId
+                });
+            }
+        }
+
+        // 3. إضافة العلاقات الجديدة فقط
+        if (newUserRoles.Any())
+        {
+            await db.UserRoles.AddRangeAsync(newUserRoles);
+            await db.SaveChangesAsync();
+        }
+    }
+
+
+    [NonAction]
+    private async Task<List<Category>> GetOrCreateSeedCategoriesAsync()
+    {
+        if (await db.Categories.CountAsync() >= 6)
+            return await db.Categories.Take(6).ToListAsync();
+
+        var definitions = new (string Name, string Description)[]
+        {
+            ("Web Development", "Services for web development and application development"),
+            ("Mobile Development", "Services for mobile app development"),
+            ("UI/UX Design", "User interface and user experience design services"),
+            ("Graphic Design", "Graphic design and branding services"),
+            ("Digital Marketing", "Digital marketing and social media management"),
+            ("Content Writing", "Content creation and copywriting services"),
+            ("Video Editing", "Video editing and post-production services"),
+            ("Data Analysis", "Data analysis and visualization services"),
+            ("Cloud Services", "Cloud computing and infrastructure services"),
+            ("Cyber Security", "Cybersecurity and data protection services"),
+            ("AI & Machine Learning", "Artificial intelligence and machine learning services"),
+            ("Business Consulting", "Business strategy and consulting services"),
+            ("Translation Services", "Language translation and localization services"),
+            ("Financial Services", "Financial consulting and accounting services"),
+            ("Legal Services", "Legal advice and document preparation services"),
+            ("Health & Wellness", "Health coaching and wellness services"),
+            ("Education & Tutoring", "Educational content and tutoring services"),
+            ("Photography", "Professional photography services"),
+            ("Video Production", "Full video production services"),
+            ("Voice Over", "Voice over and narration services")
+        };
+
+        var list = new List<Category>();
+        foreach (var (name, desc) in definitions)
+        {
+            var c = await db.Categories.FirstOrDefaultAsync(x => x.Name == name);
+            if (c == null)
+            {
+                c = new Category { Name = name, Description = desc };
+                db.Categories.Add(c);
+                await db.SaveChangesAsync();
+            }
+
+            list.Add(c);
+        }
+
+        return list;
+    }
+
+
+    //Jop Posts Domain
+
+    [NonAction]
+    public async Task<List<JobPost>> InjectJobPostsAsync(List<string> customerIds, List<int> categoryIds, List<Media> medias, int count = 50)
+    {
+
+        try
+        {
+            var jobPostFaker = GetJobPostFaker(customerIds, categoryIds, medias);
+            var newJobs = jobPostFaker.Generate(count);
+
+            await db.JobPosts.AddRangeAsync(newJobs);
+            await db.SaveChangesAsync();
+
+            return newJobs;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+        
+        
+    }
+
+
+    [NonAction]
+    public static Faker<JobPost> GetJobPostFaker(List<string> customerIds, List<int> categoryIds, List<Media> medias)
+    {
+        return new Faker<JobPost>("en")
+            // العنوان: نستخدم ميثود توفر جملة بطول محدد بدلاً من Substring اليدوي الخطير
+            .RuleFor(j => j.Title, f => f.Lorem.Sentence(3).LimitLength(100))
+
+            // الوصف: نفس الشيء، نستخدم ميثود آمنة
+            .RuleFor(j => j.Description, f => f.Lorem.Paragraphs(2).LimitLength(1000))
+
+            .RuleFor(j => j.BudgetMin, f => f.Finance.Amount(50, 500))
+            .RuleFor(j => j.BudgetMax, (f, j) => j.BudgetMin + f.Finance.Amount(50, 5000))
+
+            .RuleFor(j => j.Status, f => f.PickRandom<JobPostStatus>())
+            .RuleFor(j => j.ExperienceLevel, f => f.PickRandom<ExperienceLevel>())
+            .RuleFor(j => j.TimeCommitment, f => f.PickRandom<TimeCommit>())
+
+            .RuleFor(j => j.ProjectLength, f => f.PickRandom(new[] { "Less than 1 month", "1-3 months", "3-6 months", "More than 6 months" }))
+            .RuleFor(j => j.Deadline, f => f.Date.Soon(30))
+            .RuleFor(j => j.CreatedAt, f => f.Date.Past(1))
+
+            .RuleFor(j => j.CustomerId, f => f.PickRandom(customerIds))
+            .RuleFor(j => j.CategoryId, f => f.PickRandom(categoryIds))
+
+            // بما أنك ألغيت الصرامة عالمياً، يمكنك الآن اختيار صور عشوائية حتى لو تكررت
+            .RuleFor(j => j.Media, f => f.PickRandom(medias, f.Random.Number(1, 3)).ToList());
+    }
+
+    // Extension Method بسيطة لتجنب صداع الـ Substring في كل مكان
+    
+
+
+
+    [NonAction]
+    public async Task InjectOffersForJobPostsAsync(List<JobPost> jobPosts, List<Media> medias)
+    {
+        try
+        {
+            // 1. جلب قائمة الـ Providers المتاحة في النظام لربط العروض بهم
+            var providerIds = await db.ServiceProviderProfiles
+                .Select(p => p.UserId)
+                .ToListAsync();
+
+            if (!providerIds.Any()) return;
+
+            var allOffers = new List<JobOffer>();
+            var random = new Random();
+
+            // 2. لكل JobPost، سنقوم بتوليد من 3 إلى 8 عروض
+            foreach (var job in jobPosts)
+            {
+                var offerFaker = GetJobOfferFaker(job.Id, providerIds, medias);
+
+                // توليد عدد عشوائي من العروض لهذا المنشور
+                var offersForThisJob = offerFaker.Generate(random.Next(3, 8));
+
+                allOffers.AddRange(offersForThisJob);
+            }
+
+            // 3. إضافة كل العروض دفعة واحدة لقاعدة البيانات لتحسين الأداء
+            if (allOffers.Any())
+            {
+                await db.JobOffers.AddRangeAsync(allOffers);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            Console.WriteLine(ex.InnerException?.Message);
+
+            throw;
+        }
+
+        
+    }
+
+
+
+    [NonAction]
+    public static Faker<JobOffer> GetJobOfferFaker(int jobPostId, List<string> providerIds,List<Media> medias)
+    {
+        try
+        {
+             return new Faker<JobOffer>("en")
+                        .RuleFor(o => o.JobPostId, jobPostId)
+                        // اختيار فريلانسر عشوائي من القائمة المتاحة
+                        .RuleFor(o => o.ProviderProfileId, f => f.PickRandom(providerIds))
+                        .RuleFor(o => o.Description, f => f.Lorem.Text().LimitLength(100))
+                        .RuleFor(o => o.DeliveryTimeInDays, f => f.Random.Number(1, 30))
+                        .RuleFor(o => o.Amount, f => f.Finance.Amount(50, 5000))
+                        .RuleFor(o => o.SimilarWorkExamplesURL, f => f.Internet.Url())
+                        .RuleFor(o => o.Status, JobOfferStatus.Pending)
+                        .RuleFor(o => o.IsAccepted, false)
+                        .RuleFor(o => o.ExperienceLevel, f => f.PickRandom<ExperienceLevel>())
+                        .RuleFor(o => o.TimeCommitment, f => f.PickRandom<TimeCommit>())
+                        .FinishWith((f,o) =>
+                        {
+                            o.Attachments = f.PickRandom(medias, f.Random.Number(0, 3)).ToList();
+                        });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            Console.WriteLine(ex.InnerException?.Message);
+
+            throw;
+        }
+       
+    }
+
+    [NonAction]
+    public async Task<List<JobOrder>> InjectJobOrdersFullCycleAsync(List<JobPost> jobPosts)
+    {
+        try
+        {
+            var newOrders = new List<JobOrder>();
+            var random = new Random();
+            var faker = new Faker("en");
+
+            // 1. تعريف المصفوفات هنا في الأعلى لضمان وصول جميع أجزاء الكود لها
+            string[] customerSamples = {
+            "Hello, I've accepted your offer. Let's start!",
+            "When can you provide the first draft?",
+            "I've shared the requirements, please confirm receipt."
+        };
+
+            string[] providerSamples = {
+            "Thank you for choosing me! I'll start immediately.",
+            "I will send you an update by tomorrow.",
+            "Received, I'm working on it now."
+        };
+
+            foreach (var job in jobPosts)
+            {
+                var winningOffer = await db.JobOffers
+                    .Where(o => o.JobPostId == job.Id)
+                    .OrderBy(o => Guid.NewGuid())
+                    .FirstOrDefaultAsync();
+
+                if (winningOffer == null) continue;
+
+                winningOffer.IsAccepted = true;
+                winningOffer.Status = JobOfferStatus.Accepted;
+                job.Status = JobPostStatus.InProgress;
+
+                // 2. بناء الطلب (BuildOrder)
+                var order = JobOrder.BuildOrder(job, winningOffer);
+
+                // 3. ملء المحادثة بالرسائل
+                if (order.Conversation != null)
+                {
+                    var messages = new List<Message>();
+                    int messageCount = random.Next(3, 6);
+
+                    for (int i = 0; i < messageCount; i++)
+                    {
+                        bool isCustomerSender = i % 2 == 0;
+                        messages.Add(new Message
+                        {
+                            Conversation = order.Conversation,
+                            SenderId = isCustomerSender ? job.CustomerId : winningOffer.ProviderProfileId,
+                            Content = isCustomerSender
+                                      ? faker.PickRandom(customerSamples)
+                                      : faker.PickRandom(providerSamples),
+                            CreatedAt = DateTime.UtcNow.AddMinutes(i * 15),
+                            IsRead = true
+                        });
+                    }
+                    order.Conversation.Messages = messages;
+                }
+
+                // 4. العملية المالية
+                var transaction = new PaymentTransaction
+                {
+                    JobOrder = order,
+                    Amount = order.Amount,
+                    PlatformFee = order.Amount * 0.15m,
+                    NetPayout = order.Amount - (order.Amount * 0.15m),
+                    Currency = CurrencyCode.EGP,
+                    Status = TransactionStatus.Completed,
+                    GatewayUsed = faker.PickRandom<PaymentGateway>(),
+                    TransactionDate = DateTime.UtcNow.AddMinutes(-30),
+                    GatewayReferenceId = "PAY-" + faker.Random.AlphaNumeric(12).ToUpper()
+                };
+
+                order.PaymentTransaction = transaction;
+                newOrders.Add(order);
+            }
+
+            // 5. الحفظ النهائي
+            if (newOrders.Any())
+            {
+                await db.JobOrders.AddRangeAsync(newOrders);
+                await db.SaveChangesAsync();
+            }
+
+            return newOrders;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
+        }
+    }
+
+
+
+
+    //END OF MY WORK:::
 
     private async Task<List<Media>> GetOrCreateSeedMediaAsync(Database db, IWebHostEnvironment env)
     {
+
+
+
         var existing = await db.Medias
             .Where(m => m.FileName.StartsWith(SeedMediaPrefix))
             .OrderBy(m => m.FileName)
@@ -306,34 +960,7 @@ public class TestController : ControllerBase
         return ~crc;
     }
 
-    private async Task<List<Category>> GetOrCreateSeedCategoriesAsync(Database db)
-    {
-        var definitions = new (string Name, string Description)[]
-        {
-            ("برمجة وتطوير", "خدمات البرمجة وتطوير المواقع والتطبيقات"),
-            ("تصميم جرافيك", "تصميم الشعارات والهويات البصرية"),
-            ("كتابة وترجمة", "كتابة المحتوى والترجمة"),
-            ("تسويق رقمي", "التسويق عبر وسائل التواصل الاجتماعي"),
-            ("فيديو وصوت", "مونتاج الفيديو والتعليق الصوتي"),
-            ("أعمال", "الاستشارات الإدارية والمالية")
-        };
-
-        var list = new List<Category>();
-        foreach (var (name, desc) in definitions)
-        {
-            var c = await db.Categories.FirstOrDefaultAsync(x => x.Name == name);
-            if (c == null)
-            {
-                c = new Category { Name = name, Description = desc };
-                db.Categories.Add(c);
-                await db.SaveChangesAsync();
-            }
-
-            list.Add(c);
-        }
-
-        return list;
-    }
+    
 
     private async Task<List<Skill>> GetOrCreateSeedSkillsAsync(Database db)
     {
@@ -962,6 +1589,75 @@ public class TestController : ControllerBase
             });
             await db.SaveChangesAsync();
         }
+    }
+
+    private async Task<List<JobOrder>> GetOrCreateSeedJobOrdersAsync(Database db, List<JobPost> jobPosts)
+    {
+        var seededJobOrders = new List<JobOrder>();
+        var postsWithOptions = await db.JobPosts.Include(jp => jp.Offers).Where(jp => jobPosts.Select(p => p.Id).Contains(jp.Id)).ToListAsync();
+
+        foreach (var jp in postsWithOptions)
+        {
+            if (jp.Offers.Count > 0)
+            {
+                var offer = jp.Offers.First();
+
+                if (!await db.JobOrders.AnyAsync(jo => jo.JobPostId == jp.Id && jo.AcceptedOfferId == offer.Id))
+                {
+                    // Create PaymentTransaction first to satisfy relation
+                    var payment = new PaymentTransaction
+                    {
+                        Amount = offer.Amount,
+                        PlatformFee = offer.Amount * 0.1m,
+                        NetPayout = offer.Amount * 0.9m,
+                        Currency = CurrencyCode.EGP,
+                        Status = TransactionStatus.Completed,
+                        GatewayUsed = PaymentGateway.Card
+                    };
+                    db.PaymentTransactions.Add(payment);
+                    await db.SaveChangesAsync();
+
+                    var order = JobOrder.BuildOrder(jp, offer);
+                    order.PaymentTransactionId = payment.Id;
+                    order.ExpectedDeliveryDate = DateTime.UtcNow.AddDays(offer.DeliveryTimeInDays == 0 ? 5 : offer.DeliveryTimeInDays);
+                    order.CreatedBy = SeedCreatedBy;
+                    if (order.Conversation != null)
+                    {
+                        order.Conversation.CreatedBy = SeedCreatedBy;
+                    }
+                    db.JobOrders.Add(order);
+                }
+            }
+        }
+        await db.SaveChangesAsync();
+
+        return await db.JobOrders.Where(jo => jo.CreatedBy == SeedCreatedBy).ToListAsync();
+    }
+
+    private async Task<List<JobDeliverable>> GetOrCreateSeedJobDeliverablesAsync(Database db, List<JobOrder> jobOrders, List<Media> mediaList)
+    {
+        foreach (var order in jobOrders)
+        {
+            if (!await db.JobDeliverables.AnyAsync(jd => jd.JobOrderId == order.Id))
+            {
+                var deliverable = new JobDeliverable
+                {
+                    JobOrderId = order.Id,
+                    Description = $"{SeedMarker} - تسليم عمل للطلب {order.Id}",
+                    Attachments = new List<Media>()
+                };
+
+                if (mediaList.Count > 0)
+                {
+                    deliverable.Attachments.Add(mediaList[Random.Shared.Next(0, mediaList.Count)]);
+                }
+
+                db.JobDeliverables.Add(deliverable);
+            }
+        }
+        await db.SaveChangesAsync();
+
+        return await db.JobDeliverables.Where(jd => jd.Description.StartsWith(SeedMarker)).ToListAsync();
     }
 
     #endregion

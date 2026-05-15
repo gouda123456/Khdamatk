@@ -35,10 +35,37 @@ public class JobOffer
     public virtual Conversation? Conversation { get; set; }
 
     [ForeignKey(nameof(Order))]
-    public int OrderId { get; set; }
+    public int? OrderId { get; set; }
     public virtual JobOrder? Order { get; set; }
 
     public virtual ICollection<Media> Attachments { get; set; } = new List<Media>();
+
+
+
+    public static List<JobOffer> Data(int minId)
+    {
+        var list = new List<JobOffer>();
+
+        for (int i = minId; i < minId + 5; i++)
+        {
+            list.Add(new JobOffer
+            {
+                Description = $"Job Offer {i}",
+                DeliveryTimeInDays = i,
+                SimilarWorkExamplesURL = $"https://example.com/work/{i}",
+                Status = JobOfferStatus.Pending,
+                ExperienceLevel = ExperienceLevel.Entry,
+                Amount = 100 + i,
+                IsAccepted = false,
+                JobPostId = i,
+                ProviderProfileId = $"Provider{i}",
+                ConversationId = i,
+                OrderId = i
+            });
+        }
+
+        return list;
+    }
 }
 
 public enum JobOfferStatus

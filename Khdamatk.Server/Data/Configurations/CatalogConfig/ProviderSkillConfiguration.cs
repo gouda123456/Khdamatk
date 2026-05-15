@@ -29,7 +29,6 @@ public class ProviderSkillConfiguration : IEntityTypeConfiguration<ProviderSkill
             .IsRequired()
             .HasDefaultValue(SkillExperienceLevel.Beginner);
 
-        // إضافة Index للسرعة عند البحث عن مقدمي خدمة بمهارة معينة
-        builder.HasIndex(ps => ps.SkillId);
+        
     }
 }

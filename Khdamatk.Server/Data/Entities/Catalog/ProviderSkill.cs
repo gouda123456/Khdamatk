@@ -10,6 +10,9 @@ public class ProviderSkill
 
     public virtual ServiceProviderProfile Profile { get; set; } = null!;
     public virtual Skill Skill { get; set; } = null!;
+
+
+    
 }
 
 

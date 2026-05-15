@@ -12,4 +12,21 @@ public class Category
     public string? Description { get; set; } = string.Empty;
 
     public virtual ICollection<Service> Services { get; set; } = [];
+
+    public static List<Category> Data(int minId)
+    {
+        var list = new List<Category>();
+
+        for (int i = minId; i < minId +5; i++)
+        {
+            list.Add(new Category
+            {
+                Name = $"Category {i}",
+                Description = $"Description for category {i}"
+            });
+        }
+
+        return list;
+    }
+
 }

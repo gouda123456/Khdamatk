@@ -59,4 +59,49 @@ public static class FileManagement
 
         return media;
     }
+
+
+    public static List<Media> SyncFolderWithDatabase(List<string> existingFileNames)
+    {
+        var newMediaList = new List<Media>();
+
+        // 1. قراءة جميع الملفات من مجلد الـ Uploads
+        var directoryInfo = new DirectoryInfo(MediaPath);
+        if (!directoryInfo.Exists) return newMediaList;
+
+        var filesInFolder = directoryInfo.GetFiles();
+
+        // 2. استثناء الملفات الموجودة مسبقاً في الداتا بيز
+        var filesToProcess = filesInFolder
+            .Where(f => !existingFileNames.Contains(f.Name))
+            .ToList();
+
+        // 3. تحويل الملفات الجديدة إلى كائنات Media
+        foreach (var file in filesToProcess)
+        {
+            newMediaList.Add(new Media
+            {
+                FileName = file.Name,
+                FileExtension = file.Extension,
+                Size = file.Length,
+                ContentType = GetContentType(file.Extension) // ميثود مساعدة لجلب النوع
+            });
+        }
+
+        return newMediaList;
+    }
+
+    // ميثود بسيطة لتحديد الـ ContentType بناءً على الامتداد
+    private static string GetContentType(string extension)
+    {
+        return extension.ToLower() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".pdf" => "application/pdf",
+            ".txt" => "text/plain",
+            _ => "application/octet-stream",
+        };
+    }
+
 }

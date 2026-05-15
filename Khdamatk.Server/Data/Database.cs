@@ -23,8 +23,34 @@ public class Database(DbContextOptions<Database> options,IHttpContextAccessor co
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+
+
         base.OnModelCreating(builder);
-    }
+
+        foreach (var entityType in builder.Model.GetEntityTypes())
+        {
+            // 1. ابحث عن كل المفاتيح الخارجية التي تشير إلى كلاس Media
+            var mediaForeignKeys = entityType.GetForeignKeys()
+                .Where(fk => fk.PrincipalEntityType.ClrType == typeof(Media));
+
+            foreach (var fk in mediaForeignKeys)
+            {
+                // 2. ابحث عن الـ Index المرتبط بهذا المفتاح الخارجي
+                // في علاقات One-to-One، يقوم EF Core بإنشاء Unique Index تلقائياً
+                var index = entityType.GetIndexes()
+                    .FirstOrDefault(i => i.Properties.SequenceEqual(fk.Properties));
+
+                if (index != null)
+                {
+                    // 3. إلغاء الصرامة: السماح بتكرار الميديا في هذا الحقل
+                    index.IsUnique = false;
+                }
+            }
+
+
+        }
+
+        }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

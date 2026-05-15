@@ -41,6 +41,51 @@ public class JobPost
     public virtual ICollection<Media> Media { get; set; } =[];
     public virtual ICollection<DeliveredJobFile> DeliveredFiles { get; set; } = [];
     public virtual ICollection<JobSkillRequirement> SkillRequirements { get; set; } = [];
+
+
+
+    public static List<JobPost> Data(int minId)
+    {
+        var list = new List<JobPost>();
+
+        for (int i = minId; i < minId + 5; i+=2)
+        {
+            list.AddRange(new JobPost
+            {
+                CustomerId = $"Customer{i}",
+                CategoryId = i,
+                OrderId = i,
+                Title = $"Job Post {i}",
+                Description = $"Description for job post {i}",
+                BudgetMin = 100 + i,
+                BudgetMax = 200 + i,
+                Status = JobPostStatus.Open,
+                ExperienceLevel = ExperienceLevel.Entry,
+                ProjectLength = $"Project Length {i}",
+                TimeCommitment = TimeCommit.PartTime,
+                Deadline = DateTime.UtcNow.AddDays(i),
+                CreatedAt = DateTime.UtcNow
+            },
+            new JobPost
+            {
+                CustomerId = $"Customer{i+1}",
+                CategoryId = i+1,
+                OrderId = i+1,
+                Title = $"Job Post {i+1}",
+                Description = $"Description for job post {i+1}",
+                BudgetMin = 100 + i,
+                BudgetMax = 200 + i,
+                Status = JobPostStatus.InProgress,
+                ExperienceLevel = ExperienceLevel.Expert,
+                ProjectLength = $"Project Length {i}",
+                TimeCommitment = TimeCommit.FullTime,
+                Deadline = DateTime.UtcNow.AddDays(i),
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        return list;
+    }
 }
  
 public enum JobPostStatus

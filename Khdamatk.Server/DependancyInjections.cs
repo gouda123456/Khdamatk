@@ -133,7 +133,7 @@ public static class DependancyInjections
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        var jwtSettings = config.GetSection(nameof(JwtSetting)).Get<JwtSetting>()!;
+        JwtSetting? jwtSettings = config.GetSection(nameof(JwtSetting)).Get<JwtSetting>()!;
 
 
         services.AddAuthentication(options =>
