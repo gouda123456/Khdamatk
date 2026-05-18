@@ -13,7 +13,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     #region Jobs Operations
 
     [HttpPost("Jobs/")]
-    public async Task<IActionResult> AddJob(AddJobRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddJob([FromForm]AddJobRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.AddJobASync(request, cancellationToken)).Respond();
     }

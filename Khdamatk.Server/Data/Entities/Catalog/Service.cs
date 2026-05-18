@@ -29,6 +29,13 @@ public class Service : BaseEntity
     public int RevisionCount { get; set; } = 0;
 
 
+    // --- الحقول الجديدة المضافة لأهميتها القصوى ---
+    public bool IsActive { get; set; } = true; // تمكين/تعطيل الخدمة من قبل الـ Freelancer
+    public bool IsApproved { get; set; } = true; // موافقة الإدارة على النشر (لمكافحة السبام)
+    public int SalesCount { get; set; } = 0; // لترتيب الخدمات حسب الأكثر مبيعاً
+    public int ViewCount { get; set; } = 0; // لقياس مدى رواج الخدمة
+
+
     [ForeignKey(nameof(Category))]
     public int CategoryId { get; set; }
 

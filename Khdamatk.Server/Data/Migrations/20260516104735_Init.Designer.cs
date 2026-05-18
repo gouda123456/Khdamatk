@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260515171341_Init")]
+    [Migration("20260516104735_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -507,6 +507,12 @@ namespace Khdamatk.Server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
@@ -517,6 +523,9 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<int>("RevisionCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SalesCount")
                         .HasColumnType("int");
 
                     b.Property<string>("ServiceProviderProfileId")
@@ -541,6 +550,9 @@ namespace Khdamatk.Server.Data.Migrations
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

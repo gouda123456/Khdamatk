@@ -6,6 +6,7 @@ using Khdamatk.Server.Helper.Payment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Packaging;
 using static Khdamatk.Server.Statics.Consts.PermissionsDefault;
 using Database = Khdamatk.Server.Data.Database;
 
@@ -211,14 +212,18 @@ public class TestController(
             var mediaList = await SyncMediaAsync();
             var availableUserMediaIds = await db.Medias
                                     .Where(m => !db.Users.Any(u => u.ProfilePictureId == m.Id))
-                                    .Select(m => m.Id)
                                     .ToListAsync();
 
             var roles = await AddRolesAsync();
-            var users = await InjectUsersAndServiceProviderWithMediaAsync(availableUserMediaIds);
-            var providers = await db.ServiceProviderProfiles.Include(p => p.User).ToListAsync();
+            var skills = await InjectSkillsAsync();
+            await InjectCertificatesAsync(mediaList);
+
+            var users = await InjectUsersAndServiceProviderWithMediaAsync(availableUserMediaIds, skills.Select(s => s.Id).ToList());
             await AddRolesToUsersAndProviders(users);
-            //verification Data, certificates, portfolio (item , media), Skills, provider Skills 
+            var providers = await db.ServiceProviderProfiles.Include(p => p.User).ToListAsync();
+            var admins = await InjectUsersAdminsAsync(availableUserMediaIds, skills.Select(s => s.Id).ToList());
+
+            //verification Data, portfolio (item , media), Skills, provider Skills 
 
             //Jop Posts Domain
             var categories = await GetOrCreateSeedCategoriesAsync();
@@ -227,10 +232,20 @@ public class TestController(
                                     .Where(m => !db.JobPosts.Any(j => j.Media.Any(md => md.Id == m.Id)))
                                     .ToListAsync();
 
-            var jobPosts = await InjectJobPostsAsync(users.Where(u => !u.IsServiceProvider).Select(u => u.Id).ToList(), categories.Select(c => c.Id).ToList(), availableJobMediaIds);
+            var jobPosts = await InjectJobPostsAsync(users.Where(u => !u.IsServiceProvider).Select(u => u.Id).ToList(), categories.Select(c => c.Id).ToList(), availableJobMediaIds, skills.Select(s => s.Id).ToList());
             await InjectOffersForJobPostsAsync(jobPosts, mediaList);
 
             var jobOrders = await InjectJobOrdersFullCycleAsync(jobPosts);
+
+
+            //Service Domain
+            var services = await InjectServicesFullGraphAsync();
+            var serviceOrders = await InjectServiceOrdersAsync();
+
+
+            //Reviews, disputes, 
+            var Disputes = await InjectDisputesAsync(serviceOrders.Select(so => so.Id).ToList(),jobOrders.Select(jo => jo.Id).ToList());
+            var reviews = await InjectReviewsAsync();
 
             //milstones, deliveredFiles, skill requirements,
 
@@ -252,16 +267,16 @@ public class TestController(
             {
                 Users = users.Count,
                 Categories = categories.Count,
-                //Skills = skills.Count,
+                Skills = skills.Count,
                 Providers = providers.Count,
-                //Services = services.Count,
+                Services = services.Count,
                 JobPosts = jobPosts.Count,
                 JobOrders = jobOrders.Count,
-                //JobDeliverables = jobDeliverables.Count,
-                //ServiceOrders = serviceOrders.Count,
+                ServiceOrders = serviceOrders.Count,
                 Media = mediaList.Count,
-                //JobSkillRequirements = await db.JobSkillRequirements.CountAsync(j => jobPosts.Select(p => p.Id).Contains(j.JobPostId)),
-                //Reviews = await db.Reviews.CountAsync(r => r.Title.StartsWith(SeedMarker))
+                JobSkillRequirements = await db.JobSkillRequirements.CountAsync(j => jobPosts.Select(p => p.Id).Contains(j.JobPostId)),
+                Reviews = reviews.Count,
+                Disputes = Disputes.Count
             };
         }
         catch (DbUpdateException dbEx)
@@ -388,7 +403,7 @@ public class TestController(
     }
 
     [NonAction]
-    public async Task<List<User>> InjectUsersAndServiceProviderWithMediaAsync(List<int> mediaIds, int count = 50)
+    public async Task<List<User>> InjectUsersAndServiceProviderWithMediaAsync(List<Media> medias,List<int> skillIds, int count = 50)
     {
 
 
@@ -400,7 +415,7 @@ public class TestController(
 
         // 3. توليد المستخدمين وربطهم عشوائياً بالميديا
         var passwordHasher = new PasswordHasher<User>();
-        var newUsers = GetUserFaker(count, mediaIds, passwordHasher);
+        var newUsers = GetUserFaker(count, medias.Select(m => m.Id).ToList(), passwordHasher);
 
         // 3. تحديد من سيصبح فري لانسر (70%)
         var random = new Random();
@@ -419,7 +434,7 @@ public class TestController(
                 
 
                 // إنشاء بروفايل له
-                var profileFaker = GetProfileFaker(user.Id);
+                var profileFaker = GetProfileWithPortfolioFaker(user.Id, skillIds, medias);
                 providersToCreate.Add(profileFaker.Generate());
             }
             else
@@ -446,26 +461,112 @@ public class TestController(
     }
 
     [NonAction]
-    public static Faker<ServiceProviderProfile> GetProfileFaker(string userId)
+    public  async Task<List<User>> InjectUsersAdminsAsync(List<Media> medias, List<int> skillIds, int count = 50)
     {
+        // 3. توليد المستخدمين وربطهم عشوائياً بالميديا
+        var passwordHasher = new PasswordHasher<User>();
+        var newUsers = GetUserFaker(count, medias.Select(m => m.Id).ToList(), passwordHasher);
+
+        await db.Users.AddRangeAsync(newUsers);
+
+        var adminRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.Admin)).Id;
+
+        await db.UserRoles.AddRangeAsync(newUsers.Select(u => new IdentityUserRole<string>
+        {
+            UserId = u.Id,
+            RoleId = adminRoleId
+        }));
+
+        await db.SaveChangesAsync();
+        return await db.Users.ToListAsync();
+    }
+
+    [NonAction]
+    public static Faker<ServiceProviderProfile> GetProfileWithPortfolioFaker(
+    string userId,
+    List<int> skillIds,
+    List<Media> medias) // أضفنا قائمة الميديا هنا لربطها بمعرض الأعمال
+    {
+        var random = new Random();
+        var mediaIds = medias.Select(m => m.Id).ToList();
+
         return new Faker<ServiceProviderProfile>("en")
             .RuleFor(p => p.UserId, userId)
-            .RuleFor(p => p.JobTitle, f => f.Name.JobTitle())
-            .RuleFor(p => p.Bio, f => f.Lorem.Letter(100))
+            .RuleFor(p => p.JobTitle, f => f.Name.JobTitle().ClampLength(2, 50))
+            .RuleFor(p => p.Bio, f => f.Lorem.Paragraph().ClampLength(10, 1000))
+
             .RuleFor(p => p.ExperienceYears, f => f.Random.Number(1, 15))
-            .RuleFor(p => p.HourlyRate, f => f.Random.Double(10, 200))
-            .RuleFor(p => p.WorkingHoursPerWeek, f => f.Random.Double(10, 60))
+            .RuleFor(p => p.HourlyRate, f => Math.Round(f.Random.Double(10, 200), 2))
+            .RuleFor(p => p.WorkingHoursPerWeek, f => Math.Round(f.Random.Double(10, 60), 1))
             .RuleFor(p => p.IsActive, true)
-            .RuleFor(p => p.IsAvailable, f => f.Random.Bool(0.9f)) // 90% متاحين للعمل
+            .RuleFor(p => p.IsAvailable, f => f.Random.Bool(0.9f))
+
             .RuleFor(p => p.FacebookUrl, f => f.Internet.Url())
             .RuleFor(p => p.GithubUrl, f => f.Internet.Url())
             .RuleFor(p => p.LinkedInUrl, f => f.Internet.Url())
             .RuleFor(p => p.TwitterUrl, f => f.Internet.Url())
+
             .RuleFor(p => p.TotalReviews, f => f.Random.Number(0, 50))
-            .RuleFor(p => p.AverageRating, f => f.Random.Double(3, 5))
+            .RuleFor(p => p.AverageRating, f => Math.Round(f.Random.Double(3, 5), 1))
             .RuleFor(p => p.CompletedJobs, f => f.Random.Number(0, 100))
             .RuleFor(p => p.AverageResponseTime, f => f.Random.Number(1, 24))
-            .RuleFor(p => p.DateOfJoin, f => f.Date.Past(1));
+            .RuleFor(p => p.DateOfJoin, f => f.Date.Past(1))
+
+            // 1. توليد وحقن مهارات مقدم الخدمة (ProviderSkills)
+            .RuleFor(p => p.Skills, f => {
+                var selectedSkills = new List<ProviderSkill>();
+                if (skillIds != null && skillIds.Any())
+                {
+                    var randomSkillIds = f.PickRandom(skillIds, f.Random.Number(2, 5)).Distinct().ToList();
+                    foreach (var id in randomSkillIds)
+                    {
+                        selectedSkills.Add(new ProviderSkill
+                        {
+                            SkillId = id,
+                            MyLevel = f.PickRandom<SkillExperienceLevel>()
+                        });
+                    }
+                }
+                return selectedSkills;
+            })
+
+            // 2. توليد وحقن معرض الأعمال (PortfolioItems) مع الـ PortfolioMedia التابعة
+            .RuleFor(p => p.PortfolioItems, f => {
+                var portfolioList = new List<PortfolioItem>();
+                int projectsCount = f.Random.Number(1, 3); // توليد من مشروع إلى 3 مشاريع لكل شخص
+
+                for (int i = 0; i < projectsCount; i++)
+                {
+                    // اختيار من 1 إلى 2 ميديا فريدة عشوائياً لكل مشروع في المعرض
+                    var selectedMediaIds = f.PickRandom(mediaIds, f.Random.Number(1, 2)).Distinct().ToList();
+
+                    var portfolioItem = new PortfolioItem
+                    {
+                        Title = f.Commerce.ProductName().ClampLength(2, 50),
+                        Description = f.Lorem.Paragraph().ClampLength(5, 1000),
+                        ProjectUrl = f.Internet.Url(),
+                        CompletionDate = f.Date.Past(2),
+
+                        // بيانات إضافية اختيارية لمحاكاة الواقعية
+                        SchoolName = f.Company.CompanyName().ClampLength(0, 100),
+                        Degree = f.Lorem.Word().ClampLength(0, 50),
+                        FieldOfStudy = f.Lorem.Word().ClampLength(0, 50),
+                        Company = f.Company.CompanyName().ClampLength(0, 100),
+                        StartDate = f.Date.Past(4),
+                        EndDate = f.Date.Past(2)
+                    };
+
+                    // ربط الميديا بالمشروع الحالي عبر كائن الوسيط PortfolioMedia
+                    portfolioItem.ProjectMediaLinks = selectedMediaIds.Select(mId => new PortfolioMedia
+                    {
+                        MediaId = mId
+                    }).ToList();
+
+                    portfolioList.Add(portfolioItem);
+                }
+
+                return portfolioList;
+            });
     }
 
 
@@ -481,8 +582,8 @@ public class TestController(
             .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.FullName).ToLower())
             .RuleFor(u => u.Amount, f => f.Finance.Amount(100, 10000))
             .RuleFor(u => u.DateOfBirth, f => f.Date.Past(50, DateTime.UtcNow.AddYears(-18)))
-            .RuleFor(u => u.IsTrustedByAdmin, f => f.Random.Bool(0.3f)) // 30% chance to be trusted
-            .RuleFor(u => u.IsVerified, f => f.Random.Bool(0.7f)) // 70% chance to be verified
+            .RuleFor(u => u.IsTrustedByAdmin, f => true) // 30% chance to be trusted
+            .RuleFor(u => u.IsVerified, f => true) // 70% chance to be verified
             // تأكيد الحسابات
             .RuleFor(u => u.EmailConfirmed, true)
             .RuleFor(u => u.PhoneNumberConfirmed, true)
@@ -497,6 +598,13 @@ public class TestController(
                 }
                 return (int?)null; // في حال انتهت الصور (لكننا تأكدنا أنها كافية)
             })
+            .RuleFor(u => u.VerificationData, f => new VerificationData
+            {
+                City = f.Address.City().ClampLength(2, 50),
+                Country = f.Address.Country().ClampLength(2, 50),
+                NationalNumber = f.Random.Replace("#########"), // رقم وطني مكون من 9 أرقام
+                Status = f.PickRandom<VerificationStatus>()
+            })
             .FinishWith((f, u) =>
             {
                 // تشفير كلمة السر المطلوبة
@@ -505,6 +613,10 @@ public class TestController(
 
         return userFaker.Generate(count);
     }
+
+
+    
+
 
     [NonAction]
     public async Task AddRolesToUsersAndProviders(List<User> users)
@@ -570,7 +682,15 @@ public class TestController(
             ("Education & Tutoring", "Educational content and tutoring services"),
             ("Photography", "Professional photography services"),
             ("Video Production", "Full video production services"),
-            ("Voice Over", "Voice over and narration services")
+            ("Voice Over", "Voice over and narration services"),
+            ("Music & Audio", "Music production and audio editing services"),
+            ("Virtual Assistance", "Virtual assistant and administrative support services"),
+            ("Programming & Tech", "Programming, tech support, and IT services"),
+            ("Writing & Translation", "Writing, editing, and translation services"),
+            ("Design & Creative", "Graphic design, video editing, and creative services"),
+            ("Digital Marketing", "SEO, social media marketing, and advertising services"),
+            ("Business & Consulting", "Business strategy, consulting, and financial services"),
+            ("Lifestyle Services", "Health coaching, fitness training, and lifestyle services")
         };
 
         var list = new List<Category>();
@@ -590,16 +710,114 @@ public class TestController(
         return list;
     }
 
+    [NonAction]
+    public async Task InjectCertificatesAsync(List<Media> medias)
+    {
+        try
+        {
+            // 1. جلب قائمة مقدمي الخدمة المتاحين
+            var providerIds = await db.ServiceProviderProfiles
+                .Select(p => p.UserId)
+                .ToListAsync();
+
+            if (!providerIds.Any()) return;
+
+            // جلب معرفات الميديا المتاحة (صور الشهادات)
+            var mediaIds = medias.Select(m => m.Id).ToList();
+
+            var allCertificates = new List<Certificate>();
+            var random = new Random();
+
+            // 2. لكل مقدم خدمة، سنقوم بتوليد من 1 إلى 3 شهادات
+            foreach (var providerId in providerIds)
+            {
+                var certificateFaker = GetCertificateFaker(providerId, mediaIds);
+
+                // توليد عدد عشوائي من الشهادات لمقدم الخدمة هذا
+                var count = random.Next(1, 4);
+                var certsForThisProvider = certificateFaker.Generate(count);
+
+                allCertificates.AddRange(certsForThisProvider);
+            }
+
+            // 3. الحفظ في قاعدة البيانات
+            if (allCertificates.Any())
+            {
+                await db.Certificates.AddRangeAsync(allCertificates);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error seeding certificates: {ex.Message}");
+            throw;
+        }
+    }
+
+    [NonAction]
+    public static Faker<Certificate> GetCertificateFaker(string providerId, List<int> mediaIds)
+    {
+        // قائمة بأنواع الشهادات لتبدو البيانات واقعية
+        var certTypes = new[] { "Professional", "Academic", "Technical", "Specialization", "Workshop" };
+
+        return new Faker<Certificate>("en")
+            // ربط الشهادة بمقدم الخدمة
+            .RuleFor(c => c.ServiceProviderProfileId, providerId)
+
+            // توليد عنوان شهادة (مثل: Microsoft Certified Expert)
+            .RuleFor(c => c.Title, f => f.Commerce.ProductName().ClampLength(2, 50))
+
+            // الجهة المانحة (مثل: Google, Coursera, MIT)
+            .RuleFor(c => c.Issuer, f => f.Company.CompanyName())
+
+            // نوع الشهادة
+            .RuleFor(c => c.Type, f => f.PickRandom(certTypes))
+
+            // سنة الحصول على الشهادة (من 2010 حتى الآن)
+            .RuleFor(c => c.YearAcquired, f => f.Date.Past(15).Year)
+
+            // ربط صورة الشهادة (Media) بشكل عشوائي إذا وجدت
+            .RuleFor(c => c.MediaId, f => mediaIds.Any() ? f.PickRandom(mediaIds) : (int?)null);
+    }
+
+    [NonAction]
+    public async Task<List<Skill>> InjectSkillsAsync()
+    {
+        try
+        {
+            // 1. التأكد من وجود المهارات الأساسية في قاعدة البيانات أولاً
+            var existingSkills = await db.Skills.ToListAsync();
+            if (!existingSkills.Any())
+            {
+                await db.Skills.AddRangeAsync(Skill.Data);
+                await db.SaveChangesAsync();
+                existingSkills = await db.Skills.ToListAsync();
+            }
+            
+            return existingSkills;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error seeding skills: {ex.Message}");
+            Console.WriteLine($"Error seeding skills: {ex.InnerException?.Message}");
+            throw;
+        }
+    }
+
+    
+
 
     //Jop Posts Domain
 
     [NonAction]
-    public async Task<List<JobPost>> InjectJobPostsAsync(List<string> customerIds, List<int> categoryIds, List<Media> medias, int count = 50)
+    public async Task<List<JobPost>> InjectJobPostsAsync(List<string> customerIds, List<int> categoryIds, List<Media> medias, List<int>? skillIds, int count = 50)
     {
 
         try
         {
-            var jobPostFaker = GetJobPostFaker(customerIds, categoryIds, medias);
+             
+            var jobPostFaker = GetJobPostFaker(customerIds, categoryIds, medias, skillIds);
             var newJobs = jobPostFaker.Generate(count);
 
             await db.JobPosts.AddRangeAsync(newJobs);
@@ -618,13 +836,24 @@ public class TestController(
 
 
     [NonAction]
-    public static Faker<JobPost> GetJobPostFaker(List<string> customerIds, List<int> categoryIds, List<Media> medias)
+    public static Faker<JobPost> GetJobPostFaker(List<string> customerIds, List<int> categoryIds, List<Media> medias, List<int> skillIds)
     {
+        try
+        {
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error seeding job posts: {ex.Message}");
+            if(ex.InnerException != null)
+                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            throw;
+        }
         return new Faker<JobPost>("en")
-            // العنوان: نستخدم ميثود توفر جملة بطول محدد بدلاً من Substring اليدوي الخطير
+            // العنوان: نستخدم ميثod توفر جملة بطول محدد بدلاً من Substring اليدوي الخطير
             .RuleFor(j => j.Title, f => f.Lorem.Sentence(3).LimitLength(100))
 
-            // الوصف: نفس الشيء، نستخدم ميثود آمنة
+            // الوصف: نفس الشيء، نستخدم ميثod آمنة
             .RuleFor(j => j.Description, f => f.Lorem.Paragraphs(2).LimitLength(1000))
 
             .RuleFor(j => j.BudgetMin, f => f.Finance.Amount(50, 500))
@@ -642,10 +871,39 @@ public class TestController(
             .RuleFor(j => j.CategoryId, f => f.PickRandom(categoryIds))
 
             // بما أنك ألغيت الصرامة عالمياً، يمكنك الآن اختيار صور عشوائية حتى لو تكررت
-            .RuleFor(j => j.Media, f => f.PickRandom(medias, f.Random.Number(1, 3)).ToList());
+            .RuleFor(j => j.Media, f => f.PickRandom(medias, f.Random.Number(1, 3)).ToList())
+            .RuleFor(j => j.SkillRequirements, f => {
+                // اختيار من 1 إلى 3 مهارات فريدة عشوائياً لهذا المنشور لمنع تكرار الـ Primary Key المركب
+                var selectedSkillIds = f.PickRandom(skillIds, f.Random.Number(1, 3)).Distinct().ToList();
+
+                return selectedSkillIds.Select(skillId => new JobSkillRequirement
+                {
+                    SkillId = skillId,
+                    RequiredLevel = f.PickRandom<SkillExperienceLevel>() // توليد مستوى الخبرة المطلوب عشوائياً
+                }).ToList();
+            })
+            .RuleFor(j => j.DeliveredFiles, f => new List<DeliveredJobFile>
+        {
+            new DeliveredJobFile
+            {
+                // نختار MediaId من الموجودين في النظام
+                MediaId = f.PickRandom(medias.Select(m => m.Id).ToList()),
+                Statues = f.PickRandom<DeliveredFileStatues>(),
+                
+                // توليد الـ MileStone التابع لملف التسليم في نفس اللحظة
+                MileStone = new MileStone
+                {
+                    Title = f.Commerce.ProductName().ClampLength(2, 150),
+                    Description = f.Lorem.Paragraph().ClampLength(10, 1000),
+                    StepNumber = 1,
+                    IsCompleted = f.Random.Bool(0.5f),
+                    Price = Math.Round(f.Finance.Amount(50, 1000), 2)
+                }
+            }
+        });
     }
 
-    // Extension Method بسيطة لتجنب صداع الـ Substring في كل مكان
+    
     
 
 
@@ -827,6 +1085,585 @@ public class TestController(
 
 
 
+
+
+    //Service
+    [NonAction]
+    public async Task<List<Service>> InjectServicesFullGraphAsync(int countToGenerate = 20)
+    {
+        try
+        {
+            // 1. جلب معرفات مقدمي الخدمة المتاحين
+            var profileIds = await db.ServiceProviderProfiles.Select(p => p.UserId).ToListAsync();
+
+            // 2. جلب معرفات الأقسام (Categories) المتاحة في قاعدة البيانات
+            var categoryIds = await db.Categories.Select(c => c.Id).ToListAsync();
+
+            // 3. جلب كائنات الميديا المتاحة
+            var medias = await db.Medias.ToListAsync();
+
+            // تحقق دفاعي صارم لضمان عدم حدوث تعارض في الـ Foreign Keys
+            if (!profileIds.Any() || !categoryIds.Any() || !medias.Any())
+            {
+                Console.WriteLine("Warning: Seeding services skipped. Ensure Profiles, Categories, and Medias tables have data.");
+                return new List<Service>();
+            }
+
+            var newServices = new List<Service>();
+            var serviceFaker = GetServiceFullGraphFaker(profileIds, categoryIds, medias);
+
+            // 4. توليد الخدمات بالشكل البياني الكامل (Full Graph)
+            for (int i = 0; i < countToGenerate; i++)
+            {
+                newServices.Add(serviceFaker.Generate());
+            }
+
+            // 5. الحفظ النهائي الذري في خطوة واحدة لجميع الجداول المرتبطة
+            if (newServices.Any())
+            {
+                await db.Services.AddRangeAsync(newServices);
+                await db.SaveChangesAsync();
+            }
+
+            return db.Services
+                .Include(s => s.Category)
+                .Include(s => s.ServiceProviderProfile)
+                .Include(s => s.MediaGalleryLinks)
+                    .ThenInclude(sm => sm.Media)
+                .ToList();
+
+            Console.WriteLine($"Successfully seeded {newServices.Count} services with their Categories and ServiceMedia links.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during complete Service & Category graph seeding: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
+    }
+
+
+    [NonAction]
+    public static Faker<Service> GetServiceFullGraphFaker(
+    List<string> profileIds,
+    List<int> categoryIds,
+    List<Media> medias)
+    {
+        var mediaIds = medias.Select(m => m.Id).ToList();
+
+        return new Faker<Service>("en")
+            // 1. ربط العلاقات الخارجية الأساسية
+            .RuleFor(s => s.ServiceProviderProfileId, f => f.PickRandom(profileIds))
+            .RuleFor(s => s.CategoryId, f => f.PickRandom(categoryIds))
+
+            // ربط صورة الغلاف الأساسية من الميديا المتاحة
+            .RuleFor(s => s.MainMediaId, f => mediaIds.Any() ? f.PickRandom(mediaIds) : null)
+
+            // 2. النصوص والبيانات الأساسية
+            .RuleFor(s => s.Title, f => f.Commerce.ProductName().ClampLength(5, 80))
+            .RuleFor(s => s.ShortDescription, f => f.Lorem.Sentence(10).ClampLength(10, 1000))
+            .RuleFor(s => s.DetailedDescription, f => f.Lorem.Paragraphs(3).ClampLength(20, 4000))
+
+            // 3. الأسعار والارقام القياسية
+            .RuleFor(s => s.Price, f => Math.Round(f.Finance.Amount(5, 1000), 2))
+            .RuleFor(s => s.DeliveryTimeInDays, f => f.Random.Number(1, 14))
+            .RuleFor(s => s.RevisionCount, f => f.Random.Number(0, 10))
+
+            // 4. مؤشرات الأداء والحالة
+            .RuleFor(s => s.IsActive, true)
+            .RuleFor(s => s.IsApproved, true)
+            .RuleFor(s => s.TotalReviews, f => f.Random.Number(0, 150))
+            .RuleFor(s => s.AverageRating, (f, s) => s.TotalReviews > 0 ? Math.Round(f.Random.Double(3.5, 5.0), 1) : 0)
+            .RuleFor(s => s.SalesCount, f => f.Random.Number(0, 300))
+            .RuleFor(s => s.ViewCount, (f, s) => s.SalesCount * f.Random.Number(5, 20)) // المشاهدات منطقياً أكبر من المبيعات
+
+            // 5. مصفوفات النصوص والوسوم
+            .RuleFor(s => s.Concepts, f => f.Make(3, () => f.Commerce.ProductAdjective()).ToList())
+
+            .RuleFor(s => s.CreatedAt, f => f.Date.Past(1))
+
+            // 6. حقن معرض الصور الفرعي (Media Gallery) مع ضمان عدم تكرار الصورة الأساسية فيه إن أردت
+            .RuleFor(s => s.MediaGalleryLinks, f => {
+                var serviceMediaLinks = new List<ServiceMedia>();
+
+                if (mediaIds.Any())
+                {
+                    // اختيار من 1 إلى 3 صور عشوائية فريدة لمعرض الصور الخاص بالخدمة
+                    var selectedMediaIds = f.PickRandom(mediaIds, f.Random.Number(1, 3)).Distinct().ToList();
+
+                    foreach (var mediaId in selectedMediaIds)
+                    {
+                        serviceMediaLinks.Add(new ServiceMedia
+                        {
+                            MediaId = mediaId
+                        });
+                    }
+                }
+
+                return serviceMediaLinks;
+            });
+    }
+
+
+
+    [NonAction]
+    public async Task<List<ServiceOrder>> InjectServiceOrdersAsync(int countToGenerate = 40)
+    {
+        try
+        {
+            var faker = new Faker("en");
+
+            // 1. جلب الخدمات المتاحة حالياً مع السعر ومعرف مقدم الخدمة المرتبط بها
+            var services = await db.Services.ToListAsync();
+
+            // 2. جلب معرفات جميع المستخدمين لتعيينهم كعملاء (Customers)
+            var userIds = await db.Users.Select(u => u.Id).ToListAsync();
+
+            // تحقق دفاعي لضمان وجود مراجع حقيقية في قاعدة البيانات
+            if (!services.Any() || !userIds.Any())
+            {
+                Console.WriteLine("Warning: Seeding ServiceOrders skipped. Ensure Services and Users tables have data.");
+                return new List<ServiceOrder>();
+            }
+
+            var serviceOrders = new List<ServiceOrder>();
+
+            for (int i = 0; i < countToGenerate; i++)
+            {
+                // اختيار خدمة عشوائية من الكتالوج
+                var selectedService = faker.PickRandom(services);
+
+                // اختيار عميل عشوائي بشرط صارم: ألا يكون هو نفسه المستقل صاحب الخدمة
+                var validCustomerIds = userIds.Where(id => id != selectedService.ServiceProviderProfileId).ToList();
+                if (!validCustomerIds.Any()) continue;
+
+                var customerId = faker.PickRandom(validCustomerIds);
+
+                // تحديد حالة الطلب والتاريخ منطقياً
+                var status = faker.PickRandom<OrderStatus>();
+                var createdAt = faker.Date.Past(1);
+
+                // تاريخ التسليم الفعلي يكون موجوداً فقط إذا كانت الحالة "Completed"
+                DateTime? completionDate = (status == OrderStatus.Completed)
+                    ? createdAt.AddDays(faker.Random.Number(1, 10))
+                    : null;
+
+                // تخزين السعر في متغير محلي لحل مشكلة الترتيب (CS0841)
+                decimal servicePrice = selectedService.Price;
+
+                // 3. بناء كيان المعاملة المالية المرتبط بالطلب
+                var transaction = new PaymentTransaction
+                {
+                    Amount = servicePrice,
+                    PlatformFee = servicePrice * 0.15m,
+                    NetPayout = servicePrice - (servicePrice * 0.15m),
+                    Currency = CurrencyCode.EGP,
+                    Status = TransactionStatus.Completed,
+                    GatewayUsed = faker.PickRandom<PaymentGateway>(),
+                    TransactionDate = DateTime.UtcNow.AddMinutes(-30),
+                    GatewayReferenceId = "PAY-" + faker.Random.AlphaNumeric(12).ToUpper()
+                };
+
+                
+
+                // 4. [تعديل هـام للحل] إنشاء كائن محادثة فرعي مع تمرير الحقول الإلزامية في قاعدة البيانات
+                var conversation = new Conversation
+                {
+                    CreatedAt = createdAt,
+                    UpdatedAt = createdAt,
+                    CustomerId = customerId,                                      // معرف العميل
+                    ProviderId = selectedService.ServiceProviderProfileId,         // معرف مقدم الخدمة (حل المشكلة الأساسية)
+                    Title = $"محادثة طلب خدمة رقم #{i + 1}"                       // عنوان للمحادثة لمنع أي NullConstraint آخر
+                };
+
+                // 5. تجميع الـ Full Graph لطلب الخدمة
+                var order = new ServiceOrder
+                {
+                    ServiceID = selectedService.Id,
+                    CustomerId = customerId,
+                    ServiceProviderId = selectedService.ServiceProviderProfileId,
+                    AdditionalDetails = faker.Lorem.Sentence(12).ClampLength(0, 1000),
+                    CompletionDate = completionDate,
+
+                    Status = status,
+                    Amount = servicePrice,
+                    CreatedAt = createdAt,
+                    UpdatedAt = status == OrderStatus.Completed ? completionDate : createdAt,
+
+                    // حقن الكائنات التابعة مباشرة
+                    PaymentTransaction = transaction,
+                    Conversation = conversation
+                };
+
+                serviceOrders.Add(order);
+            }
+
+            // 6. الحفظ الذري الشامل في قاعدة البيانات
+            if (serviceOrders.Any())
+            {
+                await db.ServiceOrders.AddRangeAsync(serviceOrders);
+                await db.SaveChangesAsync();
+                Console.WriteLine($"Successfully seeded {serviceOrders.Count} Service Orders with their dependent graphs.");
+            }
+
+            return db.ServiceOrders.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during ServiceOrder seeding: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
+    }
+
+
+
+    [NonAction]
+    public async Task<List<Dispute>> InjectDisputesAsync(List<int> serviceOrderIds, List<int> jobOrderIds)
+    {
+        try
+        {
+            var faker = new Faker("en");
+            var newDisputes = new List<Dispute>();
+
+            // جلب حساب آدمن عشوائي لتعيينه كمراجع للنزاعات المتقدمة (إذا تغيرت الحالة عن Opened)
+            var adminRoleId = await db.Roles.Where(r => r.Name == RolesStrings.Admin).Select(r => r.Id).FirstOrDefaultAsync();
+            //Error: you need to add Admin Useres
+            var adminIds = await db.Users.Where(u => db.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId)).Select(u => u.Id).ToListAsync();
+
+            // ==========================================
+            // 1. معالجة طلبات الخدمات (Service Orders)
+            // ==========================================
+            if (serviceOrderIds != null && serviceOrderIds.Any())
+            {
+                // جلب الطلبات بكامل بياناتها لاستخراج الأطراف والمبالغ
+                var serviceOrders = await db.ServiceOrders
+                    .Where(o => serviceOrderIds.Contains(o.Id))
+                    .ToListAsync();
+
+                for (int i = 0; i < serviceOrders.Count; i++)
+                {
+                    
+                    // تحقق دقيق: نسبة 1 من كل 20 طلب (بناءً على الاندكس)
+                    if (i % 20 == 0)
+                    {
+                        var order = serviceOrders[i];
+
+                        string? adminId = faker.PickRandom(adminIds);
+                        string? RiaserId;
+                        string? TargetId; ;
+
+                        if (i % 2 == 0)
+                        {
+                            RiaserId = order.CustomerId;
+                            TargetId = order.ServiceProviderId;
+                        }
+                        else
+                        {
+                            RiaserId = order.ServiceProviderId;
+                            TargetId = order.CustomerId;
+                        }
+                       
+
+                        // إنشاء المحادثات الإجبارية للنزاع أولاً لمنع كسر الـ Constraint
+                        var raiserConv = new Conversation 
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            Category = ConversationCategory.DisputeRaiser,
+                            ContextType = ConversationContextType.Dispute,
+                            ProviderId = adminId,
+                            CustomerId = RiaserId,
+                            Title = $"محادثة الرافع في نزاع طلب خدمة #{order.Id}"
+
+                        };
+                        var targetConv = new Conversation
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            Category = ConversationCategory.DisputeTarget,
+                            ContextType = ConversationContextType.Dispute,
+                            ProviderId = adminId,
+                            CustomerId = TargetId,
+                            Title = $"محادثة المستهدف في نزاع طلب خدمة #{order.Id}"
+                        };
+
+                        await db.Conversations.AddRangeAsync(raiserConv, targetConv);
+                        await db.SaveChangesAsync(); // للحصول على الـ IDs الخاصة بالمحادثات
+
+                        var status = faker.PickRandom<DisputeStatus>();
+
+                        var dispute = new Dispute
+                        {
+                            ServiceOrderId = order.Id,
+                            JobOrderId = null, // هذا النزاع خاص بـ ServiceOrder
+
+                            // افتراضياً: العميل هو من يرفع النزاع والمستقل هو المستهدف
+                            RaiserId = order.CustomerId,
+                            TargetId = order.ServiceProviderId,
+
+                            AdminReviewerId = status != DisputeStatus.Opened ? adminId : null,
+
+                            RaiserConversationId = raiserConv.Id,
+                            TargetConversationId = targetConv.Id,
+
+                            Status = status,
+                            Type = faker.PickRandom<DisputeType>(),
+                            AmountUnderDispute = order.Amount, // المبلغ المتنازع عليه هو قيمة الطلب
+                            ReasonDetails = faker.Lorem.Sentence(15).ClampLength(10, 500),
+                            OpenedDate = faker.Date.Past(1),
+
+                            // محاكاة القرارات الإدارية إذا كان النزاع منتهياً
+                            FinalDecisionDetails = status == DisputeStatus.Resolved || status == DisputeStatus.Closed
+                                ? faker.Lorem.Sentence(10) : null,
+                            IsDecisionAcceptedByRaiser = status == DisputeStatus.Resolved ? true : (bool?)null,
+                            IsDecisionAcceptedByTarget = status == DisputeStatus.Resolved ? true : (bool?)null,
+                            ResolutionDate = status == DisputeStatus.Resolved || status == DisputeStatus.Closed
+                                ? DateTime.UtcNow : null
+                        };
+
+                        newDisputes.Add(dispute);
+                    }
+                }
+            }
+
+            // ==========================================
+            // 2. معالجة طلبات المشاريع (Job Orders)
+            // ==========================================
+            if (jobOrderIds != null && jobOrderIds.Any())
+            {
+                var jobOrders = await db.JobOrders
+                    .Where(o => jobOrderIds.Contains(o.Id))
+                    .ToListAsync();
+
+                for (int i = 0; i < jobOrders.Count; i++)
+                {
+                    // تحقق دقيق: نسبة 1 من كل 20 طلب
+                    if (i % 20 == 0)
+                    {
+                        var order = jobOrders[i];
+
+
+                        string? adminId = faker.PickRandom(adminIds);
+                        string? RiaserId;
+                        string? TargetId; ;
+
+                        if (i % 2 == 0)
+                        {
+                            RiaserId = order.CustomerId;
+                            TargetId = order.ServiceProviderId;
+                        }
+                        else
+                        {
+                            RiaserId = order.ServiceProviderId;
+                            TargetId = order.CustomerId;
+                        }
+
+
+                        // إنشاء المحادثات الإجبارية للنزاع أولاً لمنع كسر الـ Constraint
+                        var raiserConv = new Conversation
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            Category = ConversationCategory.DisputeRaiser,
+                            ContextType = ConversationContextType.Dispute,
+                            ProviderId = adminId,
+                            CustomerId = RiaserId,
+                            Title = $"محادثة الرافع في نزاع طلب خدمة #{order.Id}"
+
+                        };
+                        var targetConv = new Conversation
+                        {
+                            CreatedAt = DateTime.UtcNow,
+                            Category = ConversationCategory.DisputeTarget,
+                            ContextType = ConversationContextType.Dispute,
+                            ProviderId = adminId,
+                            CustomerId = TargetId,
+                            Title = $"محادثة المستهدف في نزاع طلب خدمة #{order.Id}"
+                        };
+
+                        await db.Conversations.AddRangeAsync(raiserConv, targetConv);
+                        await db.SaveChangesAsync();
+
+                        var status = faker.PickRandom<DisputeStatus>();
+
+                        var dispute = new Dispute
+                        {
+                            ServiceOrderId = null,
+                            JobOrderId = order.Id, // هذا النزاع خاص بـ JobOrder
+
+                            RaiserId = order.CustomerId,
+                            TargetId = order.ServiceProviderId,
+
+                            AdminReviewerId = status != DisputeStatus.Opened ? faker.PickRandom(adminIds) : null,
+
+                            RaiserConversationId = raiserConv.Id,
+                            TargetConversationId = targetConv.Id,
+
+                            Status = status,
+                            Type = faker.PickRandom<DisputeType>(),
+                            AmountUnderDispute = order.Amount, // قيمة الميزانية للمشروع
+                            ReasonDetails = faker.Lorem.Sentence(15).ClampLength(10, 500),
+                            OpenedDate = faker.Date.Past(1),
+
+                            FinalDecisionDetails = status == DisputeStatus.Resolved || status == DisputeStatus.Closed
+                                ? faker.Lorem.Sentence(10) : null,
+                            IsDecisionAcceptedByRaiser = status == DisputeStatus.Resolved ? true : (bool?)null,
+                            IsDecisionAcceptedByTarget = status == DisputeStatus.Resolved ? true : (bool?)null,
+                            ResolutionDate = status == DisputeStatus.Resolved || status == DisputeStatus.Closed
+                                ? DateTime.UtcNow : null
+                        };
+                        
+                        newDisputes.Add(dispute);
+                    }
+                }
+            }
+
+            // ==========================================
+            // 3. حفظ النزاعات المولّدة في قاعدة البيانات
+            // ==========================================
+            if (newDisputes.Any())
+            {
+                await db.Disputes.AddRangeAsync(newDisputes);
+                await db.SaveChangesAsync();
+                Console.WriteLine($"Successfully seeded {newDisputes.Count} disputes across orders.");
+            }
+            
+
+            return db.Disputes.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during Dispute seeding: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
+    }
+
+    [NonAction]
+    public async Task<List<Review>> InjectReviewsAsync(int countToGenerate = 60)
+    {
+        try
+        {
+            var faker = new Faker("en");
+            var reviews = new List<Review>();
+
+            // 1. جلب طلبات الخدمات المكتملة لربطها بالتقييمات
+            var completedServiceOrders = await db.ServiceOrders
+                .Where(o => o.Status == OrderStatus.Completed && o.ReviewId == null)
+                .Select(o => new { o.Id, o.CustomerId, o.ServiceProviderId, o.CreatedAt })
+                .ToListAsync();
+
+            // 2. جلب طلبات الأعمال الحرة المكتملة لربطها بالتقييمات
+            var completedJobOrders = await db.JobOrders
+                .Where(o => o.Status == OrderStatus.Completed && o.ReviewId == null)
+                .Select(o => new { o.Id, o.CustomerId, o.ServiceProviderId, o.CreatedAt })
+                .ToListAsync();
+
+            // تحقق دفاعي: إذا لم يكن هناك طلبات مكتملة، نوقف التنفيذ لتجنب الأخطاء
+            if (!completedServiceOrders.Any() && !completedJobOrders.Any())
+            {
+                Console.WriteLine("Warning: Seeding Reviews skipped. No completed ServiceOrders or JobOrders found without reviews.");
+                return new List<Review>();
+            }
+
+            // عدادات لتتبع الموزع الفعلي
+            int serviceIndex = 0;
+            int jobIndex = 0;
+
+            for (int i = 0; i < countToGenerate; i++)
+            {
+                Review review = new Review();
+
+                // توزيع بالتناوب (50% لـ ServiceOrder و 50% لـ JobOrder) لضمان تغطية النوعين
+                if (i % 2 == 0 && serviceIndex < completedServiceOrders.Count)
+                {
+                    var order = completedServiceOrders[serviceIndex++];
+
+                    review.ServiceOrderId = order.Id;
+                    review.JobOrderId = null; // حصرياً لطلب الخدمة
+                    review.ReviewerId = order.CustomerId; // العميل الحقيقي للطلب
+                    review.ServiceProviderId = order.ServiceProviderId; // المستقل الحقيقي للطلب
+                    review.CreatedAt = order.CreatedAt.AddDays(faker.Random.Number(1, 5)); // تاريخ منطقي بعد الطلب
+                }
+                else if (jobIndex < completedJobOrders.Count)
+                {
+                    var order = completedJobOrders[jobIndex++];
+
+                    review.JobOrderId = order.Id;
+                    review.ServiceOrderId = null; // حصرياً لطلب العمل
+                    review.ReviewerId = order.CustomerId;
+                    review.ServiceProviderId = order.ServiceProviderId;
+                    review.CreatedAt = order.CreatedAt.AddDays(faker.Random.Number(1, 5));
+                }
+                else if (serviceIndex < completedServiceOrders.Count) // Fallback إذا انتهت طلبات العمل الحر
+                {
+                    var order = completedServiceOrders[serviceIndex++];
+                    review.ServiceOrderId = order.Id;
+                    review.JobOrderId = null;
+                    review.ReviewerId = order.CustomerId;
+                    review.ServiceProviderId = order.ServiceProviderId;
+                    review.CreatedAt = order.CreatedAt.AddDays(faker.Random.Number(1, 5));
+                }
+                else
+                {
+                    break; // لا يوجد المزيد من الطلبات المكتملة وغير المقيّمة
+                }
+
+                // توليد النصوص والتقييم الرقمي بحسب متطلبات الـ Data Annotations في الكلاس
+                review.Rating = faker.Random.Double(1, 5);
+
+                review.Title = faker.PickRandom(new[] { "Excellent Work", "Very Professional", "Great Communication", "Good Quality", "Fast Delivery" });
+                review.Content = faker.Lorem.Paragraph().ClampLength(2, 500); // الالتزام بـ StringLength(500)
+                review.UpdatedAt = review.CreatedAt;
+
+                reviews.Add(review);
+            }
+
+            // 3. حفظ التقييمات وتحديث الطلبات لربط الـ ReviewId العكسي
+            if (reviews.Any())
+            {
+                await db.Reviews.AddRangeAsync(reviews);
+                await db.SaveChangesAsync(); // حفظ أولاً لتوليد معرفات الـ Review Ids
+
+                // 4. تحديث الـ Foreign Keys العكسية في جداول الطلبات (للحفاظ على الـ 1:1 Navigation إذا وُجدت)
+                foreach (var r in reviews)
+                {
+                    if (r.ServiceOrderId.HasValue)
+                    {
+                        var boundOrder = await db.ServiceOrders.FindAsync(r.ServiceOrderId.Value);
+                        if (boundOrder != null) boundOrder.ReviewId = r.Id;
+                    }
+                    else if (r.JobOrderId.HasValue)
+                    {
+                        var boundOrder = await db.JobOrders.FindAsync(r.JobOrderId.Value);
+                        if (boundOrder != null) boundOrder.ReviewId = r.Id;
+                    }
+                }
+
+                await db.SaveChangesAsync(); // حفظ التحديث العكسي للطلبات
+                Console.WriteLine($"Successfully seeded {reviews.Count} Reviews for both Service and Job orders.");
+                
+            }
+
+            return db.Reviews.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during Reviews seeding: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
+    }
 
     //END OF MY WORK:::
 
