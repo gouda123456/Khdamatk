@@ -208,7 +208,9 @@ public class TestController(
     {
         foreach (var user in await db.Users.ToListAsync())
         {
-            user.ProfilePictureId = user.ProfilePictureId ?? 1;
+            int i = 1;
+            user.ProfilePictureId = user.ProfilePictureId ?? i;
+            i = (i <= 30) ? i : 1;
         }
 
         await db.SaveChangesAsync();
@@ -320,7 +322,7 @@ public class TestController(
     {
         
         var Dictionary = Directory.GetFiles(FileManagement.MediaPath);
-        if(Dictionary.Length >= 100)
+        if(Dictionary.Length >= 250)
         {
             Console.WriteLine($"[FileManagement] Found {Dictionary.Length} existing files. Skipping download.");
             return await db.Medias.ToListAsync();
