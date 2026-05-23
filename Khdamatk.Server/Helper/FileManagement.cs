@@ -5,7 +5,7 @@ public static class FileManagement
 {
     public static IWebHostEnvironment hostEnvironment;
 
-    private static string MediaPath;
+    public static string MediaPath;
 
     public static void enableFileManagement(IWebHostEnvironment env)
     {

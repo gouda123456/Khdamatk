@@ -197,7 +197,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
             return Failure(StatusCodes.Status401Unauthorized, "Error", "User ID is missing.");
 
         // 2. دور في الداتابيز
-        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        Data.Entities.Identity.ServiceProviderProfile? profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
 
         // 3. لو مفيش كـريه واحد جديد (Logic الـ Upsert)
         if (profile == null)

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khadma Hub - Work Delivered</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa; 
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .card-container {
+            background-color: #ffffff;
+            width: 650px; 
+            padding: 35px 45px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .brand-icon {
+            background-color: #4b0082; 
+            color: white;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+
+        .brand-text {
+            font-size: 18px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .notification-body .title-label {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            margin-top: 0;
+        }
+
+        .notification-body .user-greeting {
+            font-size: 22px;
+            font-weight: 700;
+            color: #000;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .notification-body .message-text {
+            font-size: 17px;
+            color: #333; 
+            line-height: 1.4;
+            font-weight: 400;
+            margin-bottom: 40px; 
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-end;
+            gap:85px
+        }
+
+        .footer-source {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .label-from {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .label-hub {
+            font-size: 22px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 280px; 
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #4b0082;
+            color: white;
+            border: 1px solid #4b0082;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #4b4b4b;
+            border: 1px solid #d1d1d1;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-container">
+        <div class="brand-header">
+            <div class="brand-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <span class="brand-text">KHADMA Hub</span>
+        </div>
+
+        <div class="notification-body">
+            <h2 class="title-label">Work Delivered</h2>
+            <h1 class="user-greeting">hello Omnia</h1>
+            <p class="message-text">
+                The final work has been delivered. Review the files carefully and either approve the work or request a revision.
+            </p>
+        </div>
+
+        <div class="card-footer">
+            <div class="footer-source">
+                <span class="label-from">From</span>
+                <span class="label-hub">Khadma hub</span>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="#" class="btn btn-primary">
+                    Review Work <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    Request Revision
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

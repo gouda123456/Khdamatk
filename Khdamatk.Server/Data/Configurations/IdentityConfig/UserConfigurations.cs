@@ -11,6 +11,8 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
             .HasForeignKey<User>(u => u.ProfilePictureId)
             .OnDelete(DeleteBehavior.SetNull);
 
-       
+        builder.HasIndex(u => u.ProfilePictureId).IsUnique(false);
+
+
     }
 }
