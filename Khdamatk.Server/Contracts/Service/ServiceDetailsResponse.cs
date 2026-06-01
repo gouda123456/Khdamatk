@@ -24,7 +24,6 @@ public record ProviderServiceInfo(
     byte[] Image,
     double AverageRating,
     int AverageResponseTime,
-    int TotalOrdersInProgress,
-    int NumberOfRequests,
-    int TotalOrdersCompleted
+    int TotalOrdersInProgress
+    
 );

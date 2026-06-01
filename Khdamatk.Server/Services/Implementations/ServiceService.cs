@@ -147,7 +147,7 @@ public class ServiceService : IServiceService
                 service.Price,
                 service.RevisionCount,
                 service.DeliveryTimeInDays,
-                ExperienceLevel.Beginner, // TODO: Get from service or provider
+                ExperienceLevel.Entry, // TODO: Get from service or provider
                 service.Concepts,
                 service.MainImage != null ? File.ReadAllBytes(service.MainImage.FullPath) : Array.Empty<byte>(),
                 service.MediaGalleryLinks.Select(m => File.ReadAllBytes(m.Media.FullPath)).ToList(),
@@ -162,9 +162,7 @@ public class ServiceService : IServiceService
                         : Array.Empty<byte>(),
                     service.ServiceProviderProfile.AverageRating,
                     service.ServiceProviderProfile.AverageResponseTime,
-                    service.ServiceProviderProfile.TotalOrdersInProgress,
-                    service.ServiceProviderProfile.NumberOfRequests,
-                    service.ServiceProviderProfile.TotalOrdersCompleted
+                    service.ServiceProviderProfile.TotalReviews
                 )
             );
 
@@ -409,7 +407,7 @@ public class ServiceService : IServiceService
 
             // 2. Check if service has active orders
             var hasActiveOrders = service.Orders.Any(o => 
-                o.Status == OrderStatus.PendingProviderAcceptance ||
+                o.Status == OrderStatus.Pending ||
                 o.Status == OrderStatus.PendingPayment ||
                 o.Status == OrderStatus.Active);
 
