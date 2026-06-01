@@ -19,14 +19,14 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     }
 
 
-    [HttpPost("Jobs/{jobId}/Offers/")]
+    [HttpPost("Jobs/{jobId}/Offers")]
     public async Task<IActionResult> AddOffer([FromRoute] int jobId, [FromForm] AddJopOfferRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.AddOfferAsync(jobId, request, cancellationToken)).Respond();
     }
 
 
-    [HttpGet("jobs/{jobId}/Offers/")]
+    [HttpGet("jobs/{jobId}/Offers")]
     public async Task<IActionResult> ShowOffers([FromRoute] int jobId, CancellationToken cancellationToken)
     {
         return (await jobOrderService.ShowOffersJob(jobId, cancellationToken)).Respond();
@@ -93,7 +93,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     }
 
     [HttpPost("JobOrders/{orderId}/SubmitWorkAndMessage/")]
-    public async Task<IActionResult> SubmitWorkAndMessage([FromRoute] int orderId, [FromBody] SubmitWorkAndMessageRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SubmitWorkAndMessage([FromRoute] int orderId, [FromForm] SubmitWorkAndMessageRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.SubmitWorkAndMessage(orderId, User.GetUserId()!, request, cancellationToken)).Respond();
     }

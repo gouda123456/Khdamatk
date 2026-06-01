@@ -150,19 +150,24 @@ public class MapsterConfiguration : IRegister
             .Map(dest => dest.ShortDescription, src => src.ShortDescription)
             .Map(dest => dest.DetailDescription, src => src.DetailedDescription)
             .Map(dest => dest.Price, src => src.Price)
-            .Map(dest => dest.MainImage, src => src.ServiceProviderProfile.User.ProfilePicture != null ? File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath) : null)
+            .Map(dest => dest.RevisionCount, src => src.RevisionCount)
+            .Map(dest => dest.DeliveryTimeInDays, src => src.DeliveryTimeInDays)
+            .Map(dest => dest.ExperienceLevel, src => ExperienceLevel.Intermediate) // Default value until Service entity is updated
+            .Map(dest => dest.Concepts, src => src.Concepts)
+            .Map(dest => dest.MainImage, src => src.ServiceProviderProfile.User.ProfilePicture != null ? System.IO.File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath) : null)
             .Map(dest => dest.ServiceImages, src => new List<byte[]>())
+            .Map(dest => dest.OrdersCount, src => src.Orders.Count)
+            .Map(dest => dest.AverageRating, src => src.ServiceProviderProfile.AverageRating)
             .Map(dest => dest.ProviderServiceInfo, src => new ProviderServiceInfo(
                 src.ServiceProviderProfileId.ToString(),
                 src.ServiceProviderProfile.User.UserName,
                 src.ServiceProviderProfile.JobTitle,
-                File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath),
-                (int)src.ServiceProviderProfile.AverageRating,
+                System.IO.File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath),
+                src.ServiceProviderProfile.AverageRating,
                 (int)src.ServiceProviderProfile.AverageResponseTime,
                 (int)src.Orders.Where(s => s.Status == OrderStatus.Active).Count(),
                 (int)src.Orders.Where(s => s.Status == OrderStatus.Pending || s.Status == OrderStatus.PendingPayment).Count(),
-                (int)src.Orders.Where(s => s.Status == OrderStatus.Completed).Count(),
-                src.DeliveryTimeInDays
+                (int)src.Orders.Where(s => s.Status == OrderStatus.Completed).Count()
             ))
             .TwoWays()
             .IgnoreNonMapped(true)

@@ -50,17 +50,6 @@ public record GetServicesRequest(
     string? SortBy         // ترتيب حسب (Price, Rating, Date)
 );
 
-public record ServiceSummaryResponse(
-    int Id,
-    string Title,
-    string ShortDescription,
-    decimal Price,
-    double AverageRating,
-    int TotalReviews,
-    string CategoryName,
-    string ServiceProviderName
-);
-
 public record OrderServiceDetailsResponse(
     int Id,
     string Title,
@@ -90,10 +79,50 @@ public record AddServiceRequest1(
 
 public record UpdateServiceRequest(
     string Title,
+    string CategoryName,
     string ShortDescription,
     string DetailedDescription,
     decimal Price,
-    int DeliveryTimeInDays,
-    int CategoryId,
-    string Concepts
+    int RevisionCount,
+    List<string> Concepts,
+    int DeliverTimeInDays,
+    ExperienceLevel ExperienceLevel,
+    Media? ServiceEnvelope,
+    List<IFormFile>? Attachment
 );
+
+public class UpdateServiceRequestValidator : AbstractValidator<UpdateServiceRequest>
+{
+    public UpdateServiceRequestValidator()
+    {
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("عنوان الخدمة مطلوب.")
+            .MaximumLength(100).WithMessage("العنوان لا يجب أن يتجاوز 100 حرف.");
+
+        RuleFor(x => x.CategoryName)
+            .NotEmpty().WithMessage("يجب تحديد القسم.");
+
+        RuleFor(x => x.ShortDescription)
+            .NotEmpty().WithMessage("الوصف المختصر مطلوب.")
+            .MaximumLength(200).WithMessage("الوصف المختصر لا يجب أن يتجاوز 200 حرف.");
+
+        RuleFor(x => x.DetailedDescription)
+            .NotEmpty().WithMessage("الوصف التفصيلي مطلوب.")
+            .MaximumLength(2000).WithMessage("الوصف التفصيلي لا يجب أن يتجاوز 2000 حرف.");
+
+        RuleFor(x => x.Price)
+            .GreaterThan(0).WithMessage("السعر يجب أن يكون أكبر من الصفر.");
+
+        RuleFor(x => x.RevisionCount)
+            .GreaterThanOrEqualTo(0).WithMessage("عدد المراجعات يجب أن يكون صفر أو أكثر.");
+
+        RuleFor(x => x.Concepts)
+            .NotEmpty().WithMessage("يجب إضافة مفهوم واحد على الأقل.");
+
+        RuleFor(x => x.DeliverTimeInDays)
+            .GreaterThan(0).WithMessage("مدة التسليم يجب أن تكون أكبر من الصفر.");
+
+        RuleFor(x => x.ExperienceLevel)
+            .IsInEnum().WithMessage("مستوى الخبرة غير صالح.");
+    }
+}

@@ -546,10 +546,16 @@ public class ServiceOrderService(Database db,IFawaterakPaymentHelper fawaterak) 
                 s.Title,
                 s.ShortDescription,
                 s.Price,
+                s.ServiceProviderProfile.User.ProfilePicture != null ? System.IO.File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath) : new byte[0],
+                s.Orders.Count,
                 s.AverageRating,
-                s.TotalReviews,
-                s.Category.Name,
-                s.ServiceProviderProfile.User.FullName
+                s.DeliveryTimeInDays,
+                new ProviderSummaryInfo(
+                    s.ServiceProviderProfileId.ToString(),
+                    s.ServiceProviderProfile.User.FullName,
+                    s.ServiceProviderProfile.User.ProfilePicture != null ? System.IO.File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath) : new byte[0],
+                    s.ServiceProviderProfile.AverageRating
+                )
             ))
             .ToListAsync(ct);
 

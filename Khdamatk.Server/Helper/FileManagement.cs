@@ -39,7 +39,7 @@ public static class FileManagement
         return Path.Combine(MediaPath, media.FileName);
     }
 
-    public static async Task<Media> UploadFileAsync(IFormFile file)
+    public static async Task<Media> UploadFileAsync(this IFormFile file)
     {
         var media = new Media()
         {
