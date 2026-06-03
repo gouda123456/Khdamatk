@@ -62,7 +62,7 @@ public record OrderServiceDetailsResponse(
     int RevisionCount,
     string CategoryName,
     string ServiceProviderName,
-    string Concepts,            // البيانات اللي ضفناها في الداتابيز
+    List<string> Concepts,            // البيانات اللي ضفناها في الداتابيز
     DateTime CreatedAt
 );
 

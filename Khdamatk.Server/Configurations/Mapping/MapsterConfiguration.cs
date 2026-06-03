@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Khdamatk.Server.Contracts.Fawaterak;
 using Khdamatk.Server.Contracts.Home;
 using Khdamatk.Server.Contracts.Jobs;
@@ -165,9 +165,7 @@ public class MapsterConfiguration : IRegister
                 System.IO.File.ReadAllBytes(src.ServiceProviderProfile.User.ProfilePicture.FullPath),
                 src.ServiceProviderProfile.AverageRating,
                 (int)src.ServiceProviderProfile.AverageResponseTime,
-                (int)src.Orders.Where(s => s.Status == OrderStatus.Active).Count(),
-                (int)src.Orders.Where(s => s.Status == OrderStatus.Pending || s.Status == OrderStatus.PendingPayment).Count(),
-                (int)src.Orders.Where(s => s.Status == OrderStatus.Completed).Count()
+                (int)src.Orders.Where(s => s.Status == OrderStatus.Active).Count()
             ))
             .TwoWays()
             .IgnoreNonMapped(true)
@@ -264,6 +262,12 @@ public class MapsterConfiguration : IRegister
             .TwoWays()
             .IgnoreNonMapped(true)
             .IgnoreNullValues(true);
+
+
+
+        config.NewConfig<Service, OrderServiceDetailsResponse>()
+            .Map(dest => dest.ServiceProviderName, src => src.ServiceProviderProfile.User.UserName)
+            .Map(dest => dest.Concepts, src => src.Concepts);
 
 
     }
