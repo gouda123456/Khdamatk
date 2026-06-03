@@ -13,7 +13,7 @@ public record AddServiceRequest(
     List<string> Concepts,
     int DeliverTimeInDays, 
     ExperienceLevel ExperienceLevel,
-    Media? ServiceEnvelope,
+    IFormFile? ServiceEnvelope,
     List<IFormFile>? Attachment
 );
 

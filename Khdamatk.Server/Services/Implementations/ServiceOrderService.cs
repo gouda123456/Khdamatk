@@ -39,6 +39,7 @@ public class ServiceOrderService(
         {
             category = new Category { Name = request.CategoryName };
             await db.Categories.AddAsync(category, cancellationToken);
+            await db.SaveChangesAsync();
         }
 
         var service = new Khdamatk.Server.Data.Entities.Catalog.Service
@@ -71,7 +72,7 @@ public class ServiceOrderService(
 
         if (request.ServiceEnvelope != null)
         {
-            service.MainImage = request.ServiceEnvelope;
+            service.MainImage = await request.ServiceEnvelope.UploadFileAsync();
         }
 
         await db.Services.AddAsync(service, cancellationToken);

@@ -34,14 +34,14 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpPost("AddService")]
-    public async Task<IActionResult> AddService([FromBody] AddServiceRequest request, CancellationToken ct)
+    public async Task<IActionResult> AddService([FromForm] AddServiceRequest request, CancellationToken ct)
     {
         var result = await serviceOrderService.AddServiceAsync(request, ct);
         return result.IsSuccess ? StatusCode(StatusCodes.Status201Created, result) : BadRequest(result);
     }
 
     [HttpPut("UpdateService/{id}")]
-    public async Task<IActionResult> UpdateService(int id, [FromBody] UpdateServiceRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdateService(int id, [FromForm] UpdateServiceRequest request, CancellationToken ct)
     {
         var result = await serviceOrderService.UpdateServiceAsync(id, request, ct);
         return result.IsSuccess ? Ok(result) : BadRequest(result);

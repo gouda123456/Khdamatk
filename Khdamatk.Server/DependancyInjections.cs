@@ -41,10 +41,10 @@ public static class DependancyInjections
 
         services.AddPaymentMethod(configuration);
 
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = configuration.GetConnectionString("RedisConnection");
-        });
+        //services.AddStackExchangeRedisCache(options =>
+        //{
+        //    options.Configuration = configuration.GetConnectionString("RedisConnection");
+        //});
 
 #pragma warning disable EXTEXP0018 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         services.AddHybridCache();
