@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khadma Hub - Work Delivered</title>
+    <title>Khadma Hub - Revision Requested</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* CSS ط§ظ„ظ…ط´طھط±ظƒ */
         body {
             margin: 0;
             padding: 0;
@@ -24,7 +25,7 @@
             padding: 35px 45px;
             border-radius: 12px;
             border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
 
         .brand-header {
@@ -53,7 +54,7 @@
         }
 
         .notification-body .title-label {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 8px;
@@ -70,23 +71,21 @@
 
         .notification-body .message-text {
             font-size: 17px;
-            color: #333; 
-            line-height: 1.4;
+            color: #6c757d; 
+            line-height: 1.5;
             font-weight: 400;
-            margin-bottom: 40px; 
+            margin-bottom: 60px; 
         }
 
         .card-footer {
             display: flex;
-            justify-content: flex-start;
-            align-items: flex-end;
-            gap:85px
+            align-items: center;
+            gap: 85px;
         }
 
         .footer-source {
             display: flex;
             flex-direction: column;
-            gap: 5px;
         }
 
         .label-from {
@@ -99,47 +98,29 @@
             font-size: 22px;
             font-weight: 700;
             color: #000;
+            margin-top: 4px;
         }
 
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 280px; 
-        }
-
-        .btn {
+        .btn-visit {
+            background-color: #4b0082;
+            color: white;
             text-decoration: none;
-            padding: 12px;
+            padding: 14px 45px;
             border-radius: 8px;
             font-size: 16px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-weight: 500;
-            transition: all 0.2s;
-            text-align: center;
+            transition: opacity 0.2s;
         }
 
-        .btn-primary {
-            background-color: #4b0082;
-            color: white;
-            border: 1px solid #4b0082;
-        }
-
-        .btn-primary:hover {
+        .btn-visit:hover {
             opacity: 0.9;
         }
 
-        .btn-secondary {
-            background-color: transparent;
-            color: #4b4b4b;
-            border: 1px solid #d1d1d1;
-        }
-
-        .btn-secondary:hover {
-            background-color: #f8f9fa;
+        .btn-visit i {
+            font-size: 14px;
         }
     </style>
 </head>
@@ -154,11 +135,9 @@
         </div>
 
         <div class="notification-body">
-            <h2 class="title-label">Work Delivered</h2>
-            <h1 class="user-greeting">hello Omnia</h1>
-            <p class="message-text">
-                The final work has been delivered. Review the files carefully and either approve the work or request a revision.
-            </p>
+            <h2 class="title-label">Revision Requested</h2>
+            <h1 class="user-greeting">hello &&UserName&&</h1>
+            <p class="message-text">A revision has been requested for this job. Please review the client's feedback and submit the updated work.</p>
         </div>
 
         <div class="card-footer">
@@ -166,15 +145,9 @@
                 <span class="label-from">From</span>
                 <span class="label-hub">Khadma hub</span>
             </div>
-            
-            <div class="action-buttons">
-                <a href="#" class="btn btn-primary">
-                    Review Work <i class="fas fa-arrow-right"></i>
-                </a>
-                <a href="#" class="btn btn-secondary">
-                    Request Revision
-                </a>
-            </div>
+            <a href="#" class="btn-visit">
+                Visit website <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
     </div>
 
