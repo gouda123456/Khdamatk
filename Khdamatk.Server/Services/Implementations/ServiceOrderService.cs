@@ -42,7 +42,16 @@ public class ServiceOrderService(
             await db.SaveChangesAsync();
         }
 
-        var service = new Khdamatk.Server.Data.Entities.Catalog.Service
+        var mediaGalleryLinks = new List<ServiceMedia>();
+        mediaGalleryLinks.AddRange(request.Attachment != null ? await Task.WhenAll(request.Attachment.Select(async file =>
+        {
+            var media = await file.UploadFileAsync();
+            return new ServiceMedia {
+                Media = media,
+            };
+        })) : new List<ServiceMedia>());
+
+        var service = new Service
         {
             Title = request.Title,
             ShortDescription = request.ShortDescription,
@@ -57,8 +66,12 @@ public class ServiceOrderService(
             IsDelete = false,
             IsActive = true,
             AverageRating = 0,
-            TotalReviews = 0
+            TotalReviews = 0,
+            MainImage = await  request.ServiceEnvelope.UploadFileAsync()?? null,
+            MediaGalleryLinks = mediaGalleryLinks ?? null
         };
+
+
 
         if (request.Attachment != null && request.Attachment.Count > 0)
         {
