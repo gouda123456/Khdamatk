@@ -2,16 +2,26 @@ using Khdamatk.Server.Contracts.Conversations;
 using Khdamatk.Server.Contracts.Service;
 using Khdamatk.Server.Contracts.WebHook;
 using Khdamatk.Server.Helper.Payment;
+using Microsoft.Extensions.Caching.Hybrid;
 using System.Text.Json;
 
 namespace Khdamatk.Server.Services.Implementations;
 
-public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWebHostEnvironment env,IOptions<ClientSetting> options) : IJobOrderService
+#pragma warning disable EXTEXP0018
+public class JobOrderService(
+    Database db,
+    IFawaterakPaymentHelper fawaterak,
+    IWebHostEnvironment env,IOptions<ClientSetting> options,
+    IEmailHelper emailHelper,
+    Microsoft.Extensions.Caching.Hybrid.HybridCache cache
+    ) : IJobOrderService
 {
     private readonly Database db = db;
     private readonly IMapper _mapper;
     private readonly IFawaterakPaymentHelper fawaterak = fawaterak;
     private readonly IWebHostEnvironment env = env;
+    private readonly IEmailHelper emailHelper = emailHelper;
+    private readonly HybridCache cache = cache;
     private readonly ClientSetting clientSetting = options.Value;
 
 
@@ -38,6 +48,18 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         }
         job.CategoryId = category.Id;
         //TODO: Deal with files
+        if(request.Media != null && request.Media.Count > 1)
+        {
+            job.Media = [];
+            request.Media.ToList().ForEach(async m =>
+            {
+                job.Media.Add(await m.UploadFileAsync());
+            });
+            
+                
+            
+        }
+
         await db.JobPosts.AddAsync(job, cancellationToken);
 
         //TODO: send email to random 20 customer
@@ -67,16 +89,27 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,
                 new Error("duplicated proposal", "This freelancer already submitted an offer for this job."));
 
-        //TODO: IformFile Attachment => media 
+        
 
         var offer = request.Adapt<JobOffer>();
         offer.JobPostId = JobId;
         offer.DeliveryTimeInDays = Math.Max(1, (int)Math.Ceiling((request.Deadline - DateTime.UtcNow).TotalDays));
 
+        if(request.Attachment != null && request.Attachment.Count > 0)
+        {
+            offer.Attachments = new List<Media>();
+            foreach (var item in request.Attachment)
+            {
+                var media = await item.UploadFileAsync();
+                offer.Attachments.Add(media);
+            }
+        }
+
         Job.Offers!.Add(offer);
         await db.SaveChangesAsync(cancellationToken);
 
-        //TODO: Send Email to Customer
+        
+        await emailHelper.SendNewProposalAsync(Job.Customer.Email!, Job.Customer.FullName!, Job.Title);
 
         return Success(StatusCodes.Status201Created);
     }
@@ -562,6 +595,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
 
         
@@ -586,8 +620,8 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         /*TODOs:
          * order.state = in progress        --Done
          * add transactions                 --Half Done (add transaction but not with all details)
-         * send email to Customer
-         * send email to Free Lancer
+         * send email to Customer           --Done
+         * send email to Free Lancer        --Done
          */
 
         model.Payload = model.PayloadString != null ? JsonSerializer.Deserialize<InvoicePayload>(model.PayloadString) : null;
@@ -602,7 +636,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
             return Failure(StatusCodes.Status404NotFound, new Error("Order Not Found", "There are no order matching the provided details"));
         }
 
-        CurrencyCode CurrencyCode = CurrencyCode.EGP;  //TODO: get currency code from model or order
+        CurrencyCode CurrencyCode = CurrencyCode.USD;  //TODO: get currency code from model or order
 
 
 
@@ -621,9 +655,13 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         order.Status = OrderStatus.Active;
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{order.Id}", cancellationToken);
 
-        //TODO: send email to Customer
-        //TODO: send email to Free Lancer
+        
+        
+        await emailHelper.SendJobInProgressAsync(order.Customer.Email!, order.Customer.FullName!, order.Job.Title);
+        await emailHelper.SendJobInProgressAsync(order.ServiceProviderProfile.User.Email!, order.ServiceProviderProfile.User.FullName!, order.Job.Title);
+
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
@@ -640,8 +678,12 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         var file = System.IO.File.ReadAllBytes(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"));
 
-        var orderSummary = await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
-            .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync();
+        var orderSummary = await cache.GetOrCreateAsync(
+            $"OrderSummary_{orderId}_{userId}",
+            async cancel => await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
+                .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync(cancel),
+            tags: [$"Order_{orderId}"]
+        );
 
         if (orderSummary == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
@@ -664,8 +706,15 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         
 
-        var orderDetail = await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
-            .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync();
+        var orderDetail = await cache.GetOrCreateAsync(
+            $"OrderDetails_{orderId}_{userId}",
+            async factory => await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
+                .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync(factory),
+
+            tags: [$"Order_{orderId}"]
+        );
+
+        
 
         if (orderDetail == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
@@ -696,8 +745,18 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         if(request.Attachments != null && request.Attachments.Count > 0)
         {
-            //TODO: convert List<IFormFile> to List<Media> then save it in DB with relation to order
-            //TODO: store files in project (wwwroot/Uploads/JobOrderId/)
+            
+
+            foreach (var item in request.Attachments)
+            {
+                await FileManagement.UploadFileAsync(item);
+            }
+
+            request.Attachments.ForEach(async file =>
+            {
+                var media = await file.UploadFileAsync();
+                Joborder.MediaAttachments?.Add(media);
+            });
 
         }
 
@@ -712,6 +771,12 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         });
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
+
+
+        await emailHelper.SendMilestoneCompletedAsync(Joborder.Customer.Email!, Joborder.Customer.FullName!, Joborder.Job.Title);
+        await emailHelper.SendMilestoneCompletedAsync(Joborder.ServiceProviderProfile.User.Email!, Joborder.ServiceProviderProfile.User.FullName!, Joborder.Job.Title);
+
 
         return await OrderDetails(orderId, userId);
 
@@ -768,7 +833,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
          * add offer Amount to free lancer          --Done (without refund process)
          * add review to order            --Done
          * order.state = complete           --Done
-         * send email to free lancer
+         * send email to free lancer        --Done
          */
 
         var order = await db.JobOrders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
@@ -799,10 +864,11 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         order.Status = OrderStatus.Completed;
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
-        //TODO: send email to free lancer
+        
 
-
+        await emailHelper.SendJobCompletedAsync(freelancer.User.Email!, freelancer.User.UserName!, order.Job.Title);
 
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
@@ -835,6 +901,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
         // Dispute entity requires TargetId, Type, AmountUnderDispute, and admin conversations — add a dedicated workflow before attaching order.Dispute.
 
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
         return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
 
@@ -882,6 +949,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         order.Status = OrderStatus.Accepted; // اتأكد إن Accepted موجودة في الـ Enum
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
         return Success(StatusCodes.Status200OK, "Accepted", "You have accepted the order.");
     }
@@ -897,6 +965,7 @@ public class JobOrderService(Database db, IFawaterakPaymentHelper fawaterak,IWeb
 
         order.Status = OrderStatus.Rejected; // اتأكد إن Rejected موجودة في الـ Enum
         await db.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
         return Success(StatusCodes.Status200OK, "Rejected", "Order has been rejected.");
     }

@@ -3,5 +3,10 @@
 public enum EmailTemplatesName
 {
     ConfirmEmail,
-    ResetPassword
+    ResetPassword,
+    JobCompleted,
+    JobInProgress,
+    JobPostConfirmation,
+    MilestoneCompleted,
+    NewProposal
 }

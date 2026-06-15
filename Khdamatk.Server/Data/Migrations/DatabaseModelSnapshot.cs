@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.Migrations
+namespace Khdamatk.Server.Data.migrations
 {
     [DbContext(typeof(Database))]
     partial class DatabaseModelSnapshot : ModelSnapshot
@@ -903,22 +903,6 @@ namespace Khdamatk.Server.Data.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "d74ddd14-6340-4840-95c2-db12554843e5",
-                            ConcurrencyStamp = "1",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66",
-                            ConcurrencyStamp = "2",
-                            Name = "Member",
-                            NormalizedName = "MEMBER"
-                        });
                 });
 
             modelBuilder.Entity("Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile", b =>
@@ -1715,71 +1699,6 @@ namespace Khdamatk.Server.Data.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ClaimType = "permissions",
-                            ClaimValue = "WeatherForecast:View",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ClaimType = "permissions",
-                            ClaimValue = "WeatherForecast:Modify",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ClaimType = "permissions",
-                            ClaimValue = "Authentications:View",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ClaimType = "permissions",
-                            ClaimValue = "Authentications:Modify",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ClaimType = "permissions",
-                            ClaimValue = "Users:View",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ClaimType = "permissions",
-                            ClaimValue = "Users:Modify",
-                            RoleId = "d74ddd14-6340-4840-95c2-db12554843e5"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            ClaimType = "permissions",
-                            ClaimValue = "WeatherForecast:View",
-                            RoleId = "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            ClaimType = "permissions",
-                            ClaimValue = "Authentications:View",
-                            RoleId = "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            ClaimType = "permissions",
-                            ClaimValue = "Users:View",
-                            RoleId = "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>

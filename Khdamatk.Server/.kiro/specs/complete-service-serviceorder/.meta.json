@@ -1,0 +1,15 @@
+{
+  "specId": "complete-service-serviceorder",
+  "version": "1.0.0",
+  "createdAt": "2025-05-28T00:00:00Z",
+  "updatedAt": "2025-05-28T00:00:00Z",
+  "status": "draft",
+  "workflow": "requirements-first",
+  "metadata": {
+    "title": "Complete Service & ServiceOrder Implementation",
+    "description": "إكمال تطبيق نظام Service و ServiceOrder ليتطابق مع نظام Job و JobOrder",
+    "language": "ar",
+    "projectType": "ASP.NET Core Web API",
+    "estimatedEffort": "high"
+  }
+}

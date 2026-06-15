@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
-namespace Khdamatk.Server.Data.Migrations
+namespace Khdamatk.Server.Data.migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class Initiall : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1170,31 +1168,6 @@ namespace Khdamatk.Server.Data.Migrations
                         principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
-                {
-                    { "d74ddd14-6340-4840-95c2-db12554843e5", "1", "Admin", "ADMIN" },
-                    { "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66", "2", "Member", "MEMBER" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetRoleClaims",
-                columns: new[] { "Id", "ClaimType", "ClaimValue", "RoleId" },
-                values: new object[,]
-                {
-                    { 1, "permissions", "WeatherForecast:View", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 2, "permissions", "WeatherForecast:Modify", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 3, "permissions", "Authentications:View", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 4, "permissions", "Authentications:Modify", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 5, "permissions", "Users:View", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 6, "permissions", "Users:Modify", "d74ddd14-6340-4840-95c2-db12554843e5" },
-                    { 7, "permissions", "WeatherForecast:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" },
-                    { 8, "permissions", "Authentications:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" },
-                    { 9, "permissions", "Users:View", "e3b0c442-98fc-4c2a-8b2e-3f9d6f1a1a66" }
                 });
 
             migrationBuilder.CreateIndex(

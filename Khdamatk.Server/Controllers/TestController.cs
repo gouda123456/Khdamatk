@@ -136,9 +136,15 @@ public class TestController(
         return Ok(media);
     }
 
-     
-    
 
+
+
+    [HttpPost("FixSeedData")]
+    public async Task<IActionResult> FixSeedData()
+    {
+        await FixSeedingProblems();
+        return Ok("Seed data issues fixed successfully.");
+    }
 
     [HttpPost("SeedData")]
     public async Task<IActionResult> SeedData()
@@ -149,14 +155,12 @@ public class TestController(
 
             
             
-            
-
-                   var msg = await InjectData();
+            var msg = await InjectData();
 
 
 
             // الحصول على الـ ServiceProvider لإنشاء Scope جديد في الخلفية
-           
+
 
             return Ok(msg);
 
@@ -200,6 +204,17 @@ public class TestController(
         }
     }
 
+    private async Task FixSeedingProblems()
+    {
+        foreach (var user in await db.Users.ToListAsync())
+        {
+            int i = 1;
+            user.ProfilePictureId = user.ProfilePictureId ?? i;
+            i = (i <= 30) ? i : 1;
+        }
+
+        await db.SaveChangesAsync();
+    }
 
 
     private async Task<object> InjectData()
@@ -210,29 +225,25 @@ public class TestController(
             //Identity
             await SeedImagesUsingSystemFilesAsync();
             var mediaList = await SyncMediaAsync();
-            var availableUserMediaIds = await db.Medias
-                                    .Where(m => !db.Users.Any(u => u.ProfilePictureId == m.Id))
-                                    .ToListAsync();
+            
 
             var roles = await AddRolesAsync();
             var skills = await InjectSkillsAsync();
             await InjectCertificatesAsync(mediaList);
 
-            var users = await InjectUsersAndServiceProviderWithMediaAsync(availableUserMediaIds, skills.Select(s => s.Id).ToList());
+            var users = await InjectUsersAndServiceProviderWithMediaAsync(mediaList, skills.Select(s => s.Id).ToList());
             await AddRolesToUsersAndProviders(users);
             var providers = await db.ServiceProviderProfiles.Include(p => p.User).ToListAsync();
-            var admins = await InjectUsersAdminsAsync(availableUserMediaIds, skills.Select(s => s.Id).ToList());
+            var admins = await InjectUsersAdminsAsync(mediaList, skills.Select(s => s.Id).ToList());
 
             //verification Data, portfolio (item , media), Skills, provider Skills 
 
             //Jop Posts Domain
             var categories = await GetOrCreateSeedCategoriesAsync();
 
-            var availableJobMediaIds = await db.Medias
-                                    .Where(m => !db.JobPosts.Any(j => j.Media.Any(md => md.Id == m.Id)))
-                                    .ToListAsync();
+            
 
-            var jobPosts = await InjectJobPostsAsync(users.Where(u => !u.IsServiceProvider).Select(u => u.Id).ToList(), categories.Select(c => c.Id).ToList(), availableJobMediaIds, skills.Select(s => s.Id).ToList());
+            var jobPosts = await InjectJobPostsAsync(users.Where(u => !u.IsServiceProvider).Select(u => u.Id).ToList(), categories.Select(c => c.Id).ToList(), mediaList, skills.Select(s => s.Id).ToList());
             await InjectOffersForJobPostsAsync(jobPosts, mediaList);
 
             var jobOrders = await InjectJobOrdersFullCycleAsync(jobPosts);
@@ -248,6 +259,13 @@ public class TestController(
             var reviews = await InjectReviewsAsync();
 
             //milstones, deliveredFiles, skill requirements,
+
+
+
+
+
+
+            
 
             //END OF MY WORK
 
@@ -300,8 +318,16 @@ public class TestController(
     //MY WORK:::
 
     [NonAction]
-    public async Task<List<Media>> SeedImagesUsingSystemFilesAsync(int count = 65)
+    public async Task<List<Media>> SeedImagesUsingSystemFilesAsync(int count = 100)
     {
+        
+        var Dictionary = Directory.GetFiles(FileManagement.MediaPath);
+        if(Dictionary.Length >= 250)
+        {
+            Console.WriteLine($"[FileManagement] Found {Dictionary.Length} existing files. Skipping download.");
+            return await db.Medias.ToListAsync();
+        }
+
         var client = new HttpClient();
         var mediaEntities = new List<Media>();
 
@@ -314,7 +340,7 @@ public class TestController(
                 var imageBytes = await client.GetByteArrayAsync(imageUrl);
 
                 // 2. تحويل الـ Bytes إلى FormFile لمحاكاة رفع ملف حقيقي
-                var fileName = $"profile_seed_{i}.jpg";
+                var fileName = $"profile_seed_{i}{Guid.CreateVersion7().ToString()}.jpg".Replace(" ","");
                 var stream = new MemoryStream(imageBytes);
 
                 var formFile = new FormFile(stream, 0, imageBytes.Length, "file", fileName)
@@ -444,6 +470,12 @@ public class TestController(
             }
         }
 
+            foreach (var user in await db.Users.ToListAsync())
+            {
+                user.ProfilePictureId = user.ProfilePictureId ?? 1;
+            }
+            
+
         // 4. الحفظ في قاعدة البيانات
         await db.Users.AddRangeAsync(newUsers);
         await db.ServiceProviderProfiles.AddRangeAsync(providersToCreate);
@@ -461,7 +493,7 @@ public class TestController(
     }
 
     [NonAction]
-    public  async Task<List<User>> InjectUsersAdminsAsync(List<Media> medias, List<int> skillIds, int count = 50)
+    public  async Task<List<User>> InjectUsersAdminsAsync(List<Media> medias, List<int> skillIds, int count = 10)
     {
         // 3. توليد المستخدمين وربطهم عشوائياً بالميديا
         var passwordHasher = new PasswordHasher<User>();
@@ -478,6 +510,17 @@ public class TestController(
         }));
 
         await db.SaveChangesAsync();
+
+
+        foreach (var user in await db.Users.Where(u => u.ProfilePictureId == null).ToListAsync())
+        {
+            int i = 1;
+            user.ProfilePictureId = i;
+            i = (i <= 10) ? i : 1;
+        }
+
+        await db.SaveChangesAsync();
+
         return await db.Users.ToListAsync();
     }
 
@@ -573,7 +616,7 @@ public class TestController(
     [NonAction]
     public static List<User> GetUserFaker(int count, List<int> availableMediaIds, IPasswordHasher<User> passwordHasher)
     {
-        int photoIndex = 0;
+        
 
         var userFaker = new Faker<User>("en")
             .RuleFor(u => u.Id, f => Guid.CreateVersion7().ToString())
@@ -589,15 +632,7 @@ public class TestController(
             .RuleFor(u => u.PhoneNumberConfirmed, true)
             .RuleFor(u => u.TwoFactorEnabled, false)
             // ربط الميديا (صورة البروفايل)
-            .RuleFor(u => u.ProfilePictureId, f =>
-            {
-                // إذا كان العداد أقل من عدد الصور المتاحة، خذ الصورة التالية
-                if (photoIndex < availableMediaIds.Count)
-                {
-                    return availableMediaIds[photoIndex++];
-                }
-                return (int?)null; // في حال انتهت الصور (لكننا تأكدنا أنها كافية)
-            })
+            .RuleFor(u => u.ProfilePictureId, f => f.PickRandom(availableMediaIds))
             .RuleFor(u => u.VerificationData, f => new VerificationData
             {
                 City = f.Address.City().ClampLength(2, 50),
@@ -608,6 +643,10 @@ public class TestController(
             .FinishWith((f, u) =>
             {
                 // تشفير كلمة السر المطلوبة
+                //u.ProfilePictureId = f.PickRandom(availableMediaIds);
+                if (u.ProfilePictureId == null)
+                    u.ProfilePictureId = 1;
+
                 u.PasswordHash = passwordHasher.HashPassword(u, "Giggo343@");
             });
 
