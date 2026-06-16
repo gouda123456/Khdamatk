@@ -66,11 +66,11 @@ public class PaymentService(Database db) : IPaymentService
 
     public async Task<resultBase> PayToWallet(PayToWalletRequest request, string userId)
     {
-        return Success(StatusCodes.Status200OK,SuccessMessages.General.Title,SuccessMessages.General.Message);
+        return Success(StatusCodes.Status200OK,SuccessMessages.General.Title,"there are email send to you have the Details");
     }
 
     public async Task<resultBase> Witherdraw(PayToWalletRequest request, string userId)
     {
-        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, "there are email send to you have the Details");
     }
 }
