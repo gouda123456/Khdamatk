@@ -71,8 +71,8 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
-
-        
+        services.AddScoped<IVerificationService, VerificationService>();
+        services.AddScoped<IAdminVerificationService, AdminVerificationService>();
 
 
 
@@ -106,6 +106,7 @@ public static class DependancyInjections
         services.AddScoped<ChargeService>();
         services.AddScoped<RefundService>();
         services.AddScoped<SessionService>();
+
 
         //Fawaterak
         services.AddOptions<FawaterakSettings>()
