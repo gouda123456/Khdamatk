@@ -253,6 +253,8 @@ public class ServiceOrderService(
         var order = await db.ServiceOrders
             .Include(o => o.Customer)
             .Include(o => o.Service)
+            .Include(o => o.ServiceProviderProfile)
+            .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(o => o.Id == orderId && o.ServiceProviderId == freelancerId, cancellationToken);
 
         if (order == null)
@@ -267,7 +269,7 @@ public class ServiceOrderService(
         await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
         // Send payment instruction email to customer
-        await emailHelper.SendEmailAsync(order.Customer.Email!, "Order Accepted - Payment Required", $"Your order for {order.Service.Title} was accepted. Please proceed to payment.");
+        await emailHelper.SendServiceAcceptanceAsync(order.Customer.Email!, order.Customer.FullName ?? order.Customer.UserName!, order.ServiceProviderProfile.User.FullName ?? order.ServiceProviderProfile.User.UserName!, order.Service.Title);
 
         return Success(StatusCodes.Status200OK, "Accepted", "You have accepted the order.");
     }
@@ -502,8 +504,8 @@ public class ServiceOrderService(
         await db.SaveChangesAsync(cancellationToken);
         await cache.RemoveByTagAsync($"Order_{orderId}", cancellationToken);
 
-        await emailHelper.SendMilestoneCompletedAsync(order.Customer.Email!, order.Customer.FullName!, order.Service.Title);
-        await emailHelper.SendMilestoneCompletedAsync(order.ServiceProviderProfile.User.Email!, order.ServiceProviderProfile.User.FullName!, order.Service.Title);
+        await emailHelper.SendWorkDeliveryAsync(order.Customer.Email!, order.Customer.FullName ?? order.Customer.UserName!);
+        await emailHelper.SendWorkDeliveryAsync(order.ServiceProviderProfile.User.Email!, order.ServiceProviderProfile.User.FullName ?? order.ServiceProviderProfile.User.UserName!);
 
         return await GetOrderAsync(orderId, userId, cancellationToken);
     }

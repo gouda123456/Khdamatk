@@ -42,6 +42,7 @@ global using Khdamatk.Server.Statics.Regex;
 
 
 global using Khdamatk.Server.Contracts.Authentications;
+global using Khdamatk.Server.Contracts.Payment;
 
 
 global using static Khdamatk.Server.ResultPattern.ResultPattern;

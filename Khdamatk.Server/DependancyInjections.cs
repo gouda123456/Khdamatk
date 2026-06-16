@@ -51,6 +51,8 @@ public static class DependancyInjections
 #pragma warning restore EXTEXP0018
 
         services.AddAppServices();
+
+        services.AddApiVersion();
         return services;
     }
 
@@ -72,10 +74,28 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
 
+        services.AddScoped<IPaymentService, PaymentService>();
         
 
 
 
+        return services;
+    }
+
+    public static IServiceCollection AddApiVersion(this IServiceCollection services)
+    {
+        services.AddApiVersioning(options =>
+        {
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.DefaultApiVersion = new ApiVersion(1);
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new HeaderApiVersionReader("X-API-Version");
+        })
+            .AddApiExplorer(o =>
+            {
+                o.GroupNameFormat = "'v'V";
+                
+            });
         return services;
     }
 
