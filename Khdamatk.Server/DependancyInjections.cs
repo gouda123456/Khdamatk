@@ -21,7 +21,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
+                configuration.GetConnectionString("YoussefFathy"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -78,6 +78,8 @@ public static class DependancyInjections
         
 
 
+        services.AddScoped<IVerificationService, VerificationService>();
+        services.AddScoped<IAdminVerificationService, AdminVerificationService>();
 
         return services;
     }
@@ -126,6 +128,7 @@ public static class DependancyInjections
         services.AddScoped<ChargeService>();
         services.AddScoped<RefundService>();
         services.AddScoped<SessionService>();
+
 
         //Fawaterak
         services.AddOptions<FawaterakSettings>()
