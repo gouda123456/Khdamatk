@@ -73,6 +73,7 @@ public static class DependancyInjections
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IAdminVerificationService, AdminVerificationService>();
+        services.AddScoped<IAdminReviewService, AdminReviewService>();
 
 
 
