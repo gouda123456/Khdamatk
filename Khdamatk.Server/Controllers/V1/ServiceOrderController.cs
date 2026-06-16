@@ -11,6 +11,7 @@ namespace Khdamatk.Server.Controllers.V1;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ServiceOrderController(IServiceOrderService serviceOrderService) : ControllerBase
 {
     private readonly IServiceOrderService serviceOrderService = serviceOrderService;
@@ -34,6 +35,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpPost("AddService")]
+    [Authorize(Roles = $"{RolesStrings.Admin},{RolesStrings.ServiceProvider}")]
     public async Task<IActionResult> AddService([FromForm] AddServiceRequest request, CancellationToken ct)
     {
         var result = await serviceOrderService.AddServiceAsync(request, ct);
@@ -41,6 +43,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpPut("UpdateService/{id}")]
+    [Authorize(Roles = $"{RolesStrings.Admin},{RolesStrings.ServiceProvider}")]
     public async Task<IActionResult> UpdateService(int id, [FromForm] UpdateServiceRequest request, CancellationToken ct)
     {
         var result = await serviceOrderService.UpdateServiceAsync(id, request, ct);
@@ -48,6 +51,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpDelete("DeleteService/{id}")]
+    [Authorize(Roles = $"{RolesStrings.Admin},{RolesStrings.ServiceProvider}")]
     public async Task<IActionResult> DeleteService(int id, CancellationToken ct)
     {
         var result = await serviceOrderService.DeleteServiceAsync(id, ct);
@@ -59,6 +63,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     #region Order Operations
 
     [HttpPost("add-order/{serviceId}")]
+    [Authorize]
     public async Task<IActionResult> AddOrder(int serviceId, [FromBody] OrderServiceRequest request, CancellationToken cancellationToken)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -69,6 +74,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpPut("accept-order/{orderId}")]
+    [Authorize]
     public async Task<IActionResult> AcceptOrder(int orderId, CancellationToken cancellationToken)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -79,6 +85,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpPut("reject-order/{orderId}")]
+    [Authorize]
     public async Task<IActionResult> RejectOrder(int orderId, CancellationToken cancellationToken)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -89,6 +96,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpGet("my-orders")]
+    [Authorize]
     public async Task<IActionResult> GetOrders(CancellationToken ct)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -99,6 +107,7 @@ public class ServiceOrderController(IServiceOrderService serviceOrderService) : 
     }
 
     [HttpGet("{id}")]
+
     public async Task<IActionResult> GetOrder(int id, CancellationToken ct)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

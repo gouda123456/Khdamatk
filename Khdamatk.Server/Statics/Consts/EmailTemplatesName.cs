@@ -1,4 +1,4 @@
-﻿namespace Khdamatk.Server.Statics.Consts;
+namespace Khdamatk.Server.Statics.Consts;
 
 public enum EmailTemplatesName
 {
@@ -8,5 +8,15 @@ public enum EmailTemplatesName
     JobInProgress,
     JobPostConfirmation,
     MilestoneCompleted,
-    NewProposal
+    NewProposal,
+    ProposalRejected,
+    ReportApproval,
+    ReportRejection,
+    ReportResolved,
+    ReportSubmitted,
+    RevisionRequest,
+    ServiceAcceptance,
+    UserNotification,
+    VerifyEmail,
+    WorkDelivery
 }

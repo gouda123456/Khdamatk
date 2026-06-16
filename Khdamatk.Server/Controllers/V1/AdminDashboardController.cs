@@ -8,6 +8,7 @@ namespace Khdamatk.Server.Controllers.V1;
 public class AdminDashboardController(IAdminDashboardSerivce _statsService) : ControllerBase
 {
     ///  High-level system statistics for the admin home screen. 
+    [Authorize(Roles = RolesStrings.Admin)]
     [HttpGet("admin")]
     public async Task<IActionResult> GetAdminStats(CancellationToken ct)
         => (await _statsService.GetAdminStats(ct)).Respond();
