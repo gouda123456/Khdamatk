@@ -16,7 +16,7 @@ public class PaymentController(IPaymentService paymentService) : ControllerBase
     }
     [Authorize]
     [HttpPost("PayToWallet")]
-    public async Task<IActionResult> GetPaymentDetails([FromQuery] string userId, [FromBody] PayToWalletRequest request)
+    public async Task<IActionResult> PayToWallet([FromQuery] string userId, [FromBody] PayToWalletRequest request)
     {
         var result = await paymentService.PayToWallet(request, userId);
         return Ok(result);
