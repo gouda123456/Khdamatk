@@ -7,6 +7,7 @@ namespace Khdamatk.Server.Controllers.V1;
 [ApiController]
 public class PaymentController(IPaymentService paymentService) : ControllerBase
 {
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetPaymentDetails([FromQuery] string userId)
     {
