@@ -33,7 +33,8 @@ public class TestController(
     private const string SeedCreatedBy = "TestSeed";
     private const string SeedMediaPrefix = "seed_media_";
     private const string SeedOrderMarker = "SEED_ORDER|";
-    
+    private const string SeedPassword = "Giggo343@";
+
     [HttpGet]
     public IActionResult Get()
     {
@@ -44,6 +45,14 @@ public class TestController(
     [Authorize]
     [Route("authorized")]
     public IActionResult GetAuthorized()
+    {
+        return Ok($"{HttpContext.User.GetUserId()}You are authorized!");
+    }
+
+    [HttpGet]
+    [Authorize(Roles =RolesStrings.ServiceProvider)]
+    [Route("ServiceProviderAuthorized")]
+    public IActionResult GetServiceProviderAuthorized()
     {
         return Ok($"{HttpContext.User.GetUserId()}You are authorized!");
     }
@@ -137,13 +146,46 @@ public class TestController(
     }
 
 
+    [HttpGet("GetFakeAccounts")]
+    public async Task<IActionResult> GetFakeAccounts()
+    {
+        var memberRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.Member)).Id;
+        var providerRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.ServiceProvider)).Id;
+        var adminRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.Admin)).Id;
 
+        var normalUsersId = await db.UserRoles.Where(ur => ur.RoleId == memberRoleId)
+            .Select(ur => ur.UserId)
+            .Take(7)
+            .ToListAsync();
+
+        var ServiceProviderId = await db.UserRoles.Where(ur => ur.RoleId == providerRoleId)
+           .Select(ur => ur.UserId)
+           .Take(7)
+           .ToListAsync();
+
+        var adminUsersId = await db.UserRoles.Where(ur => ur.RoleId == adminRoleId)
+           .Select(ur => ur.UserId)
+           .Take(7)
+           .ToListAsync();
+
+
+        return Ok(new
+        {
+            NormalUsers = await db.Users.Where(u => normalUsersId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync(),
+            ServiceProviders = await db.Users.Where(u => ServiceProviderId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync(),
+            Admins = await db.Users.Where(u => adminUsersId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync()
+        });
+    }
 
     [HttpPost("FixSeedData")]
     public async Task<IActionResult> FixSeedData()
     {
+        await FixNormailizeUserTbl();
+        var mediaIds = await db.Medias.ToListAsync();
+        var skillsIds = await db.Skills.Select(s => s.Id).ToListAsync();
         await FixSeedingProblems();
-        return Ok("Seed data issues fixed successfully.");
+        var UserServiceProvider = await InjectServiceProviderWithMediaAsync(mediaIds, skillsIds);
+        return Ok(UserServiceProvider);
     }
 
     [HttpPost("SeedData")]
@@ -213,6 +255,18 @@ public class TestController(
             i = (i <= 30) ? i : 1;
         }
 
+        await db.SaveChangesAsync();
+    }
+
+    [NonAction]
+    private async Task FixNormailizeUserTbl()
+    {
+        foreach (var user in await db.Users.ToListAsync())
+        {
+            // 💡 الحل السحري: يجب تعيين هذه الحقول لتتعرف عليها دالة تسجيل الدخول
+            user.NormalizedEmail = user.Email.ToUpper();
+            user.NormalizedUserName = user.UserName.ToUpper();
+        }
         await db.SaveChangesAsync();
     }
 
@@ -315,7 +369,67 @@ public class TestController(
 
     #region Helper Methods for Seeding
 
+
     //MY WORK:::
+
+
+    [NonAction]
+    public async Task<List<(User User, ServiceProviderProfile Profile)>> InjectServiceProviderWithMediaAsync(List<Media> medias, List<int> skillIds, int count = 50)
+    {
+        try
+        {
+            var passwordHasher = new PasswordHasher<User>();
+            var ServiceProviderUsers = GetUserFaker(count, medias.Select(m => m.Id).ToList(), passwordHasher);
+            var ServiceProviderRoleId = (await db.Roles.FirstAsync(r => r.Name == RolesStrings.ServiceProvider)).Id;
+
+            var newUserRoles = new List<IdentityUserRole<string>>();
+
+            // قائمة مؤقتة للاحتفاظ بالثنائيات وفصل البروفايل عن المستخدم أثناء الحفظ الأول
+            var userProfilePairs = new List<(User User, ServiceProviderProfile Profile)>();
+
+            foreach (var user in ServiceProviderUsers)
+            {
+                user.ProfilePictureId = user.ProfilePictureId ?? 1;
+
+                // توليد البروفايل بشكل منفصل (بدون تعيينه لـ user.ServiceProviderProfile حالياً)
+                var profile = GetProfileWithPortfolioFaker(user.Id, skillIds, medias).Generate();
+
+                userProfilePairs.Add((user, profile));
+
+                newUserRoles.Add(new IdentityUserRole<string>
+                {
+                    UserId = user.Id,
+                    RoleId = ServiceProviderRoleId
+                });
+
+                // 💡 الحل السحري: يجب تعيين هذه الحقول لتتعرف عليها دالة تسجيل الدخول
+                user.NormalizedEmail = user.Email.ToUpper();
+                user.NormalizedUserName = user.UserName.ToUpper();
+            }
+
+            // --- الخطوة 1: حفظ المستخدمين والأدوار أولاً لكسر التبعية الدائرية ---
+            await db.Users.AddRangeAsync(ServiceProviderUsers);
+            await db.UserRoles.AddRangeAsync(newUserRoles);
+            await db.SaveChangesAsync(); // الحفظ الأول (الآن المستخدمون موجودون في الـ DB ولهم Ids مؤكدة)
+
+            // --- الخطوة 2: ربط البروفايلات بالمستخدمين الآن بعد استقرارهم ---
+            foreach (var pair in userProfilePairs)
+            {
+                pair.Profile.UserId = pair.User.Id; // تأكيد ربط المفتاح الأجنبي بالـ User الموجود فعلياً
+                pair.User.ServiceProviderProfile = pair.Profile; // ربط خاصية الملاحة العكسية
+            }
+
+            // الحفظ الثاني: سيقوم EF بإدخال البروفايلات كـ [Added] وتحديث جدول المستخدمين تلقائياً بـ [Modified]
+            await db.SaveChangesAsync();
+
+            return userProfilePairs;
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
 
     [NonAction]
     public async Task<List<Media>> SeedImagesUsingSystemFilesAsync(int count = 100)
@@ -473,6 +587,9 @@ public class TestController(
             foreach (var user in await db.Users.ToListAsync())
             {
                 user.ProfilePictureId = user.ProfilePictureId ?? 1;
+                // 💡 الحل السحري: يجب تعيين هذه الحقول لتتعرف عليها دالة تسجيل الدخول
+                user.NormalizedEmail = user.Email.ToUpper();
+                user.NormalizedUserName = user.UserName.ToUpper();
             }
             
 
@@ -517,6 +634,9 @@ public class TestController(
             int i = 1;
             user.ProfilePictureId = i;
             i = (i <= 10) ? i : 1;
+            // 💡 الحل السحري: يجب تعيين هذه الحقول لتتعرف عليها دالة تسجيل الدخول
+            user.NormalizedEmail = user.Email.ToUpper();
+            user.NormalizedUserName = user.UserName.ToUpper();
         }
 
         await db.SaveChangesAsync();
@@ -647,7 +767,7 @@ public class TestController(
                 if (u.ProfilePictureId == null)
                     u.ProfilePictureId = 1;
 
-                u.PasswordHash = passwordHasher.HashPassword(u, "Giggo343@");
+                u.PasswordHash = passwordHasher.HashPassword(u, SeedPassword);
             });
 
         return userFaker.Generate(count);

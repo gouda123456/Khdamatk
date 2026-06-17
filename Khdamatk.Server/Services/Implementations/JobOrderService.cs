@@ -89,7 +89,7 @@ public class JobOrderService(
             return Failure(StatusCodes.Status409Conflict, FailureMessages.Conflict.Title, FailureMessages.Conflict.Message,
                 new Error("duplicated proposal", "This freelancer already submitted an offer for this job."));
 
-        
+
 
         var offer = request.Adapt<JobOffer>();
         offer.JobPostId = JobId;
@@ -100,7 +100,7 @@ public class JobOrderService(
             offer.Attachments = new List<Media>();
             foreach (var item in request.Attachment)
             {
-                var media = await item.UploadFileAsync();
+                Media? media = await item.UploadFileAsync();
                 offer.Attachments.Add(media);
             }
         }

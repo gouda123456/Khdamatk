@@ -1097,7 +1097,22 @@ namespace Khdamatk.Server.Data.migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IdBackUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdFrontUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NationalNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RejectNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SelfieWithIdUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

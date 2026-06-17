@@ -11,6 +11,7 @@ namespace Khdamatk.Server.Controllers.V1;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ServiceProviderController(IServiceProviderService _service) : ControllerBase
 {
     private readonly IServiceProviderService _service = _service;
@@ -18,6 +19,7 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
     /// Retrieves a list of freelancers based on search and filter criteria.
 
     [HttpGet("Freelancers")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFreelancers([FromQuery] FreelancerRequest? freelancerRequest, CancellationToken cancellationToken)
     {
         var result = await _service.FreelancersPage(freelancerRequest, cancellationToken);
@@ -27,6 +29,7 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
 
     /// Fetches the detailed profile of a specific freelancer.
     [HttpGet("freelancer-profile/{userId}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetProfile(string userId, CancellationToken cancellationToken)
     {
         var result = await _service.FreelancerProfile(userId, cancellationToken);
