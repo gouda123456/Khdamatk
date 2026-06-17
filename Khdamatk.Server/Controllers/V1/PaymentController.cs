@@ -9,16 +9,25 @@ public class PaymentController(IPaymentService paymentService) : ControllerBase
 {
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetPaymentDetails([FromQuery] string userId)
+    public async Task<IActionResult> GetPaymentDetails()
     {
-        var result = await paymentService.GetAllTranactions(userId);
+        var result = await paymentService.GetAllTranactions(User.GetUserId()!);
         return Ok(result);
     }
+
     [Authorize]
     [HttpPost("PayToWallet")]
-    public async Task<IActionResult> PayToWallet([FromQuery] string userId, [FromBody] PayToWalletRequest request)
+    public async Task<IActionResult> PayToWallet( [FromBody] PayToWalletRequest request)
     {
-        var result = await paymentService.PayToWallet(request, userId);
+        var result = await paymentService.PayToWallet(request, User.GetUserId()!);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("Witherdraw")]
+    public async Task<IActionResult> Witherdraw([FromBody] PayToWalletRequest request)
+    {
+        var result = await paymentService.Witherdraw(request, User!.GetUserId()!);
         return Ok(result);
     }
 
