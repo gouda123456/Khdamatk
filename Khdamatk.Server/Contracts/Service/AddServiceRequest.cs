@@ -14,7 +14,7 @@ public record AddServiceRequest(
     int DeliverTimeInDays, 
     ExperienceLevel ExperienceLevel,
     IFormFile? ServiceEnvelope,
-    List<IFormFile>? Attachment
+    IFormFileCollection Attachment
 );
 
 public class AddServiceValidator : AbstractValidator<AddServiceRequest>

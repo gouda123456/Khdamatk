@@ -1,12 +1,13 @@
-﻿using Khdamatk.Server.Contracts.Dashboard;
+using Khdamatk.Server.Contracts.Dashboard;
 using Khdamatk.Server.Data.Entities.Identity; 
 using Microsoft.EntityFrameworkCore; 
 
 namespace Khdamatk.Server.Services;
 
-public class ReportDashboardService(Database db) : IReportDashboardService
+public class ReportDashboardService(Database db, IEmailHelper emailHelper) : IReportDashboardService
 {
     private readonly Database _db = db;
+    private readonly IEmailHelper _emailHelper = emailHelper;
 
     public async Task<resultBase> GetReportSummary(CancellationToken ct)
     {
@@ -73,6 +74,22 @@ report.Messages.Select(m => new ChatMessageDto(m.SenderName, m.Text, m.Timestamp
             report.ReviewedBy = request.TargetUserId;
             report.Status = "Under Review";
         }
+        else if (request.ActionType == "Approve")
+        {
+            report.Status = "Approved";
+            // TODO: Get the actual reporter's email. Since Report entity lacks ReporterEmail/ReporterId, you need to retrieve it via JobId or add it to the Report entity.
+            await _emailHelper.SendReportApprovalAsync("reporter@example.com", report.ClientName);
+        }
+        else if (request.ActionType == "Reject")
+        {
+            report.Status = "Rejected";
+            await _emailHelper.SendReportRejectionAsync("reporter@example.com", report.ClientName);
+        }
+        else if (request.ActionType == "Resolve")
+        {
+            report.Status = "Resolved";
+            await _emailHelper.SendReportResolvedAsync("reporter@example.com", report.ClientName);
+        }
 
         await _db.SaveChangesAsync();
         return Success(StatusCodes.Status200OK, $"Action {request.ActionType} completed successfully");
@@ -110,6 +127,18 @@ report.Messages.Select(m => new ChatMessageDto(m.SenderName, m.Text, m.Timestamp
         report.AdminComment = request.AdminComment;
 
         await _db.SaveChangesAsync();
+
+        // Send Email based on decision
+        // TODO: Replace "reporter@example.com" with the actual user's email once added to the Report model
+        if (request.IsApproved)
+        {
+            await _emailHelper.SendReportResolvedAsync("reporter@example.com", report.ClientName);
+        }
+        else
+        {
+            await _emailHelper.SendReportRejectionAsync("reporter@example.com", report.ClientName);
+        }
+
         return Success(StatusCodes.Status200OK, request.IsApproved ? "Decision Approved Successfully" : "Decision Rejected");
     }
     public async Task<resultBase> SendReportMessage(string reportId, string message, CancellationToken ct)

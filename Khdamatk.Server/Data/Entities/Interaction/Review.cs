@@ -39,6 +39,7 @@ public class Review : BaseEntity
 
     // يفضل أن يكون نوع User هنا هو الـ User Entity الخاص بنطاق الهوية
     public virtual User Reviewer { get; set; } = null!;
+  
     //مقدم الخدمة
     public virtual ServiceProviderProfile ServiceProvider { get; set; } = null!;
 }
