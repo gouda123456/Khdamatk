@@ -29,4 +29,26 @@ public class Certificate : BaseEntity
 
     // العلاقة المتبادلة
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
+
+
+
+    public static List<Certificate> Data(int minId)
+    {
+        var list = new List<Certificate>();
+
+        for (int i = minId; i < minId + 5; i++)
+        {
+            list.Add(new Certificate
+            {
+                Title = $"Certificate {i}",
+                Issuer = $"Issuer {i}",
+                Type = $"Type {i}",
+                YearAcquired = 2020 + i,
+                MediaId = 1
+            });
+        }
+
+        return list;
+    }
 }
+

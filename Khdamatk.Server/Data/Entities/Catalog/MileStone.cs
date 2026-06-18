@@ -16,4 +16,25 @@ public class MileStone
 
     [Required]
     public decimal Price { get; set; }
+
+
+    public static List<MileStone> Data(int minId)
+    {
+        var list = new List<MileStone>();
+
+        for (int i = minId; i < minId + 5; i++)
+        {
+            list.Add(new MileStone
+            {
+                Id = i,
+                Title = $"MileStone {i}",
+                Description = $"Description for mile stone {i}",
+                StepNumber = i,
+                IsCompleted = false,
+                Price = 100 + i
+            });
+        }
+
+        return list;
+    }
 }

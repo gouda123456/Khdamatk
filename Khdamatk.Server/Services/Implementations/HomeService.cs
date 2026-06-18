@@ -25,7 +25,7 @@ public class HomeService(Database db) : IHomeService
         
         var FreelancerCards = await db.ServiceProviderProfiles.Include(u => u.User)
             .Select(u => new FreelancerCard(u.UserId,
-            u.User.ProfilePictureId,
+            u.User.ProfilePicture.FullPath,
             u.User.UserName?? "UnKnown",
             u.JobTitle,
             u.HourlyRate,
@@ -37,7 +37,7 @@ public class HomeService(Database db) : IHomeService
 
         var ClientReviewCard = await db.Reviews.Include(r => r.Reviewer)
             .Select(r => new ClientReviewCard(
-            r.Reviewer.ProfilePictureId,
+            r.Reviewer.ProfilePicture.FullPath,
             r.Reviewer.UserName ?? "Unknown",
             r.Content,
             r.Rating,
@@ -51,14 +51,25 @@ public class HomeService(Database db) : IHomeService
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title,FailureMessages.DataNotFound.Message);
         }
 
-        if (Categories.Count == 0 || FreelancerCards.Count == 0 || ClientReviewCard.Count == 0)
+        if (Categories.Count == 0)
         {
             Categories = ["no categories", "no categories2"];
-            FreelancerCards = [new FreelancerCard("string Id",123,"user name", "Jobtitle", 12.5, ["skill1","skill2"]), new FreelancerCard("string Id2", 12, "user name2", "Jobtitle2", 15, ["skil3", "skill4"])];
-            ClientReviewCard = [new (1,"ClientName","review text",4.2), new(2, "ClientName2", "review text2", 3)];
-            return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
-            return Failure(StatusCodes.Status204NoContent, FailureMessages.DataNotAvailable.Title,FailureMessages.DataNotAvailable.Message);
+
         }
+
+        if (FreelancerCards.Count == 0)
+        {
+            FreelancerCards = [new FreelancerCard("string Id","123","user name", "Jobtitle", 12.5, ["skill1","skill2"]), new FreelancerCard("string Id2", "12", "user name2", "Jobtitle2", 15, ["skil3", "skill4"])];
+
+        }
+
+        if (ClientReviewCard.Count == 0)
+        {
+
+            ClientReviewCard = [new ("1","ClientName","review text",4.2), new("2", "ClientName2", "review text2", 3)];
+        }
+
+        
 
         return Success(StatusCodes.Status200OK, new MainPage(Categories, FreelancerCards, ClientReviewCard));
     }
@@ -75,7 +86,7 @@ public class HomeService(Database db) : IHomeService
             .Select(sp => new DiscoverServiceProvider(
                 sp.UserId,
                 sp.User.UserName,
-                sp.User.ProfilePicture.FileName     //TODO: NEDED TO BE REFACTOR
+                sp.User.ProfilePicture.FullPath     //TODO: NEDED TO BE REFACTOR
             ))
             .ToListAsync();
 

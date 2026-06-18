@@ -15,11 +15,11 @@ public class Conversation : BaseEntity
     // Foreign Key to ServiceOrder
     [ForeignKey(nameof(ServiceOrder))]
     public int? ServiceOrderId { get; set; }
-    public virtual ServiceOrder? ServiceOrder { get; set; } = null!;
+    public virtual ServiceOrder? ServiceOrder { get; set; }
 
     [ForeignKey(nameof(JobOrder))]
     public int? JobOrderId { get; set; }
-    public virtual JobOrder? JobOrder { get; set; } = null!;
+    public virtual JobOrder? JobOrder { get; set; }
 
     // Foreign Key to User (Sender)
     [ForeignKey(nameof(Customer))]

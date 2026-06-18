@@ -18,33 +18,34 @@ builder.Services.AddDependancyInjections(builder.Configuration);
 builder.Services.AddControllers().AddJsonOptions(options => {
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
-
+builder.Services.AddMapster();
 
 var app = builder.Build();
+FileManagement.enableFileManagement(builder.Environment);
+
+// 1. أول حاجة الـ Error Handling عشان يلحق أي مصيبة تحصل
+app.UseMiddleware<GlobalErrorHandling>();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// Configure the HTTP request pipeline.
+// 2. الترتيب المهم جداً للـ Security
+app.UseHttpsRedirection();
+app.UseRouting(); // ضيف دي صراحة عشان تضمن الترتيب
+app.UseCors();
+
+app.UseAuthentication(); // لازم Authentication الأول (مين إنت؟)
+app.UseAuthorization();  // بعدين Authorization (مسموح لك تعمل إيه؟)
+
+// 3. الـ UI بتاع التيست (Swagger/Scalar)
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger(); // تأكد إن دي موجودة
     app.UseSwaggerUI();
     app.MapScalarApiReference();
-
 }
 
-
-app.UseHttpsRedirection();
-
-app.UseCors();
-app.UseMiddleware<GlobalErrorHandling>();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
 app.MapControllers();
-
-
 
 app.Run();

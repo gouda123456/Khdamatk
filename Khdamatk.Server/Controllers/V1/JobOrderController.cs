@@ -13,20 +13,20 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     #region Jobs Operations
 
     [HttpPost("Jobs/")]
-    public async Task<IActionResult> AddJob(AddJobRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddJob([FromForm]AddJobRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.AddJobASync(request, cancellationToken)).Respond();
     }
 
 
-    [HttpPost("Jobs/{jobId}/")]
-    public async Task<IActionResult> GetJob([FromRoute] int jobId, AddJopOfferRequest request, CancellationToken cancellationToken)
+    [HttpPost("Jobs/{jobId}/Offers")]
+    public async Task<IActionResult> AddOffer([FromRoute] int jobId, [FromForm] AddJopOfferRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.AddOfferAsync(jobId, request, cancellationToken)).Respond();
     }
 
 
-    [HttpGet("jobs/{jobId}/Offers/")]
+    [HttpGet("jobs/{jobId}/Offers")]
     public async Task<IActionResult> ShowOffers([FromRoute] int jobId, CancellationToken cancellationToken)
     {
         return (await jobOrderService.ShowOffersJob(jobId, cancellationToken)).Respond();
@@ -93,7 +93,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     }
 
     [HttpPost("JobOrders/{orderId}/SubmitWorkAndMessage/")]
-    public async Task<IActionResult> SubmitWorkAndMessage([FromRoute] int orderId, [FromBody] SubmitWorkAndMessageRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SubmitWorkAndMessage([FromRoute] int orderId, [FromForm] SubmitWorkAndMessageRequest request, CancellationToken cancellationToken)
     {
         return (await jobOrderService.SubmitWorkAndMessage(orderId, User.GetUserId()!, request, cancellationToken)).Respond();
     }
@@ -127,76 +127,12 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     {
         return (await jobOrderService.OpenDispute(orderId, User.GetUserId()!, reasonDetails, cancellationToken)).Respond();
     }
+}
 
 
 
 
     #endregion
 
-    [HttpPost("add-order")]
-    public async Task<IActionResult> AddOrder([FromBody] CreateJobOrderRequest request, CancellationToken cancellationToken)
-    {
-        // 1. لازم تجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (العميل)
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        // 2. ابعت الـ userId للـ Service لأنها مستنياه في الترتيب التاني
-        var result = await jobOrderService.AddOrderAsync(request, userId, cancellationToken);
-
-        return result.IsSuccess
-            ? StatusCode(StatusCodes.Status201Created, result)
-            : BadRequest(result);
-    }
-
-    // 2. قبول الأوردر (من طرف الفريلانسر)
-    [HttpPut("accept-order/{orderId}")]
-    public async Task<IActionResult> AcceptOrder(int orderId, CancellationToken cancellationToken)
-    {
-        // هنا بنجيب الـ UserId بتاع الشخص اللي عامل Login حالياً (الفريلانسر)
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        var result = await jobOrderService.AcceptOrderAsync(orderId, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok(result) : BadRequest(result);
-    }
-
-    // 3. رفض الأوردر (من طرف الفريلانسر)
-    [HttpPut("reject-order/{orderId}")]
-    public async Task<IActionResult> RejectOrder(int orderId, CancellationToken cancellationToken)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        var result = await jobOrderService.RejectOrderAsync(orderId, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok(result) : BadRequest(result);
-
-    }
-
-    // 1. تجيب كل أوردرات المستخدم (My Orders)
-    [HttpGet("my-orders")]
-    public async Task<IActionResult> GetOrders()
-    {
-        // بنجيب الـ UserId من الـ Claims بتاعة الـ Token
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await jobOrderService.GetUserOrders(userId);
-        return result.Respond(); // تأكد إن عندك Extension Method اسمها Respond بتتعامل مع resultBase
-    }
-
-    // 2. تجيب أوردر واحد محدد بالـ ID
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrder(int id)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await jobOrderService.GetOrderById(id, userId);
-        return result.Respond();
-    }
-}
 

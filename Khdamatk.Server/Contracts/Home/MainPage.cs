@@ -8,7 +8,7 @@ public record MainPage(
 
 public record FreelancerCard(
     string Id,
-    int? ProfilePictureUrl,
+    string ProfilePictureUrl,
     string UserName,
     string JobTitle,
     double HourlyRate,
@@ -16,7 +16,7 @@ public record FreelancerCard(
 );
 
 public record ClientReviewCard(
-    int? ClientProfilePictureUrl,
+    string ClientProfilePictureUrl,
     string ClientName,
     string ReviewText,
     double Rating,

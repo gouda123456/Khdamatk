@@ -43,8 +43,8 @@ public class ServiceOrder : OrderBase
     public virtual Review? Review { get; set; }
 
     [ForeignKey(nameof(Conversation))]
-    public int ConversationId { get; set; }
-    public virtual Conversation Conversation { get; set; } = null!;
+    public int? ConversationId { get; set; }
+    public virtual Conversation? Conversation { get; set; }
 
     [ForeignKey(nameof(Dispute))]
     public int? DisputeId { get; set; }

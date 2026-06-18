@@ -15,7 +15,7 @@ public class UserDashboardSerivce(Database db) : IUserDashboardService
                 u.FullName,
                 u.Email,
                 u.Role,
-                db.JobPosts.Count(j => j.UserId == u.Id), 
+                db.JobPosts.Count(j => j.CustomerId == u.Id), 
                 u.Status,
                 u.CreatedAt
             ))
@@ -56,7 +56,7 @@ public class UserDashboardSerivce(Database db) : IUserDashboardService
             query = query.Where(u => u.FullName.Contains(search) || u.Email.Contains(search));
 
         var data = await query
-            .Select(u => new UserListItem(u.Id, u.FullName, u.Email, u.Role, db.JobPosts.Count(j => j.UserId == u.Id), u.Status, u.CreatedAt))
+            .Select(u => new UserListItem(u.Id, u.FullName, u.Email, u.Role, db.JobPosts.Count(j => j.CustomerId == u.Id), u.Status, u.CreatedAt))
             .ToListAsync(ct);
 
         return Success(StatusCodes.Status200OK, data);

@@ -9,7 +9,7 @@ namespace Khdamatk.Server.Contracts.Home;
 
     public record FreelancerCards(
     string Id,
-    int? ProfilePictureUrl,
+    string? ProfilePictureUrl,
     string UserName,
     string JobTitle,
     double HourlyRate,

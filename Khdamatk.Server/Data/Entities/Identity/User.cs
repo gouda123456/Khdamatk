@@ -10,7 +10,6 @@ public class User : IdentityUser<string>
     {
         Id = Guid.NewGuid().ToString();
     }
-
     [Required(ErrorMessage = "Full name is required")]
     [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters")]
     public virtual string FullName { get; set; } = string.Empty;

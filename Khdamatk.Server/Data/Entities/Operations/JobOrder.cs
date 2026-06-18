@@ -32,8 +32,8 @@ public class JobOrder : OrderBase
     public virtual ServiceProviderProfile ServiceProviderProfile { get; set; } = null!;
 
     [ForeignKey(nameof(PaymentTransaction))]
-    public int PaymentTransactionId { get; set; }
-    public virtual PaymentTransaction PaymentTransaction { get; set; } = new();
+    public int? PaymentTransactionId { get; set; }
+    public virtual PaymentTransaction? PaymentTransaction { get; set; }
 
 
     [ForeignKey(nameof(Review))]
@@ -41,8 +41,8 @@ public class JobOrder : OrderBase
     public virtual Review? Review { get; set; }
 
     [ForeignKey(nameof(Conversation))]
-    public int ConversationId { get; set; }
-    public virtual Conversation Conversation { get; set; } = new Conversation();
+    public int? ConversationId { get; set; }
+    public virtual Conversation? Conversation { get; set; }
 
     [ForeignKey(nameof(Dispute))]
     public int? DisputeId { get; set; }

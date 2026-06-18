@@ -50,7 +50,7 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         var providers = await query
             .Select(u => new FreelancerCards(
                 u.UserId,
-                u.User.ProfilePictureId,
+                u.User.ProfilePicture.FullPath,
                 u.User.UserName ?? "Unknown",
                 u.JobTitle,
                 (double)u.HourlyRate,
@@ -63,8 +63,8 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         {
             providers = new List<FreelancerCards>
             {
-                new FreelancerCards("1", 101, "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
-                new FreelancerCards("2", 102, "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" })
+                new FreelancerCards("1", "101", "Omnia Salah", "UI/UX Designer", 350.0, new List<string> { "UI", "UX", "Figma" }),
+                new FreelancerCards("2", "102", "Youssef Ashraf", "Full Stack Developer", 500.0, new List<string> { "C#", "SQL", "React" })
             };
 
             if (servicesSidebar.Count < 1)
@@ -190,17 +190,33 @@ public class ServiceProviderService(Database db) : IServiceProviderService
         return Success(StatusCodes.Status200OK, response);
     }
 
-    /// Updates core profile information such as Bio, Job Title, and social media links.
     public async Task<resultBase> UpdateProfileBasicInfo(string userId, UpdateProfileRequest request)
     {
-        var profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-        if (profile == null) return Failure(StatusCodes.Status404NotFound, "Error", "Profile not found");
+        // 1. اتأكد الأول إن الـ ID موجود
+        if (string.IsNullOrEmpty(userId))
+            return Failure(StatusCodes.Status401Unauthorized, "Error", "User ID is missing.");
 
+        // 2. دور في الداتابيز
+        Data.Entities.Identity.ServiceProviderProfile? profile = await db.ServiceProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+
+        // 3. لو مفيش كـريه واحد جديد (Logic الـ Upsert)
+        if (profile == null)
+        {
+            profile = new Khdamatk.Server.Data.Entities.Identity.ServiceProviderProfile
+            {
+                UserId = userId,
+                DateOfJoin = DateTime.Now
+            };
+            await db.ServiceProviderProfiles.AddAsync(profile);
+        }
+
+        // 4. حدث البيانات
         profile.JobTitle = request.JobTitle;
         profile.Bio = request.Bio;
         profile.HourlyRate = (double)request.HourlyRate;
         profile.ExperienceYears = request.ExperienceYears;
-
+        profile.ProfileImageUrl = request.ProfileImageUrl;
+        profile.CoverImageUrl = request.CoverImageUrl;
         profile.FacebookUrl = request.FacebookUrl;
         profile.LinkedInUrl = request.LinkedInUrl;
         profile.GithubUrl = request.GithubUrl;

@@ -6,4 +6,7 @@ public static class UserExtension
     {
         return user.Claims.FirstOrDefault(x => x.Type == JWTClaimsDefault.UserId)?.Value;
     }
+
+
+    
 }

@@ -37,9 +37,12 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
     [HttpPut("update-basic-info")]
     public async Task<IActionResult> UpdateInfo(UpdateProfileRequest request)
     {
-        var result = await _service.UpdateProfileBasicInfo(User.GetUserId(), request);
+        var userId = "1";
+
+        var result = await _service.UpdateProfileBasicInfo(userId, request);
         return result.Respond();
     }
+
 
     /// Adds a new project to the provider's portfolio.
     [HttpPost("portfolio")]
@@ -121,5 +124,6 @@ public class ServiceProviderController(IServiceProviderService _service) : Contr
         var result = await _service.UpdatePortfolioItem(User.GetUserId(), itemId, request);
         return result.Respond();
     }
+
 
 }
