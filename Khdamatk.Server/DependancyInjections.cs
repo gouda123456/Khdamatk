@@ -73,14 +73,14 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
-        services.AddScoped<IRequestManagementDashboardSerivce, RequestManagementDashboardService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        
 
 
+        services.AddScoped<IRequestManagementDashboardSerivce, RequestManagementDashboardService>();
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IAdminVerificationService, AdminVerificationService>();
         services.AddScoped<IAdminReviewService, AdminReviewService>();
+        services.AddScoped<IFinalDecisionService, FinalDecisionService>();
 
         return services;
     }
