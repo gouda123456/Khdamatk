@@ -3,6 +3,7 @@ using Khdamatk.Server.Contracts.Admin.Request;
 using Khdamatk.Server.Data;
 using Khdamatk.Server.ResultPattern;
 using Khdamatk.Server.Services.Interfaces;
+using Khdamatk.Server.Data.Entities.Operations;
 using Microsoft.AspNetCore.Http;
 
 namespace Khdamatk.Server.Services.Implementations;
@@ -11,28 +12,51 @@ public class RequestManagementDashboardService(Database db) : IRequestManagement
 {
     private readonly Database _db = db;
 
+    // 1. جلب قائمة الطلبات الحقيقية بالكامل من الداتابيز داتا لايف
     public async Task<resultBase> GetOrdersAsync(string? statusFilter = null, CancellationToken cancellationToken = default)
     {
-
         try
         {
-            // 1. شيلنا الـ Include والـ Where مؤقتاً لأن الحقول أساميها مختلفة في الـ Entity عندك
             var query = _db.ServiceOrders
+                .Include(o => o.Customer)
+                    .ThenInclude(c => c.ProfilePicture)
+                .Include(o => o.ServiceProviderProfile)
+                    .ThenInclude(sp => sp.User)
+                        .ThenInclude(u => u.ProfilePicture)
+                .Include(o => o.Service)
                 .AsNoTracking();
 
+            // الفلترة بالحالة الحقيقية المتوافقة مع الـ Enum
+            if (!string.IsNullOrEmpty(statusFilter) && Enum.TryParse<OrderStatus>(statusFilter, true, out var parsedStatus))
+            {
+                query = query.Where(o => o.Status == parsedStatus);
+            }
+
             var orders = await query
+                .OrderByDescending(o => o.CreatedAt) // الترتيب حسب تاريخ الإنشاء من الـ BaseEntity
                 .Select(o => new RequestManagementDashboard
                 {
-                    // 2. بما إن الـ Id مش مقروء كدة، هنخلي الـ OrderId يرجع قيمة ثابتة أو نربطه بحقله الصح لاحقاً
-                    OrderId = "B230038",
-                    ClientName = "عميل افتراضي",
-                    ClientImageUrl = string.Empty,
-                    ProviderName = "مقدم الخدمة",
-                    ProviderImageUrl = string.Empty,
-                    ServiceName = "Graphic Design",
-                    Price = 150.00m,
-                    Status = "Pending",
-                    Date = DateTime.UtcNow
+                    OrderId = "B" + o.Id.ToString(),
+                    ClientName = o.Customer != null ? (o.Customer.FullName ?? "عميل") : "عميل غير معروف",
+
+                    // 🛡️ طريقة أمان لتفادي خطأ اسم حقل الـ Media: لو موجودة حط قيمة نصية أو الـ Id بتاعها لحين استعراض كلاس الميديا
+                    ClientImageUrl = o.Customer != null && o.Customer.ProfilePicture != null
+                        ? (o.Customer.ProfilePictureId.ToString() ?? string.Empty)
+                        : string.Empty,
+
+                    ProviderName = o.ServiceProviderProfile != null && o.ServiceProviderProfile.User != null
+                        ? (o.ServiceProviderProfile.User.FullName ?? "مقدم الخدمة")
+                        : "مقدم خدمة غير معروف",
+
+                    ProviderImageUrl = o.ServiceProviderProfile != null && o.ServiceProviderProfile.User != null && o.ServiceProviderProfile.User.ProfilePicture != null
+                        ? (o.ServiceProviderProfile.User.ProfilePictureId.ToString() ?? string.Empty)
+                        : string.Empty,
+
+                    ServiceName = o.Service != null ? (o.Service.Title ?? "خدمة") : "Graphic Design",
+
+                    Price = o.Amount, // حقل السعر الحقيقي الموروث من الـ OrderBase
+                    Status = o.Status.ToString(),
+                    Date = o.CreatedAt
                 })
                 .ToListAsync(cancellationToken);
 
@@ -42,19 +66,17 @@ public class RequestManagementDashboardService(Database db) : IRequestManagement
         {
             return Failure(StatusCodes.Status500InternalServerError, new Error("ServerError", ex.Message));
         }
-    
     }
 
+    // 2. حساب كروت الإحصائيات من واقع حالات الجدول الحقيقية
     public async Task<resultBase> GetOrderAnalyticsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            // جلب قائمة الحالات من الداتابيز مباشرة لحسابها
             var statuses = await _db.ServiceOrders
                 .Select(o => o.Status)
                 .ToListAsync(cancellationToken);
 
-            // في ميثود الـ Analytics
             var analytics = new OrderAnalyticsResponse
             {
                 TotalRequests = statuses.Count,
@@ -71,6 +93,7 @@ public class RequestManagementDashboardService(Database db) : IRequestManagement
         }
     }
 
+    // 3. تحديث حالة الطلب الفعلي وحفظه
     public async Task<resultBase> UpdateOrderAsync(UpdateOrderAdminRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -83,23 +106,24 @@ public class RequestManagementDashboardService(Database db) : IRequestManagement
                 return Failure(StatusCodes.Status404NotFound, new Error("NotFound", "الطلب المطلوب غير موجود."));
             }
 
+            if (Enum.TryParse<OrderStatus>(request.Status, true, out var newStatus))
+            {
+                order.Status = newStatus;
+            }
+            else
+            {
+                return Failure(StatusCodes.Status400BadRequest, new Error("ValidationError", "حالة الطلب المرسلة غير صالحة."));
+            }
 
-            // بدل ما تحط string، حوله للـ Enum بتاعك
-            order.Status = Enum.Parse<OrderStatus>(request.Status);
-
-            // 📸 رفع المرفقات والصور باستخدام الميثود المخصصة في مشروعكم
             if (request.Attachment != null)
             {
-                // استدعاء نفس الميثود الـ Async المتواجدة في كود الـ JobOrderService لديكم
                 var media = await request.Attachment.UploadFileAsync();
-
-                // إذا كان لجدول الطلبات علاقة مع الميديا، يتم ربط الـ Media Id هنا:
-                // order.MediaId = media.Id;
+                order.MediaAttachments.Add(media);
             }
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            return Success(StatusCodes.Status200OK, "تم تحديث حالة الطلب وحفظ المرفقات بنظام النجاح.");
+            return Success(StatusCodes.Status200OK, "تم تحديث حالة الطلب في الداتابيز بنجاح.");
         }
         catch (Exception ex)
         {
