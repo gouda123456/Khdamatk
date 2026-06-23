@@ -104,6 +104,17 @@ public class ServiceService : IServiceService
         }
     }
 
+    public async Task<resultBase> GetCategoriesServicesAsync(string CategoryName, CancellationToken ct = default)
+    {
+        var response = await _db.Categories.Select(c => new
+        {
+            CategoryId = c.Id,
+            CategoryName = c.Name,
+            ServicesCount = c.Services.Count()
+        }).ToListAsync();
+        return Success(StatusCodes.Status200OK, response);
+    }
+
     public async Task<resultBase> GetServiceAsync(int serviceId, CancellationToken ct = default)
     {
         try
@@ -177,6 +188,83 @@ public class ServiceService : IServiceService
             _logger.LogError(ex, "Error getting service: {ServiceId}", serviceId);
             return Failure(StatusCodes.Status500InternalServerError, 
                 FailureMessages.General.Title, 
+                "An error occurred while retrieving the service.");
+        }
+    }
+
+    public async Task<resultBase> GetServiceAsync(string serviceName, CancellationToken ct = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting service with ID: {serviceName}", serviceName);
+
+            var service = await _db.Services
+                .Include(s => s.Category)
+                .Include(s => s.ServiceProviderProfile)
+                    .ThenInclude(p => p.User)
+                        .ThenInclude(u => u.ProfilePicture)
+                .Include(s => s.MainImage)
+                .Include(s => s.MediaGalleryLinks)
+                    .ThenInclude(m => m.Media)
+                .Include(s => s.Orders)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Title == serviceName && !s.IsDelete, ct);
+
+            if (service == null)
+            {
+                _logger.LogWarning("Service not found: {serviceName}", serviceName);
+                return Failure(StatusCodes.Status404NotFound,
+                    FailureMessages.DataNotFound.Title,
+                    "Service not found.");
+            }
+
+            // Increment view count
+            var serviceToUpdate = await _db.Services.FindAsync(new object[] { serviceName }, ct);
+            if (serviceToUpdate != null)
+            {
+                serviceToUpdate.ViewCount++;
+                await _db.SaveChangesAsync(ct);
+            }
+
+            // Map to response
+            var response = new ServiceDetailsResponse(
+                service.Id,
+                service.Title,
+                service.ShortDescription,
+                service.DetailedDescription,
+                service.Price,
+                service.RevisionCount,
+                service.DeliveryTimeInDays,
+                ExperienceLevel.Entry, // TODO: Get from service or provider
+                service.Concepts,
+                service.MainImage != null ? File.ReadAllBytes(service.MainImage.FullPath) : Array.Empty<byte>(),
+                service.MediaGalleryLinks.Select(m => File.ReadAllBytes(m.Media.FullPath)).ToList(),
+                service.Orders.Count,
+                service.AverageRating,
+                new ProviderServiceInfo(
+                    service.ServiceProviderProfileId,
+                    service.ServiceProviderProfile.User.FullName ?? service.ServiceProviderProfile.User.UserName ?? "Unknown",
+                    service.ServiceProviderProfile.JobTitle ?? "Service Provider",
+                    service.ServiceProviderProfile.User.ProfilePicture != null
+                        ? File.ReadAllBytes(service.ServiceProviderProfile.User.ProfilePicture.FullPath)
+                        : Array.Empty<byte>(),
+                    service.ServiceProviderProfile.AverageRating,
+                    service.ServiceProviderProfile.AverageResponseTime,
+                    service.ServiceProviderProfile.TotalReviews
+                )
+            );
+
+            _logger.LogInformation("Service retrieved successfully: {serviceName}", serviceName);
+            return Success(StatusCodes.Status200OK,
+                SuccessMessages.General.Title,
+                "Service retrieved successfully.",
+                response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting service: {serviceName}", serviceName);
+            return Failure(StatusCodes.Status500InternalServerError,
+                FailureMessages.General.Title,
                 "An error occurred while retrieving the service.");
         }
     }
@@ -493,4 +581,6 @@ public class ServiceService : IServiceService
                 "An error occurred while retrieving provider services.");
         }
     }
+
+    
 }

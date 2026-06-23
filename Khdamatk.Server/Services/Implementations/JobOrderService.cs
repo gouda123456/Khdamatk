@@ -30,7 +30,7 @@ public class JobOrderService(
     {
         /*TODOs:
          * Validate request      --Done
-         * Deal with files       --***
+         * Deal with files       --Done
          * Mapping Request       --Done
          * Add to DB         --Done
          * Save changes      --Done
@@ -47,7 +47,7 @@ public class JobOrderService(
             await db.Categories.AddAsync(category, cancellationToken);
         }
         job.CategoryId = category.Id;
-        //TODO: Deal with files
+        //Deal with files
         if(request.Media != null && request.Media.Count > 1)
         {
             job.Media = [];
@@ -63,6 +63,7 @@ public class JobOrderService(
         await db.JobPosts.AddAsync(job, cancellationToken);
 
         //TODO: send email to random 20 customer
+
 
         await db.SaveChangesAsync(cancellationToken);
 
@@ -164,9 +165,91 @@ public class JobOrderService(
          * get the Offer Details Response       --Done
          */
 
-        var offer = await db.JobOffers.FirstOrDefaultAsync(
-            o => o.Id == offerId && o.JobPostId == jobId,
-            cancellationToken);
+        
+
+        // 1. جلب البيانات الأساسية فقط من قاعدة البيانات (Database Level)
+    var rawData = await db.JobOffers
+        .Where(j => j.Id == offerId && j.JobPostId == jobId) // التصفية المبكرة تحسن الأداء جداً
+        .Select(j => new 
+        {
+            OfferId = j.Id,
+            Amount = j.Amount,
+            DeliveryTimeInDays = j.DeliveryTimeInDays,
+            Description = j.Description,
+            IsAccepted = j.IsAccepted,
+            ProviderProfileId = j.ProviderProfileId,
+        
+            // جلب بيانات المستخدم ومقدم الخدمة
+            UserName = j.ProviderProfile.User.UserName,
+            City = j.ProviderProfile.User.VerificationData.City,
+            JobTitle = j.ProviderProfile.JobTitle,
+            AverageRating = j.ProviderProfile.AverageRating,
+            ExperienceYears = j.ProviderProfile.ExperienceYears,
+            ProfilePicture = j.ProviderProfile.User.ProfilePicture, // كائن الميديا بالكامل لجلب الملف منه لاحقاً
+
+            // جلب بيانات منشور الوظيفة والطلبات الفرعية
+            JobPostId = j.JobPostId,
+            JobTitlePost = j.JobPost.Title,
+            BudgetMin = j.JobPost.BudgetMin,
+            BudgetMax = j.JobPost.BudgetMax,
+            Deadline = j.JobPost.Deadline,
+            ExperienceLevel = j.JobPost.ExperienceLevel,
+            JobDescription = j.JobPost.Description,
+        
+            // جلب المجموعات الفرعية كـ IEnumerable (تُترجم كـ Subqueries في SQL)
+            Skills = j.JobPost.SkillRequirements.Select(s => s.Skill.Name),
+            Milestones = j.JobPost.MileStones
+        })
+        .FirstOrDefaultAsync();
+
+    if (rawData == null) 
+    {
+        return null; // أو ارجاع Result.Failure حسب الـ Result Pattern الخاص بك
+    }
+
+    // 2. معالجة العمليات الخارجية (In-Memory / Client-Side)
+    byte[]? fileBytes = null;
+    if (rawData.ProfilePicture != null)
+    {
+        // استدعاء دالة جلب الملف بأمان خارج استعلام الـ LINQ
+        fileBytes = rawData.ProfilePicture.DownloadFileAsyncByteVersion();
+    }
+
+    // 3. بناء الـ Response النهائي بالكامل في الذاكرة
+    var offer = new OfferDetailedForServiceResponse
+    (
+        new ProviderOfferDetailedInfo
+        (
+            rawData.ProviderProfileId,
+            rawData.UserName,
+            rawData.City,
+            rawData.JobTitle,
+            rawData.AverageRating,
+            rawData.ExperienceYears,
+            rawData.IsAccepted,
+            fileBytes // تمرير المصفوفة الجاهزة
+        ),
+        new OfferServiceDetailed
+        (
+            rawData.OfferId,
+            rawData.Amount,
+            DateTime.UtcNow.AddDays(rawData.DeliveryTimeInDays), // تمت معالجتها في الذاكرة بنجاح
+            rawData.Description
+        ),
+        new JobSummary
+        (
+            rawData.JobPostId,
+            rawData.JobTitlePost,
+            rawData.BudgetMin,
+            rawData.BudgetMax,
+            rawData.DeliveryTimeInDays,
+            rawData.Deadline,
+            rawData.ExperienceLevel,
+            rawData.Skills.ToList(), // تحويلها إلى List في الذاكرة بأمان
+            rawData.JobDescription,
+            rawData.Milestones.ToList() // تحويلها إلى List في الذاكرة بأمان
+        )
+    );
 
         if (offer == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
@@ -681,7 +764,43 @@ public class JobOrderService(
         var orderSummary = await cache.GetOrCreateAsync(
             $"OrderSummary_{orderId}_{userId}",
             async cancel => await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
-                .ProjectToType<JobOrderResponse>().FirstOrDefaultAsync(cancel),
+                .Select( o => new JobOrderResponse(
+                    o.Id,
+                    Khdamatk.Server.Contracts.Payment.orderType.JobOrder,
+                    o.Amount,
+                    new UserOrderModel
+                        (
+                            o.CustomerId,
+                            o.Customer.UserName,
+                            o.Customer.Email,
+                     o.Customer.ProfilePicture.DownloadFileAsyncByteVersion()
+                        ),
+                    new UserOrderModel
+                        (
+                            o.ServiceProviderId,
+                            o.ServiceProviderProfile.User.UserName,
+                            o.ServiceProviderProfile.User.Email,
+                     o.ServiceProviderProfile.User.ProfilePicture.DownloadFileAsyncByteVersion()
+                        ),
+                    new JobSummary
+                        (
+                            o.JobPostId,
+                            o.Job.Title,
+                            o.Job.BudgetMin,
+                            o.Job.BudgetMax,
+                            o.AcceptedOffer.DeliveryTimeInDays,
+                            o.Job.Deadline,
+                            o.Job.ExperienceLevel,
+                            o.Job.SkillRequirements.Select(s => s.Skill.Name).ToList(), // تحويلها إلى List في الذاكرة بأمان
+                            o.Job.Description,
+                            o.Job.MileStones.ToList() // تحويلها إلى List في الذاكرة بأمان
+                        ),
+                    o.Conversation.Messages.Select( c => new OrderChat (c.Id,c.SenderId,c.Content,c.CreatedAt)).ToList(),
+                    o.Job.DeliveredFiles.Select(dfs => new DeliverableFiles(dfs.Id,dfs.Media.FileName,dfs.Media.Size,dfs.Statues)).FirstOrDefault(),
+                    o.Job.MileStones.Select(m => new JobMileStone(m.Id,m.Title,m.Description,m.IsCompleted,m.Price)).FirstOrDefault()
+
+                    ))
+                .FirstOrDefaultAsync(cancel),
             tags: [$"Order_{orderId}"]
         );
 

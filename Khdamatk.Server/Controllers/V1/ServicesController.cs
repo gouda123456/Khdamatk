@@ -15,6 +15,15 @@ public class ServicesController : ControllerBase
         _serviceService = serviceService;
     }
 
+    [HttpGet("by-Category/{CategoryName}")]
+    public async Task<IActionResult> GetServices([FromRoute] string CategoryName, CancellationToken ct)
+    {
+        var result = await _serviceService.GetCategoriesServicesAsync(CategoryName, ct);
+        return result.Respond();
+    }
+
+    
+
     /// <summary>
     /// Get all services with optional filtering
     /// </summary>
@@ -32,6 +41,13 @@ public class ServicesController : ControllerBase
     public async Task<IActionResult> GetService(int id, CancellationToken ct)
     {
         var result = await _serviceService.GetServiceAsync(id, ct);
+        return result.Respond();
+    }
+
+    [HttpGet("by-service-name/{serviceName}")]
+    public async Task<IActionResult> GetService(string serviceName, CancellationToken ct)
+    {
+        var result = await _serviceService.GetServiceAsync(serviceName, ct);
         return result.Respond();
     }
 
