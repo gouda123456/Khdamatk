@@ -759,51 +759,83 @@ public class JobOrderService(
          * mapping job order to Contract.jobOrderSummary 
          */
 
-        var file = System.IO.File.ReadAllBytes(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"));
+        var defaultAvatarBytes = System.IO.File.ReadAllBytes(Path.Combine(env.WebRootPath, "Uploads", "Avatar.png"));
 
         var orderSummary = await cache.GetOrCreateAsync(
             $"OrderSummary_{orderId}_{userId}",
-            async cancel => await db.JobOrders.Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
-                .Select( o => new JobOrderResponse(
-                    o.Id,
-                    Khdamatk.Server.Contracts.Payment.orderType.JobOrder,
-                    o.Amount,
-                    new UserOrderModel
-                        (
-                            o.CustomerId,
-                            o.Customer.UserName,
-                            o.Customer.Email,
-                     o.Customer.ProfilePicture.DownloadFileAsyncByteVersion()
-                        ),
-                    new UserOrderModel
-                        (
-                            o.ServiceProviderId,
-                            o.ServiceProviderProfile.User.UserName,
-                            o.ServiceProviderProfile.User.Email,
-                     o.ServiceProviderProfile.User.ProfilePicture.DownloadFileAsyncByteVersion()
-                        ),
-                    new JobSummary
-                        (
-                            o.JobPostId,
-                            o.Job.Title,
-                            o.Job.BudgetMin,
-                            o.Job.BudgetMax,
-                            o.AcceptedOffer.DeliveryTimeInDays,
-                            o.Job.Deadline,
-                            o.Job.ExperienceLevel,
-                            o.Job.SkillRequirements.Select(s => s.Skill.Name).ToList(), // تحويلها إلى List في الذاكرة بأمان
-                            o.Job.Description,
-                            o.Job.MileStones.ToList() // تحويلها إلى List في الذاكرة بأمان
-                        ),
-                    o.Conversation.Messages.Select( c => new OrderChat (c.Id,c.SenderId,c.Content,c.CreatedAt)).ToList(),
-                    o.Job.DeliveredFiles.Select(dfs => new DeliverableFiles(dfs.Id,dfs.Media.FileName,dfs.Media.Size,dfs.Statues)).FirstOrDefault(),
-                    o.Job.MileStones.Select(m => new JobMileStone(m.Id,m.Title,m.Description,m.IsCompleted,m.Price)).FirstOrDefault()
+            async cancel =>
+            {
+                // 1. جلب البيانات الخام (Raw Data) باستخدام Eager Loading
+                var rawData = await db.JobOrders
+                    .Include(o => o.Customer)
+                        .ThenInclude(c => c.ProfilePicture)
+                    .Include(o => o.ServiceProviderProfile)
+                        .ThenInclude(sp => sp.User)
+                            .ThenInclude(u => u.ProfilePicture)
+                    .Include(o => o.Job)
+                        .ThenInclude(j => j.SkillRequirements)
+                            .ThenInclude(sr => sr.Skill)
+                    .Include(o => o.Job)
+                        .ThenInclude(j => j.MileStones)
+                    .Include(o => o.Job)
+                        .ThenInclude(j => j.DeliveredFiles)
+                            .ThenInclude(df => df.Media)
+                    .Include(o => o.AcceptedOffer)
+                    .Include(o => o.Conversation)
+                        .ThenInclude(c => c.Messages)
+                    .Where(o => o.Id == orderId && (o.CustomerId == userId || o.ServiceProviderId == userId))
+                    .FirstOrDefaultAsync(cancel);
 
-                    ))
-                .FirstOrDefaultAsync(cancel),
+                // التحقق من وجود الطلب
+                if (rawData == null) return null;
+
+                // 2. معالجة العمليات المعقدة أو الـ Async في الذاكرة (بأمان تام)
+                var customerAvatar = rawData.Customer.ProfilePicture != null
+                    ? rawData.Customer.ProfilePicture.DownloadFileAsyncByteVersion()
+                    : defaultAvatarBytes;
+
+                var providerAvatar = rawData.ServiceProviderProfile.User.ProfilePicture != null
+                    ? rawData.ServiceProviderProfile.User.ProfilePicture.DownloadFileAsyncByteVersion()
+                    : defaultAvatarBytes;
+
+                // 3. التعيين وتخزين البيانات في الـ Contracts (Mapping)
+                var response = new JobOrderResponse(
+                    rawData.Id,
+                    Khdamatk.Server.Contracts.Payment.orderType.JobOrder,
+                    rawData.Amount,
+                    new UserOrderModel(
+                        rawData.CustomerId,
+                        rawData.Customer.UserName,
+                        rawData.Customer.Email,
+                        customerAvatar
+                    ),
+                    new UserOrderModel(
+                        rawData.ServiceProviderId,
+                        rawData.ServiceProviderProfile.User.UserName,
+                        rawData.ServiceProviderProfile.User.Email,
+                        providerAvatar
+                    ),
+                    new JobSummary(
+                        rawData.JobPostId,
+                        rawData.Job.Title,
+                        rawData.Job.BudgetMin,
+                        rawData.Job.BudgetMax,
+                        rawData.AcceptedOffer?.DeliveryTimeInDays ?? 0,
+                        rawData.Job.Deadline,
+                        rawData.Job.ExperienceLevel,
+                        rawData.Job.SkillRequirements.Select(s => s.Skill.Name).ToList(),
+                        rawData.Job.Description,
+                        rawData.Job.MileStones.ToList()
+                    ),
+                    rawData.Conversation?.Messages.Select(c => new OrderChat(c.Id, c.SenderId, c.Content, c.CreatedAt)).ToList() ?? new List<OrderChat>(),
+                    rawData.Job.DeliveredFiles.Select(dfs => new DeliverableFiles(dfs.Id, dfs.Media?.FileName ?? "", dfs.Media?.Size ?? 0, dfs.Statues)).FirstOrDefault(),
+                    rawData.Job.MileStones.Select(m => new JobMileStone(m.Id, m.Title, m.Description, m.IsCompleted, m.Price)).FirstOrDefault()
+                );
+
+                return response;
+            },
             tags: [$"Order_{orderId}"]
         );
-
         if (orderSummary == null)
             return Failure(StatusCodes.Status404NotFound, FailureMessages.DataNotFound.Title, FailureMessages.DataNotFound.Message);
 

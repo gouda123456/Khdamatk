@@ -37,6 +37,7 @@ public static class DependancyInjections
             {
                 // لتحويل الـ Enums من وإلى String في الـ JSON
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
             });
 
         services.AddPaymentMethod(configuration);

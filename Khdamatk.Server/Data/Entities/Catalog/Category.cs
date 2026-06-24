@@ -11,29 +11,14 @@ public class Category
 
     public string? Description { get; set; } = string.Empty;
 
-    public string Icon { get; set; }
+    public string Icon { get; set; } = "fa-solid fa-arrow-up-from-water-pump";
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
-    public int ServiceCount { get; set; }
+    public int ServiceCount => Services?.Count ?? 0;
 
-    public bool SiteName { get; set; }
-
-    public bool ContactEmail { get; set; }
-
-    public bool TwoFactorEnabled { get; set; }
-
-    public bool TwoFactorAuthentication { get; set; }
-
-    public bool PasswordPolicyEnabled { get; set; }
-
-    public bool MaintenanceMode { get; set; }
-
-    public bool EmailNotifications { get; set; }
-
-    public bool SmsNotifications { get; set; }
-    public string Attachments { get; set; }
-    public virtual ICollection<Service> Services { get; set; } = [];
+    
+    public virtual ICollection<Service>? Services { get; set; } = [];
 
     public static List<Category> Data(int minId)
     {

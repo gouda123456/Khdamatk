@@ -30,28 +30,28 @@ public class CategoryController : ControllerBase
         return Ok(category);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(Category category)
-    {
-        _db.Categories.Add(category);
+    //[HttpPost]
+    //public async Task<IActionResult> Create(Category category)
+    //{
+    //    _db.Categories.Add(category);
 
-        await _db.SaveChangesAsync();
+    //    await _db.SaveChangesAsync();
 
-        return Ok(category);
-    }
+    //    return Ok(category);
+    //}
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Category category)
-    {
-        if (id != category.Id)
-            return BadRequest();
+    //[HttpPut("{id}")]
+    //public async Task<IActionResult> Update(int id, Category category)
+    //{
+    //    if (id != category.Id)
+    //        return BadRequest();
 
-        _db.Entry(category).State = EntityState.Modified;
+    //    _db.Entry(category).State = EntityState.Modified;
 
-        await _db.SaveChangesAsync();
+    //    await _db.SaveChangesAsync();
 
-        return Ok(category);
-    }
+    //    return Ok(category);
+    //}
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)

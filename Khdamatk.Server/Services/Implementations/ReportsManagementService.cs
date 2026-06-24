@@ -1,4 +1,5 @@
 ﻿using Khdamatk.Server.Contracts.Dashboard;
+using Khdamatk.Server.Contracts.Reports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Khdamatk.Server.Services
@@ -15,9 +16,10 @@ namespace Khdamatk.Server.Services
         public async Task<Report> GetReportByIdAsync(int id) =>
             await _db.Reports.FindAsync(id);
 
-        public async Task AddReportAsync(Report report)
+        public async Task AddReportAsync(CreateReportRequest report)
         {
-            _db.Reports.Add(report);
+            var r = report.Adapt<Report>();
+            _db.Reports.Add(r);
             await _db.SaveChangesAsync();
         }
 

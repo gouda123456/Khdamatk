@@ -42,10 +42,15 @@ public class ServiceService : IServiceService
 
             if (category == null)
             {
-                _logger.LogWarning("Category not found: {CategoryName}", request.CategoryName);
-                return Failure(StatusCodes.Status404NotFound, 
-                    FailureMessages.DataNotFound.Title, 
-                    "Category not found.");
+                category = new Category()
+                {
+                    Name = request.CategoryName,
+                    Description = $"Category for {request.CategoryName}",
+                    Icon = "fa-solid fa-arrow-up-from-water-pump",
+                    IsActive = true
+                };
+                await _db.Categories.AddAsync(category, ct);
+                await _db.SaveChangesAsync(ct);
             }
 
             // 3. Create service entity
