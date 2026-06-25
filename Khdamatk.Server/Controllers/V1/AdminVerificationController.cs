@@ -12,7 +12,6 @@ public class AdminVerificationController(IAdminVerificationService adminVerifica
 {
     private readonly IAdminVerificationService _adminVerificationService = adminVerificationService;
 
-    // 1. الـ API الخاص بجلب لستة طلبات التوثيق كلها للجدول
     [HttpGet("list")]
     public async Task<IActionResult> GetVerifications([FromQuery] string? status, CancellationToken cancellationToken)
     {
@@ -20,7 +19,6 @@ public class AdminVerificationController(IAdminVerificationService adminVerifica
         return Ok(result);
     }
 
-    // 2. الـ API الخاص باتخاذ إجراء (قبول أو رفض) عند الضغط على الأزرار
     [HttpPost("review")]
     public async Task<IActionResult> ReviewVerification([FromBody] ReviewVerificationRequest request, CancellationToken cancellationToken)
     {

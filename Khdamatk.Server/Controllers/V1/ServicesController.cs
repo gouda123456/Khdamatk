@@ -15,19 +15,12 @@ public class ServicesController : ControllerBase
         _serviceService = serviceService;
     }
 
-    /// <summary>
-    /// Get all services with optional filtering
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetServices([FromQuery] ServiceFilterRequest request, CancellationToken ct)
     {
         var result = await _serviceService.GetServicesAsync(request, ct);
         return result.Respond();
     }
-
-    /// <summary>
-    /// Get service details by ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetService(int id, CancellationToken ct)
     {
@@ -35,9 +28,6 @@ public class ServicesController : ControllerBase
         return result.Respond();
     }
 
-    /// <summary>
-    /// Add a new service (requires authentication)
-    /// </summary>
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> AddService([FromForm] AddServiceRequest request, CancellationToken ct)
@@ -46,9 +36,6 @@ public class ServicesController : ControllerBase
         return result.Respond();
     }
 
-    /// <summary>
-    /// Update an existing service (requires authentication)
-    /// </summary>
     [HttpPut("{id}")]
     [Authorize]
     public async Task<IActionResult> UpdateService(int id, [FromForm] UpdateServiceRequest request, CancellationToken ct)
@@ -57,9 +44,7 @@ public class ServicesController : ControllerBase
         return result.Respond();
     }
 
-    /// <summary>
-    /// Delete a service (requires authentication)
-    /// </summary>
+
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> DeleteService(int id, CancellationToken ct)
