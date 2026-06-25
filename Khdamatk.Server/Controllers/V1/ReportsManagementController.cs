@@ -1,4 +1,5 @@
 ﻿using Khdamatk.Server.Contracts.Dashboard;
+using Khdamatk.Server.Contracts.Reports;
 using Khdamatk.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace Khdamatk.Server.Controllers
         public async Task<IActionResult> GetAll() => Ok(await _reportService.GetAllReportsAsync());
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Report report)
+        public async Task<IActionResult> Create([FromBody] CreateReportRequest report)
         {
             await _reportService.AddReportAsync(report);
             return Ok(report);

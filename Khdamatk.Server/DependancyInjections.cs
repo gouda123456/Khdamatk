@@ -21,7 +21,7 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-                configuration.GetConnectionString("YousefSamir"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -37,6 +37,7 @@ public static class DependancyInjections
             {
                 // لتحويل الـ Enums من وإلى String في الـ JSON
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
             });
 
         services.AddPaymentMethod(configuration);

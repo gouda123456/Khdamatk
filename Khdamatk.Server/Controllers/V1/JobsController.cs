@@ -31,6 +31,27 @@ public class JobsController(IJobService jobService) : ControllerBase
         var result = await jobService.GetJobsAsync(request);
         return Ok(result);
     }
+
+    [HttpGet("category/{Category}")]
+    public async Task<IActionResult> GetCategoryJobAsync([FromRoute] int Category)
+    {
+        var result = await jobService.GetCategoryJobAsync(Category);
+        return Ok(result);
+    }
+
+    [HttpGet("user/{UserId}")]
+    public async Task<IActionResult> GetUsersJobAsync([FromRoute] string UserId)
+    {
+        var result = await jobService.GetUsersJobAsync(UserId);
+        return Ok(result);
+    }
+    [HttpGet("AvailableJobs")]
+    public async Task<IActionResult> AvailableJobs(CancellationToken ct)
+    {
+        var result = await jobService.GetJobsAsync();
+        return result.Respond();
+    }
+
 }
 
 

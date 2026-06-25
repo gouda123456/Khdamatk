@@ -43,7 +43,7 @@ namespace Khdamatk.Server.Services.Implementations;
             existingCategory.Name = category.Name;
             existingCategory.Icon = category.Icon;
             existingCategory.IsActive = category.IsActive;
-            existingCategory.ServiceCount = category.ServiceCount;
+            
 
             await _db.SaveChangesAsync();
 

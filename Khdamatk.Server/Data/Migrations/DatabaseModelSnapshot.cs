@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.migrations
+namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
     partial class DatabaseModelSnapshot : ModelSnapshot
@@ -33,18 +33,8 @@ namespace Khdamatk.Server.Data.migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Attachments")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ContactEmail")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("EmailNotifications")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Icon")
                         .IsRequired()
@@ -53,30 +43,9 @@ namespace Khdamatk.Server.Data.migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("MaintenanceMode")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PasswordPolicyEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ServiceCount")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("SiteName")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("SmsNotifications")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("TwoFactorAuthentication")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

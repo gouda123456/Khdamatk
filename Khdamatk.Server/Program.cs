@@ -7,13 +7,12 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddOpenApi();
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+builder.Services.AddSwaggerGen();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.MaxDepth = 64; // الافتراضي 32
+});
 
 
 builder.Services.AddOpenApi(options =>
@@ -63,9 +62,7 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddDependancyInjections(builder.Configuration);
 
-builder.Services.AddControllers().AddJsonOptions(options => {
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-});
+
 builder.Services.AddMapster();
 
 var app = builder.Build();

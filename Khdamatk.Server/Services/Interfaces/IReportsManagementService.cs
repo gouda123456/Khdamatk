@@ -1,4 +1,5 @@
 ﻿using Khdamatk.Server.Contracts.Dashboard;
+using Khdamatk.Server.Contracts.Reports;
 
 namespace Khdamatk.Server.Services
 {
@@ -6,7 +7,7 @@ namespace Khdamatk.Server.Services
     {
         Task<IEnumerable<Report>> GetAllReportsAsync();
         Task<Report> GetReportByIdAsync(int id);
-        Task AddReportAsync(Report report);
+        Task AddReportAsync(CreateReportRequest report);
         Task DeleteReportAsync(int id);
     }
 }
