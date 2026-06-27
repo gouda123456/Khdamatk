@@ -20,7 +20,7 @@ public class VerificationController(IVerificationService verificationService) : 
     public async Task<IActionResult> SubmitVerification([FromForm] SubmitVerificationRequest request, CancellationToken cancellationToken)
     {
         // باصي الـ ID بتاع أي مستخدم مسجل عندك في جدول الـ Users يدوي هنا للتجربة
-        var userId = "019e4b20-900b-70e0-886f-8cee582aabc8";
+        var userId = "019f053f-8c15-7c98-b6ad-092c9b82cb67";
 
         var result = await _verificationService.SubmitVerificationAsync(request, userId, cancellationToken);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
@@ -30,7 +30,7 @@ public class VerificationController(IVerificationService verificationService) : 
     public async Task<IActionResult> GetStatus(CancellationToken cancellationToken)
     {
         // نفس الـ ID هنا برضه
-        var userId = "019e4b20-900b-70e0-886f-8cee582aabc8";
+        var userId = "019f053f-8c15-7c98-b6ad-092c9b82cb67";
 
         var result = await _verificationService.GetVerificationStatusAsync(userId, cancellationToken);
         return Ok(result);
