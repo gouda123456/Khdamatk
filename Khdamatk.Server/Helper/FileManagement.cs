@@ -36,7 +36,7 @@ public static class FileManagement
 
     public static string DownloadFileAsyncPathVersion(this Media media)
     {
-        return Path.Combine(MediaPath, media.FileName);
+        return Path.Combine(MediaPath, media.FileName) ?? "https://tse4.mm.bing.net/th/id/OIP.7FsDgas0kcH0W1ajb1rZEgHaHa?r=0&cb=thfc1falcon3&rs=1&pid=ImgDetMain&o=7&rm=3";
     }
 
     public static async Task<Media> UploadFileAsync(this IFormFile file)
