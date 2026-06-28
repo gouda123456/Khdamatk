@@ -3,7 +3,7 @@ using Khdamatk.Server.Contracts.WebHook;
 
 namespace Khdamatk.Server.Services.Interfaces;
 
-public interface IJobOrderService
+public interface IJobOrderService: IService
 {
 
     /*TODOs:
@@ -14,9 +14,8 @@ public interface IJobOrderService
      * CloseDispute()      // للـ Admin
      */
 
-
-    Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken = default);
-    Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken = default);
+    // 🛑 عدلها لـ s سمول جوه الـ Interface:
+    Task<resultBase> AddJobAsync(AddJobRequest request, CancellationToken cancellationToken = default); Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken = default);
     
     //TODO: Add Advanced Search to offer 
     Task<resultBase> ShowOffersJob(int JobId, CancellationToken cancellationToken = default);

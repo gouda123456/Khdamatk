@@ -16,7 +16,7 @@ public class JobOrderController(IJobOrderService jobOrderService) : ControllerBa
     [Authorize(Roles = $"{RolesStrings.Admin},{RolesStrings.Member}")]
     public async Task<IActionResult> AddJob([FromForm]AddJobRequest request, CancellationToken cancellationToken)
     {
-        return (await jobOrderService.AddJobASync(request, cancellationToken)).Respond();
+        return (await jobOrderService.AddJobAsync(request, cancellationToken)).Respond();
     }
 
 
