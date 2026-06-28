@@ -21,11 +21,9 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
-<<<<<<< HEAD
-                configuration.GetConnectionString("youssef"),
-=======
-                configuration.GetConnectionString("Youseb"),
->>>>>>> d40e050cd71c60d2db3ab916b66dcf93cec6cb81
+                configuration.GetConnectionString("YoussefFathy"),
+
+
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
