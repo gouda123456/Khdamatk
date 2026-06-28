@@ -1,5 +1,7 @@
-﻿using Khdamatk.Server.Contracts.Home;
+﻿using Hangfire.Common;
+using Khdamatk.Server.Contracts.Home;
 using Microsoft.EntityFrameworkCore;
+using static Khdamatk.Server.Statics.Consts.PermissionsDefault;
 
 namespace Khdamatk.Server.Services.Implementations;
 
@@ -13,9 +15,11 @@ public class JobService(Database db) : IJobService
         return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs);
     }
 
-    public Task<resultBase> GetCategoryJobAsync(int Category)
+    public async Task<resultBase> GetCategoryJobAsync(int Category)
     {
-        throw new NotImplementedException();
+        var Jobs = await db.JobPosts.AsNoTracking().Where(j => j.CategoryId == Category).ProjectToType<JobDetailed>().ToListAsync();
+
+        return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs);
     }
 
     public async Task<resultBase> GetJobAsync(int jobId)
@@ -24,9 +28,11 @@ public class JobService(Database db) : IJobService
         return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs.FirstOrDefault(j => j.Id == jobId));
     }
 
-    public Task<resultBase> GetUsersJobAsync(string userId)
+    public async Task<resultBase> GetUsersJobAsync(string userId)
     {
-        throw new NotImplementedException();
+        var Jobs = await db.JobPosts.AsNoTracking().Where(j => j.CustomerId == userId || j.Offers.Any(o => o.ProviderProfileId == userId)).ProjectToType<JobDetailed>().ToListAsync();
+
+        return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", Jobs);
     }
 
     public async Task<JobsPage> GetJobsAsync(JobsFilterRequest request)
@@ -69,8 +75,33 @@ public class JobService(Database db) : IJobService
         return new JobsPage(services, jobCards);
     }
 
+    public async Task<resultBase> GetJobsAsync()
+    {
+        var query = db.JobPosts.AsQueryable();
+
+        
+
+       
+
+        // 🔄 Mapping
+        var jobCards = query.Select(j => new JobCard(
+            j.Id,
+            j.Title,
+            j.Description,
+            j.Category.Name,
+            j.Deadline,
+            (double)j.BudgetMin,
+           (double)j.BudgetMax
+        )).ToList();
+
+        var services = await db.Services
+            .Select(s => new ServiceItem(s.Id, s.Title))
+            .ToListAsync();
+
+        var jobs = new JobsPage(services, jobCards);
+        return Success(StatusCodes.Status200OK, "Jobs retrieved successfully", "Jobs retrieved successfully", jobs);
+    }
 
 
-    
 
 }

@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.migrations
+namespace Khdamatk.Server.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Initiall : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,7 +32,9 @@ namespace Khdamatk.Server.Data.migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Icon = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -356,6 +358,10 @@ namespace Khdamatk.Server.Data.migrations
                     NationalNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdFrontUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdBackUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SelfieWithIdUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RejectNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

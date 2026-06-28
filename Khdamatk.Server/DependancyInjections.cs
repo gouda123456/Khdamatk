@@ -21,7 +21,11 @@ public static class DependancyInjections
     {
         services.AddDbContext<Database>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(
+<<<<<<< HEAD
                 configuration.GetConnectionString("youssef"),
+=======
+                configuration.GetConnectionString("Youseb"),
+>>>>>>> d40e050cd71c60d2db3ab916b66dcf93cec6cb81
                 b => b.MigrationsAssembly(typeof(Database).Assembly.FullName)));
 
         services.AddHttpContextAccessor();
@@ -37,6 +41,7 @@ public static class DependancyInjections
             {
                 // لتحويل الـ Enums من وإلى String في الـ JSON
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
             });
 
         services.AddPaymentMethod(configuration);
@@ -73,14 +78,14 @@ public static class DependancyInjections
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IServiceProviderService, ServiceProviderService>();
         services.AddScoped<IUserDashboardService, UserDashboardSerivce>();
-        services.AddScoped<IRequestManagementDashboardSerivce, RequestManagementDashboardService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        
 
 
+        services.AddScoped<IRequestManagementDashboardSerivce, RequestManagementDashboardService>();
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IAdminVerificationService, AdminVerificationService>();
         services.AddScoped<IAdminReviewService, AdminReviewService>();
+        services.AddScoped<IFinalDecisionService, FinalDecisionService>();
 
         return services;
     }

@@ -10,6 +10,7 @@ public interface IJobService : IService
     Task<resultBase> GetUsersJobAsync(string userId);
     Task<resultBase> GetCategoryJobAsync(int Category);
     Task<JobsPage> GetJobsAsync(JobsFilterRequest request);
-    
+    Task<resultBase> GetJobsAsync();
+
     //Task<resultBase> AddJobAsync(string userId, jobAddRequest request);
 }

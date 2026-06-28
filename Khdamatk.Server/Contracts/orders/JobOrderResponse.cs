@@ -4,7 +4,7 @@ namespace Khdamatk.Server.Contracts.orders;
 
 public record JobOrderResponse(
     int OrderId,
-    OrderType OrderType,
+    Khdamatk.Server.Contracts.Payment.orderType OrderType,
     decimal FinalPrice,
     UserOrderModel Customer,
     UserOrderModel Provider,

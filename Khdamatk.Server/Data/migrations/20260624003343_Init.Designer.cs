@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.migrations
+namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260616142349_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260624003343_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,13 @@ namespace Khdamatk.Server.Data.migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

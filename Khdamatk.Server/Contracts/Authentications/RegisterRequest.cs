@@ -1,8 +1,6 @@
 ﻿namespace Khdamatk.Server.Contracts.Authentications;
 
-public record RegisterRequest(string userName, string Email, string Password,string? PhoneNumber);
-
-
+public record RegisterRequest(string userName, string Email, string Password,string? PhoneNumber,bool? IsServiceProvider,string? JobTitle,string? Bio);
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
@@ -24,6 +22,22 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
         RuleFor(p => p.PhoneNumber)
             .Matches(@"^[0-9]*$")
             .WithMessage("إذا قمت بإدخال رقم الهاتف، فيجب أن يتكون من أرقام فقط.");
+
+        RuleFor(p => p.IsServiceProvider)
+            .NotNull()
+            .WithMessage("IsServiceProvider field is required.");
+
+
     }
+
+public record RegisterRequest(
+    string userName,
+    string Email,
+    string Password,
+    string? PhoneNumber,
+    bool? IsServiceProvider,
+    string? JobTitle,
+    string? Bio
+);
 
 }

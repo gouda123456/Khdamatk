@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khdamatk.Server.Data.migrations
+namespace Khdamatk.Server.Data.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20260616142026_AddKycColumnsOnly")]
-    partial class AddKycColumnsOnly
+    [Migration("20260627144804_AddRateToUser")]
+    partial class AddRateToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,13 @@ namespace Khdamatk.Server.Data.migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -995,6 +1002,9 @@ namespace Khdamatk.Server.Data.migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CalculatedRate")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ConcurrencyStamp")

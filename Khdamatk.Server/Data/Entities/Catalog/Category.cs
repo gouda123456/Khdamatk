@@ -11,7 +11,14 @@ public class Category
 
     public string? Description { get; set; } = string.Empty;
 
-    public virtual ICollection<Service> Services { get; set; } = [];
+    public string Icon { get; set; } = "fa-solid fa-arrow-up-from-water-pump";
+
+    public bool IsActive { get; set; } = true;
+
+    public int ServiceCount => Services?.Count ?? 0;
+
+    
+    public virtual ICollection<Service>? Services { get; set; } = [];
 
     public static List<Category> Data(int minId)
     {

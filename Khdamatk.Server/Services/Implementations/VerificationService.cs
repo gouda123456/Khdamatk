@@ -18,6 +18,15 @@ public class VerificationService : IVerificationService
 
     public async Task<resultBase> SubmitVerificationAsync(SubmitVerificationRequest request, string userId, CancellationToken cancellationToken = default)
     {
+        // ==================== [ خطوة الحماية الجديدة ] ====================
+        // نتأكد أولاً إن الـ userId ده له يوزر حقيقي وموجود في قاعدة البيانات
+        var userExists = await _db.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+        if (!userExists)
+        {
+            return Failure(StatusCodes.Status404NotFound, new Error("Not Found", "المستخدم غير موجود بالمنظومة أو الـ UserId مبعوت بشكل خاطئ."));
+        }
+        // ====================================================================
+
         // 1. جلب طلب التوثيق القديم للمستخدم الحالي
         var existingVerification = await _db.Set<VerificationData>()
             .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
@@ -28,12 +37,12 @@ public class VerificationService : IVerificationService
             return Failure(StatusCodes.Status400BadRequest, new Error("Bad Request", "لديك طلب توثيق مسبق بالفعل قيد المراجعة أو مقبول."));
         }
 
-        // 2. رفع الـ 3 صور باستخدام الـ Extension Method الموجودة بالسيستم عندك
+        // 2. رفع الـ 3 صور باستخدام الـ Extension Method
         var frontMedia = await request.IdFront.UploadFileAsync();
         var backMedia = await request.IdBack.UploadFileAsync();
         var selfieMedia = await request.SelfieWithId.UploadFileAsync();
 
-        // 3. إنشاء أو تحديث البيانات بناءً على الحقول الحقيقية بالـ Entity
+        // 3. إنشاء أو تحديث البيانات
         if (existingVerification == null)
         {
             var newVerification = new VerificationData
@@ -43,13 +52,13 @@ public class VerificationService : IVerificationService
                 Country = request.Country,
                 City = request.City,
                 Status = VerificationStatus.Pending
+                // ملحوظة: لو الجدول ده فيه Foreign Key تاني لجدول الـ ServiceProviderProfile تأكد من كتابته هنا
             };
 
             await _db.Set<VerificationData>().AddAsync(newVerification, cancellationToken);
         }
         else
         {
-            // لو الطلب القديم مرفوض بنحدثه بالبيانات الجديدة لإعادة المحاولة
             existingVerification.NationalNumber = request.NationalNumber;
             existingVerification.Country = request.Country;
             existingVerification.City = request.City;
