@@ -7,7 +7,8 @@ public record ConversationsSummaryResponse(
     string Title,
     string LastMessageText,
     DateTime SentAt,
-    bool IsRead
+    bool IsRead,
+    int orderId
     );
 
     

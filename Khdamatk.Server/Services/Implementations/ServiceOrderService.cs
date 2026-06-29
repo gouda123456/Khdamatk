@@ -524,7 +524,8 @@ public class ServiceOrderService(
                 c.Service.Title,
                 c.Conversation!.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.Content : "",
                 c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.CreatedAt : DateTime.MinValue,
-                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.IsRead : true
+                c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault() != null ? c.Conversation.Messages.OrderByDescending(m => m.CreatedAt).FirstOrDefault()!.IsRead : true,
+                c.Id
             ))
             .ToListAsync(cancellationToken);
 
