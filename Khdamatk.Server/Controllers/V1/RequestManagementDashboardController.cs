@@ -10,7 +10,6 @@ public class RequestManagementDashboardController(IRequestManagementDashboardSer
 {
     private readonly IRequestManagementDashboardSerivce _requestManagementDashboardService = requestManagementDashboardService;
 
-    // 1. endpoint لجلب جدول الطلبات
     [HttpGet("list")]
     public async Task<IActionResult> GetOrders([FromQuery] string? status, CancellationToken cancellationToken)
     {
@@ -18,7 +17,6 @@ public class RequestManagementDashboardController(IRequestManagementDashboardSer
         return Ok(result);
     }
 
-    // 2. endpoint لجلب أرقام إحصائيات الكروت الأربعة
     [HttpGet("analytics")]
     public async Task<IActionResult> GetOrderAnalytics(CancellationToken cancellationToken)
     {
@@ -26,7 +24,6 @@ public class RequestManagementDashboardController(IRequestManagementDashboardSer
         return Ok(result);
     }
 
-    // 3. endpoint لتحديث الطلب ورفع الصور (يجب استخدام FromForm لاستقبال الـ Multipart Data)
     [HttpPost("update")]
     public async Task<IActionResult> UpdateOrder([FromForm] UpdateOrderAdminRequest request, CancellationToken cancellationToken)
     {

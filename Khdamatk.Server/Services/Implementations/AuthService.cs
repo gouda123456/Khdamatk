@@ -115,44 +115,76 @@ public class AuthService(
 
     public async Task<resultBase> RegisterAsync(RegisterRequest Request, CancellationToken cancellationToken)
     {
-        //check Duplicate Email
+        // 1. check Duplicate Email
         var existingUser = await userManager.FindByEmailAsync(Request.Email);
-
         if (existingUser != null)
         {
             return Failure(StatusCodes.Status409Conflict, nameof(UserMessagesRespond.AccountAlreadyExists), UserMessagesRespond.AccountAlreadyExists, UserErrors.EmailAlreadyExist);
         }
 
-        // 1. إنشاء كائن مستخدم جديد (Identity سيقوم بتوليد الـ ID فوراً)
+        // 2. إنشاء كائن مستخدم جديد
         var user = Request.Adapt<User>();
-
-
-        // 2. استخدام Mapster لتعبئة البيانات "فوق" الكائن الموجود (Mapping to existing object)
         user.PhoneNumber = Request.PhoneNumber;
-
         user.UserName = Request.userName.Replace(" ", "_");
-        var result = await userManager.CreateAsync(user, Request.Password);
 
-        if (result.Succeeded)
+        // ==================== [ فتح Transaction موحدة ] ====================
+        using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            //Get confirmation Email Token
+            // 3. حفظ المستخدم الأساسي في الـ Identity
+            var result = await userManager.CreateAsync(user, Request.Password);
+
+            if (!result.Succeeded)
+            {
+                var Errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToArray();
+                return Failure(StatusCodes.Status400BadRequest, Errors);
+            }
+
+            // Get confirmation Email Token
             var EmailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
             var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(EmailToken));
 
-
-            //Send Email
+            // Send Email
             var emailSent = await SendConfirmEmailAsync(user, code);
             if (!emailSent)
             {
+                // لو الإيميل منفذش، الـ Transaction هتقفل تلقائياً ومفيش حاجة هتتسيف في الداتابيز
                 return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
             }
 
+            // ==================== [ الجزء السليم بعد حل الـ Conflict ] ====================
+            if (Request.IsServiceProvider.HasValue && Request.IsServiceProvider == true)
+            {
+                var serviceProviderProfile = new ServiceProviderProfile
+                {
+                    // جوه AuthService.cs -> ميثود RegisterAsync
+                    UserId = user.Id, // يرجع كدة عشان ياخد الـ Id التلقائي بتاع اليوزر الجديد,
+                    IsActive = true,
+                    IsAvailable = true,
+                    DateOfJoin = DateTime.UtcNow,
+
+                    JobTitle = !string.IsNullOrWhiteSpace(Request.JobTitle) ? Request.JobTitle : "Freelancer",
+                    Bio = !string.IsNullOrWhiteSpace(Request.Bio) ? Request.Bio : "أنا مقدم خدمة محترف على منصة خدماتك وجاهز للعمل.",
+
+                    HourlyRate = 1,
+                    WorkingHoursPerWeek = 1
+                };
+
+                db.ServiceProviderProfiles.Add(serviceProviderProfile);
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
+            // لو كل الخطوات نجحت (بما فيها إرسال الإيميل وحفظ البروفايل) بنعمل Commit لكل العمليات مع بعض
+            await transaction.CommitAsync(cancellationToken);
+
             return Success(StatusCodes.Status201Created, "User added successfully", " check the email to confirm");
         }
-
-        var Errors = result.Errors.Select(e => new Error(e.Code, e.Description)).ToArray();
-
-        return Failure(StatusCodes.Status400BadRequest, Errors);
+        catch (Exception)
+        {
+            // لو حصل أي خطأ غير متوقع، بنلغي كل اللي حصل عشان الداتابيز تفضل نظيفة
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<resultBase> ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)

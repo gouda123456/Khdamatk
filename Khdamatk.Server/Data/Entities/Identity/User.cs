@@ -36,7 +36,8 @@ public class User : IdentityUser<string>
         }
     }
 
-
+    //TODO: Change this to a calculated value based on reviews and ratings in the future
+    public virtual decimal CalculatedRate { get; set; } = Random.Shared.Next(1, 6); // Random rate between 1 and 5
 
 
     [Required]
@@ -73,6 +74,7 @@ public class User : IdentityUser<string>
     public virtual ICollection<RefreshTokens> RefreshTokens { get; set; } = new List<RefreshTokens>();
 
     public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
+
 
     
 }
