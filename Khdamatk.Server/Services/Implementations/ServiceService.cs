@@ -336,6 +336,16 @@ public class ServiceService : IServiceService
                 query = query.Where(s => s.AverageRating >= request.MinRating.Value);
             }
 
+            if(request.ServiceProviderId != null)
+            {
+                query = query.Where(s => s.ServiceProviderProfileId == request.ServiceProviderId);
+            }
+
+            if(request.UserId != null)
+            {
+                query = query.Where(s => s.ServiceProviderProfile.UserId == request.UserId);
+            }
+
             // Apply sorting
             query = request.SortBy?.ToLower() switch
             {
@@ -382,7 +392,10 @@ public class ServiceService : IServiceService
                         ? File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath) 
                         : Array.Empty<byte>(),
                     s.ServiceProviderProfile.AverageRating
-                )
+                ),
+                (s.ServiceProviderProfile.User.VerificationData != null) ? $"{s.ServiceProviderProfile.User.VerificationData.Country},{s.ServiceProviderProfile.User.VerificationData.City}" : "N/A",
+                s.IsActive,
+                s.CreatedAt
             )).ToList();
 
             _logger.LogInformation("Retrieved {Count} services out of {Total}", services.Count, totalCount);
@@ -568,7 +581,10 @@ public class ServiceService : IServiceService
                         ? File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath) 
                         : Array.Empty<byte>(),
                     s.ServiceProviderProfile.AverageRating
-                )
+                ),
+                (s.ServiceProviderProfile.User.VerificationData != null) ? $"{s.ServiceProviderProfile.User.VerificationData.Country},{s.ServiceProviderProfile.User.VerificationData.City}" : "N/A",
+                s.IsActive,
+                s.CreatedAt
             )).ToList();
 
             _logger.LogInformation("Retrieved {Count} services for provider: {ProviderId}", services.Count, providerId);

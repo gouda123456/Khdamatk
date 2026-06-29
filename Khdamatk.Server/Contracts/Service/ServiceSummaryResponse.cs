@@ -9,7 +9,10 @@ public record ServiceSummaryResponse(
     int OrdersCount,
     double AverageRating,
     int DeliveryTimeInDays,
-    ProviderSummaryInfo ProviderInfo
+    ProviderSummaryInfo ProviderInfo,
+    string? Address,
+    bool? Statues,
+    DateTime CreatedAt
 );
 
 public record ProviderSummaryInfo(

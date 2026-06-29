@@ -154,7 +154,10 @@ public class ServiceOrderService(
                     s.ServiceProviderProfile.User.FullName!,
                     s.ServiceProviderProfile.User.ProfilePicture != null ? System.IO.File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath) : new byte[0],
                     s.ServiceProviderProfile.AverageRating
-                )
+                ),
+                (s.ServiceProviderProfile.User.VerificationData != null)? $"{s.ServiceProviderProfile.User.VerificationData.Country},{s.ServiceProviderProfile.User.VerificationData.City}" : "N/A",
+                s.IsActive,
+                s.CreatedAt
             ))
             .ToListAsync(cancellationToken);
 

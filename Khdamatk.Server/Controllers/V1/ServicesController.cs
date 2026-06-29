@@ -51,6 +51,14 @@ public class ServicesController : ControllerBase
         return result.Respond();
     }
 
+    [Authorize(Roles = RolesStrings.ServiceProvider)]
+    [HttpGet("by-ProviderId")]
+    public async Task<IActionResult> GetProviderServices( CancellationToken ct)
+    {
+        var result = await _serviceService.GetProviderServicesAsync(User.GetUserId(), ct);
+        return result.Respond();
+    }
+
     /// <summary>
     /// Add a new service (requires authentication)
     /// </summary>

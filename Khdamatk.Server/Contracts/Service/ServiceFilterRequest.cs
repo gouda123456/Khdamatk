@@ -9,6 +9,8 @@ public record ServiceFilterRequest(
     int? MaxDeliveryDays,
     ExperienceLevel? ExperienceLevel,
     double? MinRating,
+    string? ServiceProviderId,
+    string? UserId,
     int PageNumber = 1,
     int PageSize = 10,
     string? SortBy = "CreatedAt",
