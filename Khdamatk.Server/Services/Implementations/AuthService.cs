@@ -152,27 +152,7 @@ public class AuthService(
                 return Failure(StatusCodes.Status400BadRequest, "Error happened in email service", "we cant send the email to your email right now ", UserErrors.EmailServiceNotWorking);
             }
 
-            // ==================== [ الجزء السليم بعد حل الـ Conflict ] ====================
-            if (Request.IsServiceProvider.HasValue && Request.IsServiceProvider == true)
-            {
-                var serviceProviderProfile = new ServiceProviderProfile
-                {
-                    // جوه AuthService.cs -> ميثود RegisterAsync
-                    UserId = user.Id, // يرجع كدة عشان ياخد الـ Id التلقائي بتاع اليوزر الجديد,
-                    IsActive = true,
-                    IsAvailable = true,
-                    DateOfJoin = DateTime.UtcNow,
-
-                    JobTitle = !string.IsNullOrWhiteSpace(Request.JobTitle) ? Request.JobTitle : "Freelancer",
-                    Bio = !string.IsNullOrWhiteSpace(Request.Bio) ? Request.Bio : "أنا مقدم خدمة محترف على منصة خدماتك وجاهز للعمل.",
-
-                    HourlyRate = 1,
-                    WorkingHoursPerWeek = 1
-                };
-
-                db.ServiceProviderProfiles.Add(serviceProviderProfile);
-                await db.SaveChangesAsync(cancellationToken);
-            }
+            await db.SaveChangesAsync();
 
             // لو كل الخطوات نجحت (بما فيها إرسال الإيميل وحفظ البروفايل) بنعمل Commit لكل العمليات مع بعض
             await transaction.CommitAsync(cancellationToken);
@@ -186,6 +166,40 @@ public class AuthService(
             throw;
         }
     }
+
+
+    public async Task<resultBase> UpgradeUserToServiceProvider(string UserId, UpgradeUserToServiceProvider Request, CancellationToken cancellationToken = default)
+    {
+        var user = await userManager.FindByIdAsync(UserId);
+        if (user == null)
+            return Failure(StatusCodes.Status409Conflict, "bad request", "Failed", new Error("user not found", "you cant upgrade un exist user"));
+
+        var CheckIfUserIsServiceProvider = await userManager.IsInRoleAsync(user, RolesStrings.ServiceProvider);
+
+        // ==================== [ الجزء السليم بعد حل الـ Conflict ] ====================
+        
+            var serviceProviderProfile = new ServiceProviderProfile
+            {
+                // جوه AuthService.cs -> ميثود RegisterAsync
+                UserId = user.Id, // يرجع كدة عشان ياخد الـ Id التلقائي بتاع اليوزر الجديد,
+                IsActive = true,
+                IsAvailable = true,
+                DateOfJoin = DateTime.UtcNow,
+
+                JobTitle = !string.IsNullOrWhiteSpace(Request.JobTitle) ? Request.JobTitle : "Freelancer",
+                Bio = !string.IsNullOrWhiteSpace(Request.Bio) ? Request.Bio : "أنا مقدم خدمة محترف على منصة خدماتك وجاهز للعمل.",
+
+                HourlyRate = 1,
+                WorkingHoursPerWeek = 1
+            };
+
+            db.ServiceProviderProfiles.Add(serviceProviderProfile);
+            await db.SaveChangesAsync(cancellationToken);
+
+        return Success(StatusCodes.Status200OK);
+        
+    }
+
 
     public async Task<resultBase> ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default)
     {

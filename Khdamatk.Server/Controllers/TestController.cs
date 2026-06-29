@@ -171,6 +171,7 @@ public class TestController(
 
         return Ok(new
         {
+            Password = "Giggo343@",
             NormalUsers = await db.Users.Where(u => normalUsersId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync(),
             ServiceProviders = await db.Users.Where(u => ServiceProviderId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync(),
             Admins = await db.Users.Where(u => adminUsersId.Contains(u.Id)).Select(u => new { u.Id, u.FullName, u.Email }).ToListAsync()

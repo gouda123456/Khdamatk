@@ -24,6 +24,14 @@ public class AuthController(IAuthService authService) : ControllerBase
         var result = await authService.RegisterAsync(request, cancellationToken);
         return result.Respond();
     }
+    [Authorize(Roles = RolesStrings.Member)]
+
+    [HttpPost("UpgradeUserToServiceProvider")]
+    public async Task<IActionResult> UpgradeUserToServiceProvider(UpgradeUserToServiceProvider request, CancellationToken cancellationToken)
+    {
+        var result = await authService.UpgradeUserToServiceProvider(User.GetUserId(),request, cancellationToken);
+        return result.Respond();
+    }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest refreshToken) =>
