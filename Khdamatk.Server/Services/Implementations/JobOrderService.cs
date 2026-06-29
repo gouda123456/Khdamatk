@@ -26,48 +26,41 @@ public class JobOrderService(
 
 
     //Add Job and offer
-    public async Task<resultBase> AddJobASync(AddJobRequest request, CancellationToken cancellationToken = default)
+    public async Task<resultBase> AddJobAsync(AddJobRequest request, CancellationToken cancellationToken = default)
     {
-        /*TODOs:
-         * Validate request      --Done
-         * Deal with files       --Done
-         * Mapping Request       --Done
-         * Add to DB         --Done
-         * Save changes      --Done
-         * send email to some of freelancers (take 20 freelancer random) {use hang fire}         --***
-         */
-
-
-        var job = request.Adapt<JobPost>();
-
-        var category = await db.Categories.FirstOrDefaultAsync(c => c.Name == request.CategoryName);
-        if(category == null)
+        // 1. التأكد من وجود الـ Category أو إنشائه
+        var category = await db.Categories.FirstOrDefaultAsync(c => c.Name == request.CategoryName, cancellationToken);
+        if (category == null)
         {
             category = new Category { Name = request.CategoryName };
             await db.Categories.AddAsync(category, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         }
-        job.CategoryId = category.Id;
-        //Deal with files
-        if(request.Media != null && request.Media.Count > 1)
+
+        // 2. المابنج العادي والمباشر جداً بدون لف ودوران
+        var job = request.Adapt<JobPost>();
+
+        // 3. التصفير والتعديل اليدوي (ده اللي بيحمينا من أخطاء الـ Database)
+        job.Id = 0;                  // 🔥 تصفير الـ Id تماماً عشان يحل مشكلة الـ IDENTITY_INSERT
+        job.CategoryId = category.Id; // 🔥 إعطائه الـ Id الصحيح عشان يحل مشكلة الـ Foreign Key
+        job.Category = category;     // ربط الـ Navigation Property للأمان الكامل
+
+        // 4. التعامل مع الملفات المرفوعة (Media)
+        if (request.Media != null && request.Media.Count > 0)
         {
-            job.Media = [];
-            request.Media.ToList().ForEach(async m =>
+            job.Media = new List<Media>();
+            foreach (var file in request.Media)
             {
-                job.Media.Add(await m.UploadFileAsync());
-            });
-            
-                
-            
+                var uploadedMedia = await file.UploadFileAsync();
+                job.Media.Add(uploadedMedia);
+            }
         }
 
+        // 5. الحفظ النهائي في الداتابيز
         await db.JobPosts.AddAsync(job, cancellationToken);
-
-        //TODO: send email to random 20 customer
-
-
         await db.SaveChangesAsync(cancellationToken);
 
-        return Success(StatusCodes.Status201Created);
+        return Success(StatusCodes.Status200OK, SuccessMessages.General.Title, SuccessMessages.General.Message);
     }
 
     public async Task<resultBase> AddOfferAsync(int JobId, AddJopOfferRequest request, CancellationToken cancellationToken = default)
