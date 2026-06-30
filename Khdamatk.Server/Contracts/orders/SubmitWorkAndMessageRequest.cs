@@ -1,4 +1,6 @@
-﻿namespace Khdamatk.Server.Contracts.orders;
+using Khdamatk.Server.Helper.Validations;
+
+namespace Khdamatk.Server.Contracts.orders;
 
 public record SubmitWorkAndMessageRequest(
     string Message,

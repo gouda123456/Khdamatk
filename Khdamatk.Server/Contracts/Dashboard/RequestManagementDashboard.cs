@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
+using Khdamatk.Server.Helper.Validations;
 
 namespace Khdamatk.Server.Contracts.Admin.Request;
 
@@ -32,5 +33,6 @@ public class UpdateOrderAdminRequest
     public string Status { get; set; } = string.Empty;
 
     // هنا بنستقبل ملف الصورة أو العقد الفعلي المرفوع زي الكود بتاعكم
+    
     public IFormFile? Attachment { get; set; }
 }

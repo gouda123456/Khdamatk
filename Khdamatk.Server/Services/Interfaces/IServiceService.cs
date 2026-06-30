@@ -14,4 +14,5 @@ public interface IServiceService : IService
     
 
     Task<resultBase> GetProviderServicesAsync(string providerId, CancellationToken ct = default);
+    Task<resultBase> GetCategoryNameServices(string CategoryName, CancellationToken ct = default);
 }

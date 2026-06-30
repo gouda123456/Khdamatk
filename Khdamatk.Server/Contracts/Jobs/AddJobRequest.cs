@@ -1,4 +1,6 @@
-﻿namespace Khdamatk.Server.Contracts.Jobs;
+using Khdamatk.Server.Helper.Validations;
+
+namespace Khdamatk.Server.Contracts.Jobs;
 
 public record AddJobRequest(
     string UserId,

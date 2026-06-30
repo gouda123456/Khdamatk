@@ -1,4 +1,4 @@
-﻿
+
 using System;
 
 namespace Khdamatk.Server.MiddleWares;
@@ -17,10 +17,17 @@ public class GlobalErrorHandling(ILogger<GlobalErrorHandling> logger) : IMiddlew
 		{
 			logger.LogError(ex, "Something went wrong: {Message}", ex.Message);
 
-			context.Response.StatusCode = 500;
-			context.Response.ContentType = "application/json";
-			var errorResponse = Failure(500, "Internal Server Error", "An unexpected error occurred while processing the request.");
-			await context.Response.WriteAsJsonAsync(errorResponse);
+			if (!context.Response.HasStarted)
+			{
+				context.Response.StatusCode = 500;
+				context.Response.ContentType = "application/json";
+				var errorResponse = Failure(500, "Internal Server Error", "An unexpected error occurred while processing the request.");
+				await context.Response.WriteAsJsonAsync(errorResponse);
+			}
+			else
+			{
+				logger.LogWarning("The response has already started, the error handler will not be executed.");
+			}
 		} 
 	}
 }

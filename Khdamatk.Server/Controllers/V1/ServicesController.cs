@@ -47,11 +47,19 @@ public class ServicesController : ControllerBase
         return result.Respond();
     }
 
-    [Authorize(Roles = RolesStrings.ServiceProvider)]
+    //[Authorize(Roles = RolesStrings.ServiceProvider)]
     [HttpGet("by-ProviderId")]
     public async Task<IActionResult> GetProviderServices( CancellationToken ct)
     {
         var result = await _serviceService.GetProviderServicesAsync(User.GetUserId(), ct);
+        return result.Respond();
+    }
+
+
+    [HttpGet("by-CategoryName/{CategoryName}")]
+    public async Task<IActionResult> GetCategoryNameServices(string CategoryName, CancellationToken ct)
+    {
+        var result = await _serviceService.GetCategoryNameServices(CategoryName, ct);
         return result.Respond();
     }
 

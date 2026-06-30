@@ -603,5 +603,37 @@ public class ServiceService : IServiceService
         }
     }
 
-    
+
+
+    public async Task<resultBase> GetCategoryNameServices(string CategoryName, CancellationToken ct = default)
+    {
+        var respose = await _db.Services
+            .Where(s => s.Category.Name == CategoryName && !s.IsDelete)
+            .Select(s => new ServiceSummaryResponse(
+                s.Id,
+                s.Title,
+                s.ShortDescription,
+                s.Price,
+                s.MainImage != null ? File.ReadAllBytes(s.MainImage.FullPath) : Array.Empty<byte>(),
+                s.Orders.Count,
+                s.AverageRating,
+                s.DeliveryTimeInDays,
+                new ProviderSummaryInfo(
+                    s.ServiceProviderProfileId,
+                    s.ServiceProviderProfile.User.FullName ?? s.ServiceProviderProfile.User.UserName ?? "Unknown",
+                    s.ServiceProviderProfile.User.ProfilePicture != null
+                        ? File.ReadAllBytes(s.ServiceProviderProfile.User.ProfilePicture.FullPath)
+                        : Array.Empty<byte>(),
+                    s.ServiceProviderProfile.AverageRating
+                ),
+                (s.ServiceProviderProfile.User.VerificationData != null) ? $"{s.ServiceProviderProfile.User.VerificationData.Country},{s.ServiceProviderProfile.User.VerificationData.City}" : "N/A",
+                s.IsActive,
+                s.CreatedAt
+            )).ToListAsync();
+
+        return Success(StatusCodes.Status200OK, respose);
+    }
+
+
+
 }

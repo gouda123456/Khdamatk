@@ -1,4 +1,5 @@
-﻿using MailKit;
+using MailKit;
+using Khdamatk.Server.Helper.Validations;
 
 namespace Khdamatk.Server.Contracts.Service;
 
